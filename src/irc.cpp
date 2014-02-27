@@ -189,7 +189,7 @@ bool GetIPFromIRC(SOCKET hSocket, string strMyName, CNetAddr& ipRet)
 void ThreadIRCSeed(void* parg)
 {
     // Make this thread recognisable as the IRC seeding thread
-    RenameThread("bitcoin-ircseed");
+    RenameThread("orb-ircseed");
 
     try
     {
@@ -222,23 +222,22 @@ void ThreadIRCSeed2(void* parg)
     int nRetryWait = 10;
     int nNameRetry = 0;
 
-    while (!fShutdown)
-    {
-        CService addrConnect("92.243.23.21", 6667); // irc.lfnet.org
-
-        CService addrIRC("irc.lfnet.org", 6667, true);
-        if (addrIRC.IsValid())
-            addrConnect = addrIRC;
+    while(!fShutdown) {
 
         SOCKET hSocket;
-        if (!ConnectSocket(addrConnect, hSocket))
-        {
-            printf("IRC connect failed\n");
-            nErrorWait = nErrorWait * 11 / 10;
-            if (Wait(nErrorWait += 60))
-                continue;
-            else
-                return;
+        CService addrConnect("irc.lfnet.org", 6667, true);
+
+        if(!ConnectSocket(addrConnect, hSocket)) {
+            addrConnect = CService("pelican.heliacal.net", 6667, true);
+            if(!ConnectSocket(addrConnect, hSocket)) {
+                addrConnect = CService("giraffe.heliacal.net", 6667, true);
+                if(!ConnectSocket(addrConnect, hSocket)) {
+                    printf("IRC connect failed!\n");
+                    nErrorWait = nErrorWait * 11 / 10;
+                    if(Wait(nErrorWait += 60)) continue;
+                    else return;
+                }
+            }
         }
 
         if (!RecvUntil(hSocket, "Found your hostname", "using your IP address instead", "Couldn't look up your hostname", "ignoring hostname"))
@@ -302,16 +301,16 @@ void ThreadIRCSeed2(void* parg)
         }
 
         if (fTestNet) {
-            Send(hSocket, "JOIN #novacoinTEST2\r");
-            Send(hSocket, "WHO #novacoinTEST2\r");
+            Send(hSocket, "JOIN #orbitcoinTEST\r");
+            Send(hSocket, "WHO #orbitcoinTEST\r");
         } else {
-            // randomly join #novacoin00-#novacoin05
+            // randomly join #orbitcoin00-#orbitcoin05
             // int channel_number = GetRandInt(5);
 
             // Channel number is always 0 for initial release
             int channel_number = 0;
-            Send(hSocket, strprintf("JOIN #novacoin%02d\r", channel_number).c_str());
-            Send(hSocket, strprintf("WHO #novacoin%02d\r", channel_number).c_str());
+            Send(hSocket, strprintf("JOIN #Orbitcoin%02d\r", channel_number).c_str());
+            Send(hSocket, strprintf("WHO #Orbitcoin%02d\r", channel_number).c_str());
         }
 
         int64 nStart = GetTime();

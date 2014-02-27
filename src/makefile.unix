@@ -52,43 +52,6 @@ LIBS+= \
    -l pthread
 
 
-# Hardening
-# Make some classes of vulnerabilities unexploitable in case one is discovered.
-#
-    # This is a workaround for Ubuntu bug #691722, the default -fstack-protector causes
-    # -fstack-protector-all to be ignored unless -fno-stack-protector is used first.
-    # see: https://bugs.launchpad.net/ubuntu/+source/gcc-4.5/+bug/691722
-    HARDENING=-fno-stack-protector
-
-    # Stack Canaries
-    # Put numbers at the beginning of each stack frame and check that they are the same.
-    # If a stack buffer if overflowed, it writes over the canary number and then on return
-    # when that number is checked, it won't be the same and the program will exit with
-    # a "Stack smashing detected" error instead of being exploited.
-    HARDENING+=-fstack-protector-all -Wstack-protector
-
-    # Make some important things such as the global offset table read only as soon as
-    # the dynamic linker is finished building it. This will prevent overwriting of addresses
-    # which would later be jumped to.
-    LDHARDENING+=-Wl,-z,relro -Wl,-z,now
-
-    # Build position independent code to take advantage of Address Space Layout Randomization
-    # offered by some kernels.
-    # see doc/build-unix.txt for more information.
-    ifdef PIE
-        HARDENING+=-fPIE
-        LDHARDENING+=-pie
-    endif
-
-    # -D_FORTIFY_SOURCE=2 does some checking for potentially exploitable code patterns in
-    # the source such overflowing a statically defined buffer.
-    HARDENING+=-D_FORTIFY_SOURCE=2
-#
-
-
-DEBUGFLAGS=-g
-
-
 ifeq (${ARCH}, i686)
     EXT_OPTIONS=-msse2
 endif
@@ -96,12 +59,12 @@ endif
 
 # CXXFLAGS can be specified on the make command line, so we use xCXXFLAGS that only
 # adds some defaults in front. Unfortunately, CXXFLAGS=... $(CXXFLAGS) does not work.
-xCXXFLAGS=-O2 $(EXT_OPTIONS) -pthread -Wall -Wextra -Wno-ignored-qualifiers -Wformat -Wformat-security -Wno-unused-parameter \
-    $(DEBUGFLAGS) $(DEFS) $(HARDENING) $(CXXFLAGS)
+xCXXFLAGS=-O2 -fomit-frame-pointer -fno-stack-protector $(EXT_OPTIONS) -pthread -Wall -Wextra -Wno-ignored-qualifiers -Wformat -Wformat-security -Wno-unused-parameter \
+    $(DEFS) $(CXXFLAGS)
 
 # LDFLAGS can be specified on the make command line, so we use xLDFLAGS that only
 # adds some defaults in front. Unfortunately, LDFLAGS=... $(LDFLAGS) does not work.
-xLDFLAGS=$(LDHARDENING) $(LDFLAGS)
+xLDFLAGS= -Wl,-s $(LDFLAGS)
 
 OBJS= \
     obj/alert.o \
@@ -139,19 +102,9 @@ OBJS= \
     obj/scrypt.o \
     obj/scrypt-arm.o \
     obj/scrypt-x86.o \
-    obj/scrypt-x86_64.o \
-    obj/zerocoin/Accumulator.o \
-    obj/zerocoin/AccumulatorProofOfKnowledge.o \
-    obj/zerocoin/Coin.o \
-    obj/zerocoin/CoinSpend.o \
-    obj/zerocoin/Commitment.o \
-    obj/zerocoin/ParamGeneration.o \
-    obj/zerocoin/Params.o \
-    obj/zerocoin/SerialNumberSignatureOfKnowledge.o \
-    obj/zerocoin/SpendMetaData.o \
-    obj/zerocoin/ZeroTest.o
+    obj/scrypt-x86_64.o
 
-all: novacoind
+all: orbitcoind
 
 LIBS += $(CURDIR)/leveldb/libleveldb.a $(CURDIR)/leveldb/libmemenv.a
 DEFS += $(addprefix -I,$(CURDIR)/leveldb/include)
@@ -184,22 +137,13 @@ obj/%.o: %.cpp
 	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
 	  rm -f $(@:%.o=%.d)
 
-obj/zerocoin/%.o: zerocoin/%.cpp
-	$(CXX) -c $(xCXXFLAGS) -MMD -MF $(@:%.o=%.d) -o $@ $<
-	@cp $(@:%.o=%.d) $(@:%.o=%.P); \
-	  sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
-	  rm -f $(@:%.o=%.d)
-
-novacoind: $(OBJS:obj/%=obj/%)
+orbitcoind: $(OBJS:obj/%=obj/%)
 	$(LINK) $(xCXXFLAGS) -o $@ $^ $(xLDFLAGS) $(LIBS)
 
 clean:
-	-rm -f novacoind
+	-rm -f orbitcoind
 	-rm -f obj/*.o
-	-rm -f obj/zerocoin/*.o
 	-rm -f obj/*.P
-	-rm -f obj/zerocoin/*.P
 	-rm -f obj/build.h
 
 FORCE:

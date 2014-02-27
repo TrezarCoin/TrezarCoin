@@ -10,7 +10,6 @@
 #include "net.h"
 #include "script.h"
 #include "scrypt.h"
-#include "zerocoin/Zerocoin.h"
 
 #include <list>
 
@@ -33,25 +32,22 @@ static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 static const unsigned int MAX_INV_SZ = 50000;
 
+static const unsigned int MAX_TX_COMMENT_LEN = 140;
+
 static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
 static const unsigned int BLOCKFILE_CHUNK_SIZE = 0x1000000; // 16 MiB
 static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 static const unsigned int MEMPOOL_HEIGHT = 0x7FFFFFFF;
 
-static const int64 MIN_TX_FEE = CENT;
-static const int64 MIN_RELAY_TX_FEE = CENT;
-static const int64 MAX_MONEY = 2000000000 * COIN;
-static const int64 MAX_MINT_PROOF_OF_WORK = 100 * COIN;
-static const int64 MAX_MINT_PROOF_OF_STAKE = 1 * COIN;
+static const int64 MIN_TX_FEE = 0.1 * CENT;
+static const int64 MIN_RELAY_TX_FEE = 0.1 * CENT;
+static const int64 TX_DUST = 0.01 * CENT;
+
+static const int64 MAX_MONEY = 31000000 * COIN;
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 
-static const unsigned int ENTROPY_SWITCH_TIME = 1362791041; // Sat, 09 Mar 2013 01:04:01 GMT
-static const unsigned int STAKE_SWITCH_TIME = 1371686400; // Thu, 20 Jun 2013 00:00:00 GMT
-static const unsigned int TARGETS_SWITCH_TIME = 1374278400; // Sat, 20 Jul 2013 00:00:00 GMT
-static const unsigned int CHAINCHECKS_SWITCH_TIME = 1379635200; // Fri, 20 Sep 2013 00:00:00 GMT
-static const unsigned int STAKECURVE_SWITCH_TIME = 1382227200; // Sun, 20 Oct 2013 00:00:00 GMT
-static const unsigned int OUTPUT_SWITCH_TIME = 1398916800; // Thu, 01 May 2014 04:00:00 GMT
-
+static const unsigned int CHAIN_SWITCH_TIME         = 1393848000; // 03 Mar 2014 12:00:00 GMT
+static const unsigned int TESTNET_CHAIN_SWITCH_TIME = 1393473600; // 27 Feb 2014 04:00:00 GMT
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
@@ -63,13 +59,12 @@ static const int fHaveUPnP = true;
 static const int fHaveUPnP = false;
 #endif
 
-static const uint256 hashGenesisBlock("0x00000a060336cbb72fe969666d337b87198b1add2abaa59cca226820b32933a4");
-static const uint256 hashGenesisBlockTestNet("0x000c763e402f2436da9ed36c7286f62c3f6e5dbafce9ff289bd43d7459327eb");
+static const uint256 hashGenesisBlock("0x683373dac7ec1b01a9e10d4f5ef3dda0bf4c31ddefe5cffa14550dc0c776e699");
+static const uint256 hashGenesisBlockTestNet("0x0000a6a079a91fe96443c0be34a0b140057d4259f51286c9d99d175238bf4b7f");
 
-inline int64 PastDrift(int64 nTime)   { return nTime - 2 * 60 * 60; } // up to 2 hours from the past
-inline int64 FutureDrift(int64 nTime) { return nTime + 2 * 60 * 60; } // up to 2 hours from the future
+inline int64 PastDrift(int64 nTime)   { return nTime - 15 * 60; } // max. 15 minutes from the past
+inline int64 FutureDrift(int64 nTime) { return nTime + 15 * 60; } // max. 15 minutes to the future
 
-extern libzerocoin::Params* ZCParams;
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern std::map<uint256, CBlockIndex*> mapBlockIndex;
@@ -128,9 +123,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle);
 bool LoadExternalBlockFile(FILE* fileIn);
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
-unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake);
-int64 GetProofOfWorkReward(unsigned int nBits);
-int64 GetProofOfStakeReward(int64 nCoinAge, unsigned int nBits, unsigned int nTime, bool bCoinYearOnly=false);
+unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake, bool fPrettyPrint);
+int64 GetProofOfWorkReward(int nHeight, int64 nFees);
+int64 GetProofOfStakeReward();
 unsigned int ComputeMinWork(unsigned int nBase, int64 nTime);
 unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime);
 int GetNumBlocksOfPeers();
@@ -418,12 +413,13 @@ enum CheckSig_mode
 class CTransaction
 {
 public:
-    static const int CURRENT_VERSION=1;
+    static const int CURRENT_VERSION = 2;
     int nVersion;
     unsigned int nTime;
     std::vector<CTxIn> vin;
     std::vector<CTxOut> vout;
     unsigned int nLockTime;
+    std::string strTxComment;
 
     // Denial-of-service detection:
     mutable int nDoS;
@@ -434,14 +430,15 @@ public:
         SetNull();
     }
 
-    IMPLEMENT_SERIALIZE
-    (
-        READWRITE(this->nVersion);
-        nVersion = this->nVersion;
-        READWRITE(nTime);
-        READWRITE(vin);
-        READWRITE(vout);
-        READWRITE(nLockTime);
+    IMPLEMENT_SERIALIZE(
+      READWRITE(this->nVersion);
+      nVersion = this->nVersion;
+      READWRITE(nTime);
+      READWRITE(vin);
+      READWRITE(vout);
+      READWRITE(nLockTime);
+      if(this->nVersion > 1)
+        READWRITE(strTxComment);
     )
 
     void SetNull()
@@ -452,6 +449,7 @@ public:
         vout.clear();
         nLockTime = 0;
         nDoS = 0;  // Denial-of-service prevention
+	strTxComment.clear();
     }
 
     bool IsNull() const
@@ -576,10 +574,10 @@ public:
     {
         // Large (in bytes) low-priority (new, small-coin) transactions
         // need a fee.
-        return dPriority > COIN * 144 / 250;
+        return dPriority > COIN * 180 / 250;
     }
 
-    int64 GetMinFee(unsigned int nBlockSize=1, bool fAllowFree=false, enum GetMinFee_mode mode=GMF_BLOCK, unsigned int nBytes = 0) const;
+    int64 GetMinFee(unsigned int nBytes = 0, bool fAllowFree=false, enum GetMinFee_mode mode=GMF_BLOCK) const;
 
     friend bool operator==(const CTransaction& a, const CTransaction& b)
     {
@@ -606,13 +604,14 @@ public:
     {
         std::string str;
         str += IsCoinBase()? "Coinbase" : (IsCoinStake()? "Coinstake" : "CTransaction");
-        str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%"PRIszu", vout.size=%"PRIszu", nLockTime=%d)\n",
+        str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%"PRIszu", vout.size=%"PRIszu", nLockTime=%d, strTxComment=%s)\n",
             GetHash().ToString().substr(0,10).c_str(),
             nTime,
             nVersion,
             vin.size(),
             vout.size(),
-            nLockTime);
+            nLockTime,
+            strTxComment.substr(0,30).c_str());
         for (unsigned int i = 0; i < vin.size(); i++)
             str += "    " + vin[i].ToString() + "\n";
         for (unsigned int i = 0; i < vout.size(); i++)
@@ -1206,25 +1205,13 @@ public:
     void UpdateTime(const CBlockIndex* pindexPrev);
 
     // ppcoin: entropy bit for stake modifier if chosen by modifier
-    unsigned int GetStakeEntropyBit(unsigned int nTime) const
+    unsigned int GetStakeEntropyBit(unsigned int nHeight) const
     {
-        // Protocol switch to support p2pool at novacoin block #9689
-        if (nTime >= ENTROPY_SWITCH_TIME || fTestNet)
-        {
-            // Take last bit of block hash as entropy bit
-            unsigned int nEntropyBit = ((GetHash().Get64()) & 1llu);
-            if (fDebug && GetBoolArg("-printstakemodifier"))
-                printf("GetStakeEntropyBit: nTime=%u hashBlock=%s nEntropyBit=%u\n", nTime, GetHash().ToString().c_str(), nEntropyBit);
-            return nEntropyBit;
-        }
-        // Before novacoin block #9689 - old protocol
-        uint160 hashSig = Hash160(vchBlockSig);
+        // Take last bit of block hash as entropy bit
+        unsigned int nEntropyBit = ((GetHash().Get64()) & 1llu);
         if (fDebug && GetBoolArg("-printstakemodifier"))
-            printf("GetStakeEntropyBit: hashSig=%s", hashSig.ToString().c_str());
-        hashSig >>= 159; // take the first bit of the hash
-        if (fDebug && GetBoolArg("-printstakemodifier"))
-            printf(" entropybit=%"PRI64d"\n", hashSig.Get64());
-        return hashSig.Get64();
+            printf("GetStakeEntropyBit: nHeight=%u hashBlock=%s nEntropyBit=%u\n", nHeight, GetHash().ToString().c_str(), nEntropyBit);
+        return nEntropyBit;
     }
 
     // ppcoin: two types of block: proof-of-work or proof-of-stake
@@ -1394,7 +1381,7 @@ public:
     bool AddToBlockIndex(const CDiskBlockPos &pos);
 
     // Context-independent validity checks
-    bool CheckBlock(bool fCheckPOW=true, bool fCheckMerkleRoot=true, bool fCheckSig=false) const;
+    bool CheckBlock(bool fCheckPOW=true, bool fCheckMerkleRoot=true) const;
 
     // Store block on disk
     bool AcceptBlock();
@@ -1405,14 +1392,17 @@ public:
     // Generate proof-of-stake block signature
     bool SignBlock(CWallet& keystore);
 
+    /* Generate a proof-of-work block signature */
+    bool SignWorkBlock(const CKeyStore& keystore);
+
     // Get generator key
     bool GetGenerator(CKey& GeneratorKey) const;
 
     // Validate proof-of-stake block signature
     bool CheckSignature(bool& fFatal, uint256& hashProofOfStake) const;
 
-    // Legacy proof-of-work signature
-    bool CheckLegacySignature() const;
+    /* Verify a proof-of-work block signature */
+    bool CheckWorkSignature() const;
 };
 
 

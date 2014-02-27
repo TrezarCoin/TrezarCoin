@@ -960,7 +960,7 @@ static std::string FormatException(std::exception* pex, const char* pszThread)
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(NULL, pszModule, sizeof(pszModule));
 #else
-    const char* pszModule = "novacoin";
+    const char* pszModule = "orbitcoin";
 #endif
     if (pex)
         return strprintf(
@@ -1009,13 +1009,12 @@ void PrintExceptionContinue(std::exception* pex, const char* pszThread)
 boost::filesystem::path GetDefaultDataDir()
 {
     namespace fs = boost::filesystem;
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\NovaCoin
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\NovaCoin
-    // Mac: ~/Library/Application Support/NovaCoin
-    // Unix: ~/.novacoin
 #ifdef WIN32
-    // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "NovaCoin";
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Orbitcoin
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Orbitcoin
+//    return GetSpecialFolderPath(CSIDL_APPDATA) / "Orbitcoin";
+    // Windows: current directory \ data for livenet
+    return boost::filesystem::current_path() / "data";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -1023,15 +1022,8 @@ boost::filesystem::path GetDefaultDataDir()
         pathRet = fs::path("/");
     else
         pathRet = fs::path(pszHome);
-#ifdef MAC_OSX
-    // Mac
-    pathRet /= "Library/Application Support";
-    fs::create_directory(pathRet);
-    return pathRet / "NovaCoin";
-#else
-    // Unix
-    return pathRet / ".novacoin";
-#endif
+    // Linux, Mac OS X, *BSD and so on: ~/.orbitcoin
+    return pathRet / ".orbitcoin";
 #endif
 }
 
@@ -1062,7 +1054,7 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
         path = GetDefaultDataDir();
     }
     if (fNetSpecific && GetBoolArg("-testnet", false))
-        path /= "testnet2";
+        path /= "testnet";
 
     fs::create_directory(path);
 
@@ -1072,8 +1064,17 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
 
 boost::filesystem::path GetConfigFile()
 {
-    boost::filesystem::path pathConfigFile(GetArg("-conf", "novacoin.conf"));
-    if (!pathConfigFile.is_complete()) pathConfigFile = GetDataDir(false) / pathConfigFile;
+    namespace fs = boost::filesystem;
+
+    fs::path pathConfigFile;
+    if(mapArgs.count("-conf")) pathConfigFile = fs::path(mapArgs["-conf"]);
+    else pathConfigFile = fs::path("orbitcoin.conf");
+    if(!pathConfigFile.is_absolute()) {
+        if(!GetBoolArg("-testnet", false)) 
+          pathConfigFile = GetDataDir(false) / pathConfigFile;
+        else
+          pathConfigFile = GetDataDir(false) / "testnet" / pathConfigFile;
+    }
     return pathConfigFile;
 }
 
@@ -1103,7 +1104,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 
 boost::filesystem::path GetPidFile()
 {
-    boost::filesystem::path pathPidFile(GetArg("-pid", "novacoind.pid"));
+    boost::filesystem::path pathPidFile(GetArg("-pid", "orbitcoind.pid"));
     if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile;
     return pathPidFile;
 }
@@ -1245,7 +1246,7 @@ void AddTimeData(const CNetAddr& ip, int64 nTime)
         int64 nMedian = vTimeOffsets.median();
         std::vector<int64> vSorted = vTimeOffsets.sorted();
         // Only let other nodes change our time by so much
-        if (abs64(nMedian) < 70 * 60)
+        if (abs64(nMedian) < 10 * 60)
         {
             nTimeOffset = nMedian;
         }
@@ -1265,10 +1266,10 @@ void AddTimeData(const CNetAddr& ip, int64 nTime)
                 if (!fMatch)
                 {
                     fDone = true;
-                    string strMessage = _("Warning: Please check that your computer's date and time are correct! If your clock is wrong NovaCoin will not work properly.");
+                    string strMessage = _("Warning: Please check that your computer's date and time are correct! If your clock is wrong Orbitcoin will not work properly.");
                     strMiscWarning = strMessage;
                     printf("*** %s\n", strMessage.c_str());
-                    uiInterface.ThreadSafeMessageBox(strMessage+" ", string("NovaCoin"), CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION);
+                    uiInterface.ThreadSafeMessageBox(strMessage+" ", string("Orbitcoin"), CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION);
                 }
             }
         }

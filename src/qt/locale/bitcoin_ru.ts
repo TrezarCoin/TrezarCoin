@@ -6,13 +6,13 @@
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="+14"/>
-        <source>About NovaCoin</source>
-        <translation>О NovaCoin</translation>
+        <source>About Orbitcoin</source>
+        <translation>О Orbitcoin</translation>
     </message>
     <message>
         <location line="+39"/>
-        <source>&lt;b&gt;NovaCoin&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;NovaCoin&lt;/b&gt; версия</translation>
+        <source>&lt;b&gt;Orbitcoin&lt;/b&gt; version</source>
+        <translation>&lt;b&gt;Orbitcoin&lt;/b&gt; версия</translation>
     </message>
     <message>
         <location line="+41"/>
@@ -64,7 +64,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-46"/>
-        <source>These are your NovaCoin addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</source>
+        <source>These are your Orbitcoin addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</source>
         <translation>Это Ваши адреса для получения платежей. Вы можете дать разные адреса отправителям, чтобы отслеживать, кто именно вам платит.</translation>
     </message>
     <message>
@@ -79,8 +79,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+11"/>
-        <source>Sign a message to prove you own a NovaCoin address</source>
-        <translation>Подписать сообщение, чтобы доказать владение адресом NovaCoin</translation>
+        <source>Sign a message to prove you own a Orbitcoin address</source>
+        <translation>Подписать сообщение, чтобы доказать владение адресом Orbitcoin</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -94,8 +94,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-14"/>
-        <source>Verify a message to ensure it was signed with a specified NovaCoin address</source>
-        <translation>Проверить сообщение, чтобы убедиться, что оно было подписано указанным адресом NovaCoin</translation>
+        <source>Verify a message to ensure it was signed with a specified Orbitcoin address</source>
+        <translation>Проверить сообщение, чтобы убедиться, что оно было подписано указанным адресом Orbitcoin</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -252,7 +252,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-56"/>
-        <source>NovaCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
+        <source>Orbitcoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
         <translation>Сейчас программа закроется для завершения процесса шифрования. Помните, что шифрование вашего бумажника не может полностью защитить ваши монеты от кражи с помощью инфицирования вашего компьютера вредоносным ПО.</translation>
     </message>
     <message>
@@ -342,7 +342,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-13"/>
         <source>&amp;Receive coins</source>
-        <translation>&amp;Получение монет</translation>
+        <translation>&amp;Получение Орбов</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -352,7 +352,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-7"/>
         <source>&amp;Send coins</source>
-        <translation>Отп&amp;равка монет</translation>
+        <translation>Отп&amp;равка Орбов</translation>
     </message>
     <message>
         <location line="+35"/>
@@ -366,8 +366,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+4"/>
-        <source>Show information about NovaCoin</source>
-        <translation>Показать информацию о NovaCoin&apos;е</translation>
+        <source>Show information about Orbitcoin</source>
+        <translation>Показать информацию о Orbitcoin&apos;е</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -420,13 +420,13 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-58"/>
-        <source>Send coins to a NovaCoin address</source>
-        <translation>Отправить монеты на указанный адрес NovaCoin</translation>
+        <source>Send coins to an Orbitcoin address</source>
+        <translation>Отправить монеты на указанный адрес Orbitcoin</translation>
     </message>
     <message>
         <location line="+45"/>
-        <source>Modify configuration options for NovaCoin</source>
-        <translation>Изменить параметры конфигурации NovaCoin</translation>
+        <source>Modify configuration options for Orbitcoin</source>
+        <translation>Изменить параметры конфигурации Orbitcoin</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -465,8 +465,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-186"/>
-        <source>NovaCoin</source>
-        <translation>NovaCoin</translation>
+        <source>Orbitcoin</source>
+        <translation>Orbitcoin</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -475,8 +475,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+168"/>
-        <source>&amp;About NovaCoin</source>
-        <translation>&amp;О NovaCoin</translation>
+        <source>&amp;About Orbitcoin</source>
+        <translation>&amp;О Orbitcoin</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -517,12 +517,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+0"/>
         <location line="+60"/>
-        <source>NovaCoin client</source>
-        <translation>NovaCoin клиент</translation>
+        <source>Orbitcoin client</source>
+        <translation>Orbitcoin клиент</translation>
     </message>
     <message numerus="yes">
         <location line="+69"/>
-        <source>%n active connection(s) to NovaCoin network</source>
+        <source>%n active connection(s) to Orbitcoin network</source>
         <translation>
             <numerusform>%n активное соединение с сетью</numerusform>
             <numerusform>%n активных соединений с сетью</numerusform>
@@ -627,8 +627,8 @@ Address: %4
     <message>
         <location line="-15"/>
         <location line="+15"/>
-        <source>URI can not be parsed! This can be caused by an invalid NovaCoin address or malformed URI parameters.</source>
-        <translation>Не удалось обработать URI! Это может быть связано с неверным адресом NovaCoin или неправильными параметрами URI.</translation>
+        <source>URI can not be parsed! This can be caused by an invalid Orbitcoin address or malformed URI parameters.</source>
+        <translation>Не удалось обработать URI! Это может быть связано с неверным адресом Orbitcoin или неправильными параметрами URI.</translation>
     </message>
     <message>
         <location line="+16"/>
@@ -662,8 +662,8 @@ Address: %4
     </message>
     <message>
         <location filename="../bitcoin.cpp" line="+109"/>
-        <source>A fatal error occurred. NovaCoin can no longer continue safely and will quit.</source>
-        <translation>Произошла неисправимая ошибка. NovaCoin не может безопасно продолжать работу и будет закрыт.</translation>
+        <source>A fatal error occurred. Orbitcoin can no longer continue safely and will quit.</source>
+        <translation>Произошла неисправимая ошибка. Orbitcoin не может безопасно продолжать работу и будет закрыт.</translation>
     </message>
 </context>
 <context>
@@ -997,8 +997,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+5"/>
-        <source>The entered address &quot;%1&quot; is not a valid NovaCoin address.</source>
-        <translation>Введённый адрес &quot;%1&quot; не является правильным NovaCoin-адресом.</translation>
+        <source>The entered address &quot;%1&quot; is not a valid Orbitcoin address.</source>
+        <translation>Введённый адрес &quot;%1&quot; не является правильным Orbitcoin-адресом.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1016,8 +1016,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location filename="../guiutil.cpp" line="+420"/>
         <location line="+12"/>
-        <source>NovaCoin-Qt</source>
-        <translation>NovaCoin-Qt</translation>
+        <source>Orbitcoin-Qt</source>
+        <translation>Orbitcoin-Qt</translation>
     </message>
     <message>
         <location line="-12"/>
@@ -1079,13 +1079,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+31"/>
-        <source>Automatically start NovaCoin after logging in to the system.</source>
-        <translation>Автоматически запускать NovaCoin после входа в систему</translation>
+        <source>Automatically start Orbitcoin after logging in to the system.</source>
+        <translation>Автоматически запускать Orbitcoin после входа в систему</translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>&amp;Start NovaCoin on system login</source>
-        <translation>&amp;Запускать NovaCoin при входе в систему</translation>
+        <source>&amp;Start Orbitcoin on system login</source>
+        <translation>&amp;Запускать Orbitcoin при входе в систему</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -1104,8 +1104,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+6"/>
-        <source>Automatically open the NovaCoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Автоматически открыть порт для NovaCoin-клиента на роутере. Работает только если Ваш роутер поддерживает UPnP, и данная функция включена.</translation>
+        <source>Automatically open the Orbitcoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Автоматически открыть порт для Orbitcoin-клиента на роутере. Работает только если Ваш роутер поддерживает UPnP, и данная функция включена.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1114,8 +1114,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+7"/>
-        <source>Connect to the NovaCoin network through a SOCKS proxy (e.g. when connecting through Tor).</source>
-        <translation>Подключаться к сети NovaCoin через прокси SOCKS (например, при подключении через Tor).</translation>
+        <source>Connect to the Orbitcoin network through a SOCKS proxy (e.g. when connecting through Tor).</source>
+        <translation>Подключаться к сети Orbitcoin через прокси SOCKS (например, при подключении через Tor).</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1189,8 +1189,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+13"/>
-        <source>The user interface language can be set here. This setting will take effect after restarting NovaCoin.</source>
-        <translation>Здесь можно выбрать язык интерфейса. Настройки вступят в силу после перезапуска NovaCoin.</translation>
+        <source>The user interface language can be set here. This setting will take effect after restarting Orbitcoin.</source>
+        <translation>Здесь можно выбрать язык интерфейса. Настройки вступят в силу после перезапуска Orbitcoin.</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -1204,8 +1204,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+9"/>
-        <source>Whether to show NovaCoin addresses in the transaction list or not.</source>
-        <translation>Показывать ли адреса NovaCoin в списке транзакций.</translation>
+        <source>Whether to show Orbitcoin addresses in the transaction list or not.</source>
+        <translation>Показывать ли адреса Orbitcoin в списке транзакций.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1251,8 +1251,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="-9"/>
         <location line="+9"/>
-        <source>This setting will take effect after restarting NovaCoin.</source>
-        <translation>Эта настройка вступит в силу после перезапуска NovaCoin</translation>
+        <source>This setting will take effect after restarting Orbitcoin.</source>
+        <translation>Эта настройка вступит в силу после перезапуска Orbitcoin</translation>
     </message>
     <message>
         <location line="+29"/>
@@ -1270,8 +1270,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+33"/>
         <location line="+212"/>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the NovaCoin network after a connection is established, but this process has not completed yet.</source>
-        <translation>Отображаемая информация может быть устаревшей. Ваш бумажник автоматически синхронизируется с сетью NovaCoin после подключения, но этот процесс пока не завершён.</translation>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Orbitcoin network after a connection is established, but this process has not completed yet.</source>
+        <translation>Отображаемая информация может быть устаревшей. Ваш бумажник автоматически синхронизируется с сетью Orbitcoin после подключения, но этот процесс пока не завершён.</translation>
     </message>
     <message>
         <location line="-170"/>
@@ -1486,8 +1486,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+7"/>
-        <source>Show the NovaCoin-Qt help message to get a list with possible NovaCoin command-line options.</source>
-        <translation>Показать помощь по NovaCoin-Qt, чтобы получить список доступных параметров командной строки.</translation>
+        <source>Show the Orbitcoin-Qt help message to get a list with possible Orbitcoin command-line options.</source>
+        <translation>Показать помощь по Orbitcoin-Qt, чтобы получить список доступных параметров командной строки.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1506,13 +1506,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="-104"/>
-        <source>NovaCoin - Debug window</source>
-        <translation>NovaCoin - Окно отладки</translation>
+        <source>Orbitcoin - Debug window</source>
+        <translation>Orbitcoin - Окно отладки</translation>
     </message>
     <message>
         <location line="+25"/>
-        <source>NovaCoin Core</source>
-        <translation>Ядро NovaCoin</translation>
+        <source>Orbitcoin Core</source>
+        <translation>Ядро Orbitcoin</translation>
     </message>
     <message>
         <location line="+279"/>
@@ -1521,8 +1521,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+7"/>
-        <source>Open the NovaCoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
-        <translation>Открыть отладочный лог-файл NovaCoin из текущего каталога данных. Это может занять несколько секунд для больших лог-файлов.</translation>
+        <source>Open the Orbitcoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
+        <translation>Открыть отладочный лог-файл Orbitcoin из текущего каталога данных. Это может занять несколько секунд для больших лог-файлов.</translation>
     </message>
     <message>
         <location line="+102"/>
@@ -1531,8 +1531,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location filename="../rpcconsole.cpp" line="-33"/>
-        <source>Welcome to the NovaCoin RPC console.</source>
-        <translation>Добро пожаловать в RPC-консоль NovaCoin.</translation>
+        <source>Welcome to the Orbitcoin RPC console.</source>
+        <translation>Добро пожаловать в RPC-консоль Orbitcoin.</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -1660,8 +1660,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-173"/>
-        <source>Enter a NovaCoin address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Введите NovaCoin-адрес (например 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <source>Enter an Orbitcoin address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
+        <translation>Введите Orbitcoin-адрес (например 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
     <message>
         <location filename="../forms/sendcoinsdialog.ui" line="+129"/>
@@ -1864,8 +1864,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="+1"/>
-        <source>Enter a NovaCoin address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Введите NovaCoin-адрес (например 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <source>Enter an Orbitcoin address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
+        <translation>Введите Orbitcoin-адрес (например 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
 </context>
 <context>
@@ -1925,8 +1925,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+21"/>
-        <source>Sign the message to prove you own this NovaCoin address</source>
-        <translation>Подписать сообщение, чтобы доказать владение адресом NovaCoin</translation>
+        <source>Sign the message to prove you own this Orbitcoin address</source>
+        <translation>Подписать сообщение, чтобы доказать владение адресом Orbitcoin</translation>
     </message>
     <message>
         <location line="+17"/>
@@ -1957,8 +1957,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+40"/>
-        <source>Verify the message to ensure it was signed with the specified NovaCoin address</source>
-        <translation>Проверить сообщение, чтобы убедиться, что оно было подписано указанным адресом NovaCoin</translation>
+        <source>Verify the message to ensure it was signed with the specified Orbitcoin address</source>
+        <translation>Проверить сообщение, чтобы убедиться, что оно было подписано указанным адресом Orbitcoin</translation>
     </message>
     <message>
         <location line="+17"/>
@@ -1968,8 +1968,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location filename="../signverifymessagedialog.cpp" line="+27"/>
         <location line="+3"/>
-        <source>Enter a NovaCoin address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Введите адрес NovaCoin (напр. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <source>Enter an Orbitcoin address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
+        <translation>Введите адрес Orbitcoin (напр. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
     <message>
         <location line="-2"/>
@@ -1978,8 +1978,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+3"/>
-        <source>Enter NovaCoin signature</source>
-        <translation>Введите подпись NovaCoin</translation>
+        <source>Enter Orbitcoin signature</source>
+        <translation>Введите подпись Orbitcoin</translation>
     </message>
     <message>
         <location line="+82"/>
@@ -2559,7 +2559,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <name>bitcoin-core</name>
     <message>
         <location filename="../bitcoinstrings.cpp" line="+124"/>
-        <source>NovaCoin version</source>
+        <source>Orbitcoin version</source>
         <translation>Версия</translation>
     </message>
     <message>
@@ -2589,13 +2589,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+23"/>
-        <source>Specify configuration file (default: novacoin.conf)</source>
-        <translation>Указать конфигурационный файл (по умолчанию: novacoin.conf)</translation>
+        <source>Specify configuration file (default: orbitcoin.conf)</source>
+        <translation>Указать конфигурационный файл (по умолчанию: orbitcoin.conf)</translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>Specify pid file (default: novacoind.pid)</source>
-        <translation>Указать pid-файл (по умолчанию: novacoin.pid)</translation>
+        <source>Specify pid file (default: orbitcoind.pid)</source>
+        <translation>Указать pid-файл (по умолчанию: orbitcoin.pid)</translation>
     </message>
     <message>
         <source>Specify wallet file (within data directory)</source>
@@ -2757,8 +2757,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+3"/>
-        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong NovaCoin will not work properly.</source>
-        <translation>Внимание: убедитесь, что дата и время на Вашем компьютере выставлены верно. Если Ваши часы идут неправильно, NovaCoin будет работать некорректно.</translation>
+        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Orbitcoin will not work properly.</source>
+        <translation>Внимание: убедитесь, что дата и время на Вашем компьютере выставлены верно. Если Ваши часы идут неправильно, Orbitcoin будет работать некорректно.</translation>
     </message>
     <message>
         <location line="+22"/>
@@ -2851,7 +2851,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+1"/>
-        <source>Send command to -server or novacoind</source>
+        <source>Send command to -server or orbitcoind</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3015,13 +3015,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="-129"/>
-        <source>Cannot obtain a lock on data directory %s.  NovaCoin is probably already running.</source>
+        <source>Cannot obtain a lock on data directory %s.  Orbitcoin is probably already running.</source>
         <translation>Невозможно установить блокировку на рабочую директорию %s.  Возможно, бумажник уже запущен.</translation>
     </message>
     <message>
         <location line="+99"/>
-        <source>NovaCoin</source>
-        <translation>NovaCoin</translation>
+        <source>Orbitcoin</source>
+        <translation>Orbitcoin</translation>
     </message>
     <message>
         <location line="+33"/>
@@ -3055,13 +3055,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+1"/>
-        <source>Error loading wallet.dat: Wallet requires newer version of NovaCoin</source>
-        <translation>Ошибка загрузки wallet.dat: бумажник требует более новую версию NovaCoin</translation>
+        <source>Error loading wallet.dat: Wallet requires newer version of Orbitcoin</source>
+        <translation>Ошибка загрузки wallet.dat: бумажник требует более новую версию Orbitcoin</translation>
     </message>
     <message>
         <location line="+76"/>
-        <source>Wallet needed to be rewritten: restart NovaCoin to complete</source>
-        <translation>Необходимо перезаписать бумажник, перезапустите NovaCoin для завершения операции.</translation>
+        <source>Wallet needed to be rewritten: restart Orbitcoin to complete</source>
+        <translation>Необходимо перезаписать бумажник, перезапустите Orbitcoin для завершения операции.</translation>
     </message>
     <message>
         <location line="-78"/>
@@ -3130,8 +3130,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="-22"/>
-        <source>Unable to bind to %s on this computer. NovaCoin is probably already running.</source>
-        <translation>Невозможно привязаться к %s на этом компьютере.  Возможно, NovaCoin уже работает.</translation>
+        <source>Unable to bind to %s on this computer. Orbitcoin is probably already running.</source>
+        <translation>Невозможно привязаться к %s на этом компьютере.  Возможно, Orbitcoin уже работает.</translation>
     </message>
     <message>
         <location line="+49"/>

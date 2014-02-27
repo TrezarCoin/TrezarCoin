@@ -34,9 +34,9 @@ QString BitcoinUnits::name(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("NVC");
-    case mBTC: return QString("mNVC");
-    case uBTC: return QString::fromUtf8("μNVC");
+    case BTC: return QString("ORB");
+    case mBTC: return QString("mORB");
+    case uBTC: return QString::fromUtf8("μORB");
     default: return QString("???");
     }
 }
@@ -45,9 +45,9 @@ QString BitcoinUnits::description(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("NovaCoins");
-    case mBTC: return QString("Milli-NovaCoins (1 / 1,000)");
-    case uBTC: return QString("Micro-NovaCoins (1 / 1,000,000)");
+    case BTC: return QString("Orbitcoins");
+    case mBTC: return QString("Milli-Orbitcoins (1 / 1,000)");
+    case uBTC: return QString("Micro-Orbitcoins (1 / 1,000,000)");
     default: return QString("???");
     }
 }

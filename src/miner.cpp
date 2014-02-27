@@ -123,10 +123,9 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     txNew.vin[0].prevout.SetNull();
     txNew.vout.resize(1);
 
-    if (!fProofOfStake)
-    {
+    if(!fProofOfStake) {
         CReserveKey reservekey(pwallet);
-        txNew.vout[0].scriptPubKey.SetDestination(reservekey.GetReservedKey().GetID());
+        txNew.vout[0].scriptPubKey << reservekey.GetReservedKey() << OP_CHECKSIG;
     }
     else
         txNew.vout[0].SetEmpty();
@@ -141,7 +140,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
 
     // How much of the block should be dedicated to high-priority transactions,
     // included regardless of the fees they pay
-    unsigned int nBlockPrioritySize = GetArg("-blockprioritysize", 27000);
+    unsigned int nBlockPrioritySize = GetArg("-blockprioritysize", 11000);
     nBlockPrioritySize = std::min(nBlockMaxSize, nBlockPrioritySize);
 
     // Minimum block size you want to create; block will be filled with free transactions
@@ -160,7 +159,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
 
     CBlockIndex* pindexPrev = pindexBest;
 
-    pblock->nBits = GetNextTargetRequired(pindexPrev, fProofOfStake);
+    pblock->nBits = GetNextTargetRequired(pindexPrev, fProofOfStake, false);
 
     // Collect memory pool transactions into the block
     int64 nFees = 0;
@@ -251,8 +250,10 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         TxPriorityCompare comparer(fSortedByFee);
         std::make_heap(vecPriority.begin(), vecPriority.end(), comparer);
 
-        while (!vecPriority.empty())
-        {
+        while (!vecPriority.empty()) {
+            int64 nMinFee;
+            unsigned int nAdjTime = GetAdjustedTime();
+
             // Take highest priority transaction off the priority queue:
             double dPriority = vecPriority.front().get<0>();
             double dFeePerKb = vecPriority.front().get<1>();
@@ -275,11 +276,18 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
                 continue;
 
             // Timestamp limit
-            if (tx.nTime > GetAdjustedTime() || (fProofOfStake && tx.nTime > pblock->vtx[0].nTime))
+            if ((tx.nTime > nAdjTime) || (fProofOfStake && tx.nTime > pblock->vtx[0].nTime))
                 continue;
 
-            // Simplify transaction fee - allow free = false
-            int64 nMinFee = tx.GetMinFee(nBlockSize, false, GMF_BLOCK);
+            // Use advanced fee calculation after the chain switch
+            if(fTestNet || (nAdjTime > CHAIN_SWITCH_TIME)) {
+               // Orbitcoin: low priority transactions up to 500 bytes in size
+               // are free unless they get caught by the dust spam filter
+               bool fAllowFree = ((nBlockSize + nTxSize < 1500) || CTransaction::AllowFree(dPriority));
+               nMinFee = tx.GetMinFee(nBlockSize, fAllowFree, GMF_BLOCK);
+             } else {
+               nMinFee = tx.GetMinFee(nBlockSize, false, GMF_BLOCK);
+             }
 
             // Skip free transactions if we're past the minimum block size:
             if (fSortedByFee && (dFeePerKb < nMinTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
@@ -288,7 +296,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             // Prioritize by fee once past the priority size or we run out of high-priority
             // transactions:
             if (!fSortedByFee &&
-                ((nBlockSize + nTxSize >= nBlockPrioritySize) || (dPriority < COIN * 144 / 250)))
+                ((nBlockSize + nTxSize >= nBlockPrioritySize) || (dPriority < COIN * 2880 / 250)))
             {
                 fSortedByFee = true;
                 comparer = TxPriorityCompare(fSortedByFee);
@@ -357,14 +365,13 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             printf("CreateNewBlock(): total size %"PRI64u"\n", nBlockSize);
 
         if (!fProofOfStake)
-            pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pblock->nBits);
+            pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, nFees);
 
         // Fill in header
         pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
         pblock->nTime          = max(pindexPrev->GetMedianTimePast()+1, pblock->GetMaxTransactionTime());
         pblock->nTime          = max(pblock->GetBlockTime(), PastDrift(pindexPrev->GetBlockTime()));
-        if (!fProofOfStake)
-            pblock->UpdateTime(pindexPrev);
+        if(!fProofOfStake) pblock->UpdateTime(pindexPrev);
         pblock->nNonce         = 0;
     }
 
@@ -519,7 +526,7 @@ void StakeMiner(CWallet *pwallet)
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
     // Make this thread recognisable as the mining thread
-    RenameThread("novacoin-miner");
+    RenameThread("orb-miner");
 
     // Each thread has its own counter
     unsigned int nExtraNonce = 0;
