@@ -576,11 +576,11 @@ bool CTransaction::CheckTransaction() const
             return DoS(100, error("CTransaction::CheckTransaction() : txout empty for user transaction"));
 
         // Enforce minimum output amount for user transactions until the chain switch
-        if((fTestNet && (nTime < TESTNET_CHAIN_SWITCH_TIME)) ||
-          (!fTestNet && (nTime < CHAIN_SWITCH_TIME))) {
-             if(!IsCoinBase() && !txout.IsEmpty() && (txout.nValue < MIN_TXOUT_AMOUNT))
-               return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue below minimum"));
-          }
+//        if((fTestNet && (nTime < TESTNET_CHAIN_SWITCH_TIME)) ||
+//          (!fTestNet && (nTime < CHAIN_SWITCH_TIME))) {
+//             if(!IsCoinBase() && !txout.IsEmpty() && (txout.nValue < MIN_TXOUT_AMOUNT))
+//               return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue below minimum"));
+//          }
 
         if (txout.nValue > MAX_MONEY)
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue too high"));
@@ -1395,10 +1395,10 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
                 return DoS(100, error("CheckInputs() : nFees out of range"));
 
             // Don't allow free transactions before the chain switch
-            if(!fTestNet && (nTime <= CHAIN_SWITCH_TIME)) {
-                if(nTxFee < GetMinFee(1, false, GMF_SEND))
-                  return pblock? DoS(100, error("CheckInputs() : %s not paying required fee=%s, paid=%s", GetHash().ToString().substr(0,10).c_str(), FormatMoney(GetMinFee(1, false, GMF_SEND)).c_str(), FormatMoney(nTxFee).c_str())) : false;
-            }
+//            if(!fTestNet && (nTime <= CHAIN_SWITCH_TIME)) {
+//                if(nTxFee < GetMinFee(1, false, GMF_SEND))
+//                  return pblock? DoS(100, error("CheckInputs() : %s not paying required fee=%s, paid=%s", GetHash().ToString().substr(0,10).c_str(), FormatMoney(GetMinFee(1, false, GMF_SEND)).c_str(), FormatMoney(nTxFee).c_str())) : false;
+//            }
         }
 
         // The first loop above does all the inexpensive checks.
@@ -2093,14 +2093,14 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
             return DoS(100, error("CheckBlock() : more than one coinbase"));
 
     // Check for block and coin base time stamps
-    if(nAdjTime > CHAIN_SWITCH_TIME) {
+    if(GetBlockTime() > CHAIN_SWITCH_TIME) {
         if(GetBlockTime() > FutureDrift(nAdjTime))
           return error("CheckBlock() : block has a time stamp too far in the future");
         if(GetBlockTime() > FutureDrift((int64)vtx[0].nTime))
           return DoS(50, error("CheckBlock() : coin base time stamp is too far in the past"));
-    } else {
-        if(GetBlockTime() > (nAdjTime + 2 * 60 * 60))
-          return error("CheckBlock() : block has a time stamp too far in the future");
+//    } else {
+//        if(GetBlockTime() > (nAdjTime + 2 * 60 * 60))
+//          return error("CheckBlock() : block has a time stamp too far in the future");
     }
 
     // Check for coin base time stamp
@@ -2191,7 +2191,7 @@ bool CBlock::AcceptBlock()
       return error("AcceptBlock() : block %d has a time stamp behind the median", nHeight);
 
     // Check for time stamp (past limit #2)
-    if((nAdjTime > CHAIN_SWITCH_TIME) &&
+    if((GetBlockTime() > CHAIN_SWITCH_TIME) &&
       (GetBlockTime() <= PastDrift(pindexPrev->GetBlockTime())))
       return error("AcceptBlock() : block %d has a time stamp too far in the past", nHeight);
 
