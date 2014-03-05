@@ -29,8 +29,7 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("difficulty",    (float)GetDifficulty()));
     obj.push_back(Pair("blockvalue",    (float)(GetProofOfWorkReward(GetLastBlockIndex(pindexBest, false)->nHeight, (int64)NULL))/COIN));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
-    obj.push_back(Pair("generate",      GetBoolArg("-gen")));
-    obj.push_back(Pair("genproclimit",  (int)GetArg("-genproclimit", -1)));
+    obj.push_back(Pair("networkhashps", getnetworkhashps(params, false)));
     obj.push_back(Pair("stakeweight",  (uint64_t)nWeight));
     obj.push_back(Pair("minweight",    (uint64_t)nMinWeight));
     obj.push_back(Pair("maxweight",    (uint64_t)nMaxWeight));
@@ -465,4 +464,30 @@ Value submitblock(const Array& params, bool fHelp)
         return "rejected";
 
     return Value::null;
+}
+
+Value getnetworkhashps(const Array& params, bool fHelp) {
+
+    if(fHelp || params.size() > 1) throw runtime_error(
+      "getnetworkhashps [blocks]\n"
+      "Calculates estimated network hashes per second based on the last 50 blocks.\n"
+      "Pass in [blocks] to override the default value.");
+
+    int lookup = params.size() > 0 ? params[0].get_int() : 50;
+
+    if(pindexBest == NULL) return 0;
+
+    // If look-up is zero or negative value, then use the default value
+    if(lookup <= 0) lookup = 50;
+
+    // If look-up is larger than block chain, then set it to the maximum allowed
+    if(lookup > pindexBest->nHeight) lookup = pindexBest->nHeight;
+
+    CBlockIndex* pindexPrev = pindexBest;
+    for(int i = 0; i < lookup; i++) pindexPrev = pindexPrev->pprev;
+
+    double timeDiff = pindexBest->GetBlockTime() - pindexPrev->GetBlockTime();
+    double timePerBlock = timeDiff / lookup;
+
+    return (boost::int64_t)(((double)GetDifficulty() * pow(2.0, 32)) / timePerBlock);
 }
