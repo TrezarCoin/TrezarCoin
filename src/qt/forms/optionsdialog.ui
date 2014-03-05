@@ -346,10 +346,10 @@
        <item>
         <widget class="QCheckBox" name="coinControlFeatures">
          <property name="toolTip">
-          <string>Whether to show coin control features or not.</string>
+          <string>Whether to show the Coin Control or not.</string>
          </property>
          <property name="text">
-          <string>Display coin &amp;control features (experts only!)</string>
+          <string>Enable the Coin &amp;Control (beta!)</string>
          </property>
         </widget>
        </item>

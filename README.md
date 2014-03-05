@@ -3,8 +3,7 @@ Orbitcoin official development tree
 
 Orbitcoin (ORB), a hybrid Scrypt PoW + PoS based cryptocurrency.
 
-* 30 seconds target for PoS blocks
-* 12 minutes target for PoW blocks
+* 30 seconds target for PoS and PoW blocks
 * balanced weighting
 * 0.25 ORB per PoW block reward currently
 * PoW block reward halves yearly
