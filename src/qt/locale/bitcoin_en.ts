@@ -331,8 +331,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+5"/>
-        <source>&amp;Address Book</source>
-        <translation>&amp;Address Book</translation>
+        <source>&amp;Addresses</source>
+        <translation>&amp;Addresses</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -341,7 +341,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-13"/>
-        <source>&amp;Receive coins</source>
+        <source>&amp;Receive</source>
         <translation>&amp;Receive Orbs</translation>
     </message>
     <message>
@@ -351,7 +351,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-7"/>
-        <source>&amp;Send coins</source>
+        <source>&amp;Send</source>
         <translation>&amp;Send Orbs</translation>
     </message>
     <message>
@@ -449,13 +449,13 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+6"/>
-        <source>&amp;Debug window</source>
-        <translation>&amp;Debug window</translation>
+        <source>&amp;Console</source>
+        <translation>&amp;Console</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Open debugging and diagnostic console</source>
-        <translation>Open debugging and diagnostic console</translation>
+        <source>Open the RPC console</source>
+        <translation>Open the RPC console</translation>
     </message>
     <message>
         <location line="-5"/>
@@ -1500,8 +1500,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="-104"/>
-        <source>Orbitcoin - Debug window</source>
-        <translation>Orbitcoin - Debug window</translation>
+        <source>Orbitcoin - RPC Console</source>
+        <translation>Orbitcoin - RPC Console</translation>
     </message>
     <message>
         <location line="+25"/>

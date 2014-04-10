@@ -89,7 +89,7 @@ private:
     QAction *backupWalletAction;
     QAction *changePassphraseAction;
     QAction *aboutQtAction;
-    QAction *openRPCConsoleAction;
+    QAction *consoleAction;
 
     QSystemTrayIcon *trayIcon;
     Notificator *notificator;

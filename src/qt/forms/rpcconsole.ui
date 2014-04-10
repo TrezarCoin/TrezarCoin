@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Orbitcoin - Debug window</string>
+   <string>Orbitcoin - RPC Console</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>

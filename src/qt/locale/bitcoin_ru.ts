@@ -331,8 +331,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+5"/>
-        <source>&amp;Address Book</source>
-        <translation>&amp;Адресная книга</translation>
+        <source>&amp;Addresses</source>
+        <translation>&amp;Адреса</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -341,8 +341,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-13"/>
-        <source>&amp;Receive coins</source>
-        <translation>&amp;Получение Орбов</translation>
+        <source>&amp;Receive</source>
+        <translation>&amp;Получить Орбы</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -351,8 +351,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-7"/>
-        <source>&amp;Send coins</source>
-        <translation>Отп&amp;равка Орбов</translation>
+        <source>&amp;Send</source>
+        <translation>&amp;Отправить Орбы</translation>
     </message>
     <message>
         <location line="+35"/>
@@ -450,13 +450,13 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+6"/>
-        <source>&amp;Debug window</source>
-        <translation>&amp;Окно отладки</translation>
+        <source>&amp;Console</source>
+        <translation>&amp;Консоль</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Open debugging and diagnostic console</source>
-        <translation>Открыть консоль отладки и диагностики</translation>
+        <source>Open the RPC console</source>
+        <translation>Открыть консоль RPC</translation>
     </message>
     <message>
         <location line="-5"/>
@@ -1506,8 +1506,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="-104"/>
-        <source>Orbitcoin - Debug window</source>
-        <translation>Orbitcoin - Окно отладки</translation>
+        <source>Orbitcoin - RPC Console</source>
+        <translation>Orbitcoin - RPC консоль</translation>
     </message>
     <message>
         <location line="+25"/>
