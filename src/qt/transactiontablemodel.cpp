@@ -73,7 +73,7 @@ public:
             LOCK(wallet->cs_wallet);
             for(std::map<uint256, CWalletTx>::iterator it = wallet->mapWallet.begin(); it != wallet->mapWallet.end(); ++it)
             {
-                if(TransactionRecord::showTransaction(it->second))
+                if(TransactionRecord::showTransaction(it->second, false))
                     cachedWallet.append(TransactionRecord::decomposeTransaction(wallet, it->second));
             }
         }
@@ -104,7 +104,7 @@ public:
             bool inModel = (lower != upper);
 
             // Determine whether to show transaction or not
-            bool showTransaction = (inWallet && TransactionRecord::showTransaction(mi->second));
+            bool showTransaction = (inWallet && TransactionRecord::showTransaction(mi->second, true));
 
             if(status == CT_UPDATED)
             {
