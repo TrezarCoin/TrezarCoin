@@ -1434,6 +1434,17 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& w
     return CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, strTxComment, coinControl);
 }
 
+/* A quick stake weight calculator */
+bool CWallet::GetStakeWeightQuick(const int64& nTime, const int64& nValue, uint64& nWeight) {
+    CBigNum bnCoinDayWeight = 0;
+    int64 nTimeWeight;
+
+    nTimeWeight = GetWeight(nTime, (int64)GetTime());
+    if(nTimeWeight > 0) bnCoinDayWeight = CBigNum(nValue) * nTimeWeight / COIN / (24 * 60 * 60);
+    nWeight = bnCoinDayWeight.getuint64();
+    return true;
+}
+
 // Get current stake weight
 bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeight, uint64& nMaxWeight, uint64& nWeight)
 {

@@ -379,7 +379,7 @@
         <height>41</height>
        </rect>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayoutPanel" stretch="0,0,0,0,0">
+      <layout class="QHBoxLayout" name="horizontalLayoutPanel" stretch="0,0,0,0,0,0">
        <property name="spacing">
         <number>14</number>
        </property>
@@ -488,13 +488,15 @@
       <property name="text">
        <string>Confirmations</string>
       </property>
-      <property name="toolTip">
-       <string>Confirmed</string>
-      </property>
      </column>
      <column>
       <property name="text">
        <string>Priority</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Weight</string>
       </property>
      </column>
      <column>

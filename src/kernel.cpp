@@ -30,18 +30,18 @@ static std::map<int, unsigned int> mapStakeModifierCheckpointsTestNet =
 int64 GetWeight(int64 nIntervalBegin, int64 nIntervalEnd) {
     unsigned int nAdjTime = GetAdjustedTime();
 
-    // Kernel hash weight starts from 0 at the 30-day min age
+    // Kernel hash weight starts from 0 at the 5-day min age
     // this change increases active coins participating the hash and helps
     // to secure the network when proof-of-stake difficulty is low
     //
-    // Maximum TimeWeight is 90 days.
+    // Maximum TimeWeight is 15 days.
 
     if((fTestNet && (nAdjTime > TESTNET_CHAIN_SWITCH_TIME)) ||
       (!fTestNet && (nAdjTime > CHAIN_SWITCH_TIME)))
-      // New rule: maximum TimeWeight is 90 days
+      // New rule: maximum TimeWeight is 15 days
       return min(nIntervalEnd - nIntervalBegin - nStakeMinAge, (int64)nStakeMaxAge);
     else
-      // Old rule: maximum TimeWeight is 60 days
+      // Old rule: maximum TimeWeight is 10 days
       return min(nIntervalEnd - nIntervalBegin, (int64)nStakeMaxAge) - nStakeMinAge;
 }
 
