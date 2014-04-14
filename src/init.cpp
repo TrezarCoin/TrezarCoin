@@ -238,6 +238,7 @@ std::string HelpMessage()
         "  -?                     " + _("This help message") + "\n" +
         "  -conf=<file>           " + _("Specify configuration file (default: orbitcoin.conf)") + "\n" +
         "  -pid=<file>            " + _("Specify pid file (default: orbitcoind.pid)") + "\n" +
+        "  -stakegen=<n>          " + _("Generate coin stakes (default: 1 = enabled)") + "\n" +
         "  -datadir=<dir>         " + _("Specify data directory") + "\n" +
         "  -wallet=<dir>          " + _("Specify wallet file (within data directory)") + "\n" +
         "  -dbcache=<n>           " + _("Set database cache size in megabytes (default: 25)") + "\n" +
@@ -481,6 +482,9 @@ bool AppInit2()
         if (!ParseMoney(mapArgs["-mininput"], nMinimumInputValue))
             return InitError(strprintf(_("Invalid amount for -mininput=<amount>: '%s'"), mapArgs["-mininput"].c_str()));
     }
+
+    /* Controls proof-of-stake generation */
+    fStakeGen = GetBoolArg("-stakegen", true);
 
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 

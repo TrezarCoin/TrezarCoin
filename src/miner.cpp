@@ -525,16 +525,15 @@ void StakeMiner(CWallet *pwallet)
 {
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
-    // Make this thread recognisable as the mining thread
-    RenameThread("orb-miner");
+    // Make this thread recognisable as a stake mining thread
+    RenameThread("orb-stakeminer");
 
     // Each thread has its own counter
     unsigned int nExtraNonce = 0;
 
-    while (true)
-    {
-        if (fShutdown)
-            return;
+    while(fStakeGen) {
+
+        if(fShutdown) return;
 
         while (pwallet->IsLocked())
         {
@@ -576,3 +575,4 @@ void StakeMiner(CWallet *pwallet)
             Sleep(nMinerSleep);
     }
 }
+

@@ -491,3 +491,25 @@ Value getnetworkhashps(const Array& params, bool fHelp) {
 
     return (boost::int64_t)(((double)GetDifficulty() * pow(2.0, 32)) / timePerBlock);
 }
+
+Value getstakegen(const Array& params, bool fHelp) {
+
+    if(fHelp || params.size() != 0) throw runtime_error(
+      "getstakegen\n"
+      "Returns true or false.");
+
+    return fStakeGen;
+}
+
+Value setstakegen(const Array& params, bool fHelp) {
+
+    if(fHelp || params.size() != 1) throw runtime_error(
+      "setstakegen <generate>\n"
+      "<generate> is true or false to turn generation on or off.");
+
+    /* The flag triggers the stake miner */
+    if(params.size() > 0) fStakeGen = params[0].get_bool();
+
+    return Value::null;
+}
+

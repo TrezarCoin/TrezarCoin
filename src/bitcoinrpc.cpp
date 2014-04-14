@@ -308,6 +308,8 @@ static const CRPCCommand vRPCCommands[] =
     { "gettxout",               &gettxout,               true,   false },
     { "makekeypair",            &makekeypair,            false,  true  },
     { "getnetworkhashps",       &getnetworkhashps,       true,   false },
+    { "getstakegen",            &getstakegen,            true,   false },
+    { "setstakegen",            &setstakegen,            true,   false },
 };
 
 CRPCTable::CRPCTable()
@@ -1235,6 +1237,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "keypoolrefill"          && n > 0) ConvertTo<boost::int64_t>(params[0]);
 
     if (strMethod == "getnetworkhashps"       && n > 0) ConvertTo<boost::int64_t>(params[0]);
+    if (strMethod == "setstakegen"            && n > 0) ConvertTo<bool>(params[0]);
 
     return params;
 }
