@@ -1108,6 +1108,11 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     nActualSpacing = (int64)pindexPrev->nTime - (int64)pindexPrevPrev->nTime;
     if(fTestNet || (nHeight > 417000)) nActualSpacing = max(nActualSpacing, (int64)0);
 
+    if(nHeight > 585000) {
+        nActualSpacing = max(nActualSpacing, (int64)15);
+        nActualSpacing = min(nActualSpacing, (int64)90);
+    }
+
     if(fPrettyPrint) {
         fProofOfStake? printf("RETARGET PoS ") : printf("RETARGET PoW ");
         printf("heights: pindexLast = %d, pindexPrev = %d, pindexPrevPrev = %d\n",
@@ -2192,6 +2197,19 @@ bool CBlock::AcceptBlock()
     if((GetBlockTime() > CHAIN_SWITCH_TIME) &&
       (GetBlockTime() <= PastDrift(pindexPrev->GetBlockTime())))
       return error("AcceptBlock() : block %d has a time stamp too far in the past", nHeight);
+
+    if(nHeight > 585000) {
+
+        if(GetBlockTime() > (GetAdjustedTime() + 3 * 60))
+          return error("AcceptBlock() [Emergency Fork] : block %d has a time stamp too far in the future", nHeight);
+
+        if(GetBlockTime() <= (pindexPrev->GetMedianTimePast() + 90))
+          return error("AcceptBlock() [Emergency Fork] : block %d rejected by the block limiter", nHeight);
+
+        if(GetBlockTime() <= (pindexPrev->GetBlockTime() - 5 * 60))
+          return error("AcceptBlock() [Emergency Fork] : block %d has a time stamp too far in the past", nHeight);
+
+    }
 
     // Check that all transactions are finalized
     BOOST_FOREACH(const CTransaction& tx, vtx)
