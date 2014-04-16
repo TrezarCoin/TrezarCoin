@@ -15,11 +15,6 @@
         <translation>&lt;b&gt;Orbitcoin&lt;/b&gt; version</translation>
     </message>
     <message>
-        <location line="+41"/>
-        <source>Copyright © 2009-2012 The NovaCoin developers</source>
-        <translation>Copyright © 2009-2012 The NovaCoin developers</translation>
-    </message>
-    <message>
         <location line="+13"/>
         <source>
 This is experimental software.
@@ -331,8 +326,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+5"/>
-        <source>&amp;Address Book</source>
-        <translation>&amp;Address Book</translation>
+        <source>&amp;Addresses</source>
+        <translation>&amp;Addresses</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -341,7 +336,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-13"/>
-        <source>&amp;Receive coins</source>
+        <source>&amp;Receive</source>
         <translation>&amp;Receive Orbs</translation>
     </message>
     <message>
@@ -351,7 +346,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-7"/>
-        <source>&amp;Send coins</source>
+        <source>&amp;Send</source>
         <translation>&amp;Send Orbs</translation>
     </message>
     <message>
@@ -449,13 +444,13 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+6"/>
-        <source>&amp;Debug window</source>
-        <translation>&amp;Debug window</translation>
+        <source>&amp;Console</source>
+        <translation>&amp;Console</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Open debugging and diagnostic console</source>
-        <translation>Open debugging and diagnostic console</translation>
+        <source>Open the RPC console</source>
+        <translation>Open the RPC console</translation>
     </message>
     <message>
         <location line="-5"/>
@@ -701,7 +696,7 @@ Address: %4
         <location line="+80"/>
         <location line="+86"/>
         <location line="+38"/>
-        <source>0.00 NVC</source>
+        <source>0.00 ORB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -776,14 +771,14 @@ Address: %4
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>Confirmed</source>
-        <translation type="unfinished">Confirmed</translation>
-    </message>
-    <message>
         <location line="+5"/>
         <source>Priority</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../forms/coincontroldialog.ui" />
+        <source>Weight</source>
+        <translation>Weight</translation>
     </message>
     <message>
         <location filename="../coincontroldialog.cpp" line="-515"/>
@@ -1212,9 +1207,9 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>Display coin &amp;control features (experts only!)</source>
-        <translation type="unfinished"></translation>
+        <location filename="../forms/optionsdialog.ui" />
+        <source>Enable the Coin &amp;Control (beta!)</source>
+        <translation>Enable the Coin &amp;Control (beta!)</translation>
     </message>
     <message>
         <location line="+71"/>
@@ -1500,8 +1495,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="-104"/>
-        <source>Orbitcoin - Debug window</source>
-        <translation>Orbitcoin - Debug window</translation>
+        <source>Orbitcoin - RPC Console</source>
+        <translation>Orbitcoin - RPC Console</translation>
     </message>
     <message>
         <location line="+25"/>
@@ -1555,7 +1550,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+76"/>
-        <source>Coin Control Features</source>
+        <source>Coin Control</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

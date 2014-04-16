@@ -5,16 +5,15 @@
 
 /* Return positive answer if transaction should be shown in list.
  */
-bool TransactionRecord::showTransaction(const CWalletTx &wtx)
+bool TransactionRecord::showTransaction(const CWalletTx &wtx, bool ShowOrphans)
 {
-    if (wtx.IsCoinBase())
-    {
-        // Ensures we show generated coins / mined transactions at depth 1
-        if (!wtx.IsInMainChain())
-        {
-            return false;
-        }
-    }
+    /* The default behaviour is to show all transactions as they come
+     * including orphans, but show confirmed only after a client restart */
+    if(ShowOrphans) return true;
+    /* Don't display PoW/PoS base transactions with no single confirmation */
+    if((wtx.IsCoinBase() || wtx.IsCoinStake()) &&
+      (wtx.GetDepthInMainChain() < 1)) return false;
+    /* All other transactions are displayed always and immediately */
     return true;
 }
 
@@ -237,6 +236,6 @@ bool TransactionRecord::statusUpdateNeeded()
 
 std::string TransactionRecord::getTxID()
 {
-    return hash.ToString() + strprintf("-%03d", idx);
+    return hash.ToString();
 }
 

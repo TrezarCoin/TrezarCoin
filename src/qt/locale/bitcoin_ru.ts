@@ -15,11 +15,6 @@
         <translation>&lt;b&gt;Orbitcoin&lt;/b&gt; версия</translation>
     </message>
     <message>
-        <location line="+41"/>
-        <source>Copyright © 2009-2012 The NovaCoin developers</source>
-        <translation>Все права защищены © 2009-2012 Разработчики NovaCoin</translation>
-    </message>
-    <message>
         <location line="+13"/>
         <source>
 This is experimental software.
@@ -331,8 +326,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+5"/>
-        <source>&amp;Address Book</source>
-        <translation>&amp;Адресная книга</translation>
+        <source>&amp;Addresses</source>
+        <translation>&amp;Адреса</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -341,8 +336,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-13"/>
-        <source>&amp;Receive coins</source>
-        <translation>&amp;Получение Орбов</translation>
+        <source>&amp;Receive</source>
+        <translation>&amp;Получить Орбы</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -351,8 +346,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-7"/>
-        <source>&amp;Send coins</source>
-        <translation>Отп&amp;равка Орбов</translation>
+        <source>&amp;Send</source>
+        <translation>&amp;Отправить Орбы</translation>
     </message>
     <message>
         <location line="+35"/>
@@ -450,13 +445,13 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+6"/>
-        <source>&amp;Debug window</source>
-        <translation>&amp;Окно отладки</translation>
+        <source>&amp;Console</source>
+        <translation>&amp;Консоль</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Open debugging and diagnostic console</source>
-        <translation>Открыть консоль отладки и диагностики</translation>
+        <source>Open the RPC console</source>
+        <translation>Открыть консоль RPC</translation>
     </message>
     <message>
         <location line="-5"/>
@@ -856,7 +851,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="-410"/>
         <source>Coin Control</source>
-        <translation>Выбор входов</translation>
+        <translation>Управление монетами</translation>
     </message>
     <message>
         <location line="+31"/>
@@ -889,6 +884,11 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Приоритет</translation>
     </message>
     <message>
+        <location filename="../forms/coincontroldialog.ui" />
+        <source>Weight</source>
+        <translation>Вес</translation>
+    </message>
+    <message>
         <location line="-23"/>
         <source>Label</source>
         <translation>Метка</translation>
@@ -904,7 +904,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <location line="+80"/>
         <location line="+86"/>
         <location line="+38"/>
-        <source>0.00 NVC</source>
+        <source>0.00 ORB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -920,12 +920,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+5"/>
         <source>Confirmations</source>
-        <translation>Подтверждения</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Confirmed</source>
-        <translation>Подтверждено</translation>
+        <translation>Подтвержд.</translation>
     </message>
     <message>
         <location line="-201"/>
@@ -1218,9 +1213,9 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Выключает и включает отображение панели выбора входов.</translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>Display coin &amp;control features (experts only!)</source>
-        <translation>Управление &amp;входами (только для продвинутых пользователей!)</translation>
+        <location filename="../forms/optionsdialog.ui" />
+        <source>Enable the Coin &amp;Control (beta!)</source>
+        <translation>Включить "&amp;Управление монетами" (бета!)</translation>
     </message>
     <message>
         <location line="+71"/>
@@ -1506,8 +1501,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="-104"/>
-        <source>Orbitcoin - Debug window</source>
-        <translation>Orbitcoin - Окно отладки</translation>
+        <source>Orbitcoin - RPC Console</source>
+        <translation>Orbitcoin - RPC консоль</translation>
     </message>
     <message>
         <location line="+25"/>
@@ -1571,8 +1566,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="-578"/>
-        <source>Coin Control Features</source>
-        <translation>Выбор входов</translation>
+        <source>Coin Control</source>
+        <translation>Управление монетами</translation>
     </message>
     <message>
         <location line="+20"/>

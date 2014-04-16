@@ -117,7 +117,7 @@
              <string notr="true">font-weight:bold;</string>
             </property>
             <property name="text">
-             <string>Coin Control Features</string>
+             <string>Coin Control</string>
             </property>
            </widget>
           </item>
