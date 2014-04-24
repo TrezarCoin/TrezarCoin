@@ -317,8 +317,8 @@ void WalletModel::getStakeWeightQuick(const int64& nTime, const int64& nValue, u
    wallet->GetStakeWeightQuick(nTime, nValue, nWeight);
 }
 
-void WalletModel::getStakeWeight(uint64& nMinWeight, uint64& nMaxWeight, uint64& nWeight) {
-   wallet->GetStakeWeight(*wallet, nMinWeight, nMaxWeight, nWeight);
+void WalletModel::getStakeWeight(uint64& nMinWeightInputs, uint64& nAvgWeightInputs, uint64& nMaxWeightInputs, uint64& nTotalStakeWeight) {
+   wallet->GetStakeWeight(*wallet, nMinWeightInputs, nAvgWeightInputs, nMaxWeightInputs, nTotalStakeWeight);
 }
 
 // Handlers for core signals

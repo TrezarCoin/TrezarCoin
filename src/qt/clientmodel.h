@@ -23,6 +23,7 @@ public:
 
     OptionsModel *getOptionsModel();
 
+    double getDifficulty(bool PoS);
     int getNumConnections() const;
     int getNumBlocks() const;
     int getNumBlocksAtStartup();

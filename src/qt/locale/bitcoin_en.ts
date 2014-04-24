@@ -301,8 +301,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+237"/>
-        <source>Synchronizing with network...</source>
-        <translation>Synchronizing with network...</translation>
+        <source>Synchronising with the network...</source>
+        <translation>Synchronising with the network...</translation>
     </message>
     <message>
         <location line="-299"/>
@@ -404,8 +404,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+6"/>
-        <source>Downloaded %1 of %2 blocks of transaction history (%3% done).</source>
-        <translation>Downloaded %1 of %2 blocks of transaction history (%3% done).</translation>
+        <source>Processed %1 of %2 blocks of the transaction history.</source>
+        <translation>Processed %1 of %2 blocks of the transaction history.</translation>
     </message>
     <message>
         <location line="-242"/>
@@ -516,16 +516,16 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message numerus="yes">
         <location line="+69"/>
-        <source>%n active connection(s) to Orbitcoin network</source>
+        <source>%n active connection(s) to the Orbitcoin network</source>
         <translation>
-            <numerusform>%n active connection to Orbitcoin network</numerusform>
-            <numerusform>%n active connections to Orbitcoin network</numerusform>
+            <numerusform>%n active connection to the Orbitcoin network</numerusform>
+            <numerusform>%n active connections to the Orbitcoin network</numerusform>
         </translation>
     </message>
     <message>
         <location line="+40"/>
-        <source>Downloaded %1 blocks of transaction history.</source>
-        <translation>Downloaded %1 blocks of transaction history.</translation>
+        <source>Processed %1 blocks of the transaction history</source>
+        <translation>Processed %1 blocks of the transaction history</translation>
     </message>
     <message numerus="yes">
         <location line="+22"/>
@@ -571,8 +571,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+10"/>
-        <source>Last received block was generated %1.</source>
-        <translation>Last received block was generated %1.</translation>
+        <source>The last received block was generated %1.</source>
+        <translation>The last received block was generated %1.</translation>
     </message>
     <message>
         <location line="+59"/>

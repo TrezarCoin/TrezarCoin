@@ -30,6 +30,8 @@
 #include "macdockiconhandler.h"
 #endif
 
+#include "util.h"
+
 #include <QApplication>
 #include <QMainWindow>
 #include <QMenuBar>
@@ -47,7 +49,6 @@
 #include <QProgressBar>
 #include <QStackedWidget>
 #include <QDateTime>
-#include <QMovie>
 #include <QFileDialog>
 #include <QDesktopServices>
 #include <QTimer>
@@ -66,7 +67,9 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     aboutQtAction(0),
     trayIcon(0),
     notificator(0),
-    rpcConsole(0)
+    rpcConsole(0),
+    prevBlocks(0),
+    spinnerFrame(0)
 {
     resize(850, 550);
     setWindowTitle(tr("Orbitcoin") + " - " + tr("Wallet"));
@@ -123,16 +126,19 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     // Status bar notification icons
     QFrame *frameBlocks = new QFrame();
     frameBlocks->setContentsMargins(0,0,0,0);
-    frameBlocks->setMinimumWidth(56);
-    frameBlocks->setMaximumWidth(56);
+    frameBlocks->setMinimumWidth(88);
+    frameBlocks->setMaximumWidth(88);
     QHBoxLayout *frameBlocksLayout = new QHBoxLayout(frameBlocks);
     frameBlocksLayout->setContentsMargins(3,0,3,0);
     frameBlocksLayout->setSpacing(3);
     labelEncryptionIcon = new QLabel();
+    labelStakeMining = new QLabel();
     labelConnectionsIcon = new QLabel();
     labelBlocksIcon = new QLabel();
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(labelEncryptionIcon);
+    frameBlocksLayout->addStretch();
+    frameBlocksLayout->addWidget(labelStakeMining);
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(labelConnectionsIcon);
     frameBlocksLayout->addStretch();
@@ -146,20 +152,13 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     progressBar->setAlignment(Qt::AlignCenter);
     progressBar->setVisible(false);
 
-    // Override style sheet for progress bar for styles that have a segmented progress bar,
-    // as they make the text unreadable (workaround for issue #1071)
-    // See https://qt-project.org/doc/qt-4.8/gallery.html
-    QString curStyle = qApp->style()->metaObject()->className();
-    if(curStyle == "QWindowsStyle" || curStyle == "QWindowsXPStyle")
-    {
-        progressBar->setStyleSheet("QProgressBar { background-color: #e8e8e8; border: 1px solid grey; border-radius: 7px; padding: 1px; text-align: center; } QProgressBar::chunk { background: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #FF8000, stop: 1 orange); border-radius: 7px; margin: 0px; }");
-    }
+    /* OS & theme independent style; widgets must be added prior to styling */
+    progressBar->setStyleSheet("QProgressBar { color: black; background-color: transparent; border: 1px solid grey; border-radius: 2px; padding: 1px; text-align: center; } \
+      QProgressBar::chunk { background: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #FF7F00, stop: 1 #FFD77F); margin: 0px; }");  
 
     statusBar()->addWidget(progressBarLabel);
     statusBar()->addWidget(progressBar);
     statusBar()->addPermanentWidget(frameBlocks);
-
-    syncIconMovie = new QMovie(":/movies/update_spinner", "mng", this);
 
     // Clicking on a transaction on the overview page simply sends you to transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), this, SLOT(gotoHistoryPage()));
@@ -358,6 +357,7 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
 
         setNumBlocks(clientModel->getNumBlocks(), clientModel->getNumBlocksOfPeers());
         connect(clientModel, SIGNAL(numBlocksChanged(int,int)), this, SLOT(setNumBlocks(int,int)));
+        connect(clientModel, SIGNAL(numBlocksChanged(int,int)), this, SLOT(setStakeMining()));
 
         // Report errors from network/worker thread
         connect(clientModel, SIGNAL(error(QString,QString,bool)), this, SLOT(error(QString,QString,bool)));
@@ -461,6 +461,55 @@ void BitcoinGUI::aboutClicked()
     dlg.exec();
 }
 
+void BitcoinGUI::setStakeMining() {
+    QString tooltip;
+    bool fStakeIcon = true;
+
+    if(!fStakeGen) {
+        fStakeIcon = false;
+        tooltip = tr("Staking disabled");
+    } else {
+        if(!clientModel->getNumConnections()) {
+            fStakeIcon = false;
+            tooltip = tr("Wallet is offline, staking paused");
+        } else if(clientModel->inInitialBlockDownload()) {
+            fStakeIcon = false;
+            tooltip = tr("Wallet is synchronising, staking paused");
+        } else if(walletModel->getEncryptionStatus() == WalletModel::Locked) {
+            fStakeIcon = false;
+            tooltip = tr("Wallet is locked, staking paused");
+        } else {
+            /* Caches the results for 10 minutes */
+            if((GetTime() - 600) > nLastWalletStakeTime) {
+                walletModel->getStakeWeight(nMinWeightInputs, nAvgWeightInputs, nMaxWeightInputs, nTotalStakeWeight);
+                nLastWalletStakeTime = GetTime();
+            } else {
+                if(!nTotalStakeWeight) {
+                    fStakeIcon = false;
+                    tooltip = tr("No mature coins found, staking paused");
+                } else {
+                    fStakeIcon = true;
+                    tooltip = tr("Staking enabled for %1 inputs weighing %2 coin days") \
+                      .arg(nMinWeightInputs + nAvgWeightInputs + nMaxWeightInputs).arg(nTotalStakeWeight);
+                    tooltip += QString("<br>");
+                    tooltip += tr("Inputs: %1 min. age, %2 avg. age, %3 max. age") \
+                      .arg(nMinWeightInputs).arg(nAvgWeightInputs).arg(nMaxWeightInputs);
+                }
+            }
+        }
+    }
+
+    /* Don't wrap words */
+    tooltip = QString("<nobr>") + tooltip + QString("</nobr>");
+
+    labelStakeMining->setToolTip(tooltip);
+
+    if(fStakeIcon)
+      labelStakeMining->setPixmap(QIcon(":/icons/staking_on").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
+    else
+      labelStakeMining->setPixmap(QIcon(":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
+}
+
 void BitcoinGUI::setNumConnections(int count)
 {
     QString icon;
@@ -473,12 +522,12 @@ void BitcoinGUI::setNumConnections(int count)
     default: icon = ":/icons/connect_4"; break;
     }
     labelConnectionsIcon->setPixmap(QIcon(icon).pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-    labelConnectionsIcon->setToolTip(tr("%n active connection(s) to Orbitcoin network", "", count));
+    labelConnectionsIcon->setToolTip(tr("%n active connection(s) to the Orbitcoin network", "", count));
 }
 
 void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
 {
-    // don't show / hide progress bar and its label if we have no connection to the network
+    // don't show / hide the progress bar and it's label if we have no connection(s) to the network
     if (!clientModel || clientModel->getNumConnections() == 0)
     {
         progressBarLabel->setVisible(false);
@@ -487,90 +536,82 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
         return;
     }
 
-    QString strStatusBarWarnings = clientModel->getStatusBarWarnings();
     QString tooltip;
-
-    if(count < nTotalBlocks)
-    {
-        int nRemainingBlocks = nTotalBlocks - count;
-        float nPercentageDone = count / (nTotalBlocks * 0.01f);
-
-        if (strStatusBarWarnings.isEmpty())
-        {
-            progressBarLabel->setText(tr("Synchronizing with network..."));
-            progressBarLabel->setVisible(true);
-            progressBar->setFormat(tr("~%n block(s) remaining", "", nRemainingBlocks));
-            progressBar->setMaximum(nTotalBlocks);
-            progressBar->setValue(count);
-            progressBar->setVisible(true);
-        }
-
-        tooltip = tr("Downloaded %1 of %2 blocks of transaction history (%3% done).").arg(count).arg(nTotalBlocks).arg(nPercentageDone, 0, 'f', 2);
-    }
-    else
-    {
-        if (strStatusBarWarnings.isEmpty())
-            progressBarLabel->setVisible(false);
-
-        progressBar->setVisible(false);
-        tooltip = tr("Downloaded %1 blocks of transaction history.").arg(count);
-    }
-
-    // Override progressBarLabel text and hide progress bar, when we have warnings to display
-    if (!strStatusBarWarnings.isEmpty())
-    {
-        progressBarLabel->setText(strStatusBarWarnings);
-        progressBarLabel->setVisible(true);
-        progressBar->setVisible(false);
-    }
-
+    QString strStatusBarWarnings = clientModel->getStatusBarWarnings();
     QDateTime lastBlockDate = clientModel->getLastBlockDate();
-    int secs = lastBlockDate.secsTo(QDateTime::currentDateTime());
-    QString text;
+    QDateTime currentDate = QDateTime::currentDateTime();
+    int secs = lastBlockDate.secsTo(currentDate);
 
-    // Represent time from last generated block in human readable text
-    if(secs <= 0)
-    {
-        // Fully up to date. Leave text empty.
-    }
-    else if(secs < 60)
-    {
-        text = tr("%n second(s) ago","",secs);
-    }
-    else if(secs < 60*60)
-    {
-        text = tr("%n minute(s) ago","",secs/60);
-    }
-    else if(secs < 24*60*60)
-    {
-        text = tr("%n hour(s) ago","",secs/(60*60));
-    }
-    else
-    {
-        text = tr("%n day(s) ago","",secs/(60*60*24));
+    /* count > nTotalBlocks if the former is above the last checkpoint
+     * and the median chain height of the peers connected is low */
+    if(count < nTotalBlocks) {
+        tooltip = tr("Processed %1 of %2 blocks of the transaction history").arg(count).arg(nTotalBlocks);
+    } else {
+        tooltip = tr("Processed %1 blocks of the transaction history").arg(count);
     }
 
-    // Set icon state: spinning if catching up, tick otherwise
-    if(secs < 90*60 && count >= nTotalBlocks)
-    {
-        tooltip = tr("Up to date") + QString(".<br>") + tooltip;
+    /* Taskbar icons: a spinner if catching up, a tick otherwise;
+     * testnet is allowed to be well behind the current time */
+    if(((secs < 90*60) || clientModel->isTestNet()) && count >= nTotalBlocks) {
+
+        tooltip = tr("Up to date") + QString("<br>") + tooltip;
         labelBlocksIcon->setPixmap(QIcon(":/icons/synced").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
 
+        tooltip += QString("<br>") + tr("The current PoW difficulty is %1").arg(clientModel->getDifficulty(false));
+        tooltip += QString("<br>") + tr("The current PoS difficulty is %1").arg(clientModel->getDifficulty(true));
+
+        progressBarLabel->setVisible(false);
+        progressBar->setVisible(false);
+
         overviewPage->showOutOfSyncWarning(false);
-    }
-    else
-    {
+    } else {
+        /* Better represent time from the last generated block */
+        QString timeBehindText;
+        if(secs < 48*60*60) {
+            timeBehindText = tr("%n hours","",secs/(60*60));
+        } else if(secs < 14*24*60*60) {
+            timeBehindText = tr("%n days","",secs/(24*60*60));
+        } else {
+            timeBehindText = tr("%n weeks","",secs/(7*24*60*60));
+        }
+
+        QString blocksBehindText = tr("%n blocks","", nTotalBlocks - count);
+
+
+        if(strStatusBarWarnings.isEmpty()) {
+            progressBarLabel->setText(tr("Synchronising with the network..."));
+            progressBarLabel->setVisible(true);
+            if(count < nTotalBlocks) {
+                progressBar->setFormat(tr("%1 or %2 behind").arg(blocksBehindText).arg(timeBehindText));
+                progressBar->setMaximum(nTotalBlocks);
+            } else {
+                progressBar->setFormat(tr("%1 behind").arg(timeBehindText));
+                progressBar->setMaximum(count);
+
+            }
+            progressBar->setValue(count);
+            progressBar->setVisible(true);
+        } else {
+            progressBarLabel->setText(clientModel->getStatusBarWarnings());
+            progressBarLabel->setVisible(true);
+            progressBar->setVisible(false);
+        }
+
         tooltip = tr("Catching up...") + QString("<br>") + tooltip;
-        labelBlocksIcon->setMovie(syncIconMovie);
-        syncIconMovie->start();
+        if(count != prevBlocks) {
+            labelBlocksIcon->setPixmap(QIcon(QString(
+                ":/movies/spinner-%1").arg(spinnerFrame, 2, 10, QChar('0')))
+                .pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+            spinnerFrame = (spinnerFrame + 1) % SPINNER_FRAMES;
+        }
+        prevBlocks = count;
+
+        tooltip += QString("<br>");
+        tooltip += tr("The last received block was generated %1 ago").arg(timeBehindText);
+        tooltip += QString("<br>");
+        tooltip += tr("Transactions after this will not yet be visible");
 
         overviewPage->showOutOfSyncWarning(true);
-    }
-
-    if(!text.isEmpty())
-    {
-        tooltip += QString("<br>");
-        tooltip += tr("Last received block was generated %1.").arg(text);
     }
 
     // Don't word-wrap this (fixed-width) tooltip
@@ -649,7 +690,7 @@ void BitcoinGUI::incomingTransaction(const QModelIndex & parent, int start, int 
     if(!clientModel->inInitialBlockDownload())
     {
         // On new transaction, make an info balloon
-        // Unless the initial block download is in progress, to prevent balloon-spam
+        // Unless the initial block download is in progress, to Lastent balloon-spam
         QString date = ttm->index(start, TransactionTableModel::Date, parent)
                         .data().toString();
         QString type = ttm->index(start, TransactionTableModel::Type, parent)
@@ -808,6 +849,7 @@ void BitcoinGUI::setEncryptionStatus(int status)
         encryptWalletAction->setEnabled(false); // TODO: decrypt currently not supported
         break;
     }
+    setStakeMining();
 }
 
 void BitcoinGUI::encryptWallet(bool status)

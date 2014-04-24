@@ -110,8 +110,12 @@ public:
 };
 
 // CreateNewBlock: create new block (without proof-of-work/proof-of-stake)
-CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
-{
+CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward) {
+
+    /* Reward must be returned for PoS */
+    if(fProofOfStake && !pStakeReward)
+      return(NULL);
+
     // Create new block
     auto_ptr<CBlock> pblock(new CBlock());
     if (!pblock.get())
@@ -364,8 +368,8 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         if (fDebug && GetBoolArg("-printpriority"))
             printf("CreateNewBlock(): total size %"PRI64u"\n", nBlockSize);
 
-        if (!fProofOfStake)
-            pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, nFees);
+        if(fProofOfStake) *pStakeReward = GetProofOfStakeReward(pindexPrev->nHeight+1, nFees);
+        else pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, nFees);
 
         // Fill in header
         pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
@@ -521,8 +525,9 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
     return true;
 }
 
-void StakeMiner(CWallet *pwallet)
-{
+void StakeMiner(CWallet *pwallet) {
+    int64 nStakeReward = 0;
+
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
     // Make this thread recognisable as a stake mining thread
@@ -552,19 +557,14 @@ void StakeMiner(CWallet *pwallet)
 
         strMintWarning = "";
 
-        //
-        // Create new block
-        //
+        /* Create a new block and receive a stake reward expected */
         CBlockIndex* pindexPrev = pindexBest;
-
-        auto_ptr<CBlock> pblock(CreateNewBlock(pwallet, true));
-        if (!pblock.get())
-            return;
+        auto_ptr<CBlock> pblock(CreateNewBlock(pwallet, true, &nStakeReward));
+        if(!pblock.get()) return;
         IncrementExtraNonce(pblock.get(), pindexPrev, nExtraNonce);
 
-        // Trying to sign a block
-        if (pblock->SignBlock(*pwallet))
-        {
+        /* Try to sign the block with the stake reward obtained previously */ 
+        if(pblock->SignBlock(*pwallet, nStakeReward)) {
             strMintWarning = _("Stake generation: new block found!");
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
             CheckStake(pblock.get(), *pwallet);

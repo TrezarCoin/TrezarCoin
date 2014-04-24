@@ -1,25 +1,25 @@
 #!/usr/bin/env python
 # W.J. van der Laan, 2011
-# Make spinning .mng animation from a .png
+# Make spinning animation from a .png
 # Requires imagemagick 6.7+
 from __future__ import division
 from os import path
 from PIL import Image
 from subprocess import Popen
 
-SRC='img/reload_scaled.png'
-DST='../../src/qt/res/movies/update_spinner.mng'
-TMPDIR='/tmp'
-TMPNAME='tmp-%03i.png'
-NUMFRAMES=35
-FRAMERATE=10.0
-CONVERT='convert'
+# The source icon is copyright (c) 2014 John Doering <ghostlander@phoenixcoin.org>
+# under the terms of the MIT Licence (see ../LICENCE)
+SRC='images/reload.png'
+TMPDIR='../src/qt/res/movies/'
+TMPNAME='spinner-%02i.png'
+NUMFRAMES=25
 CLOCKWISE=True
+FLIP=False
 DSIZE=(16,16)
 
 im_src = Image.open(SRC)
 
-if CLOCKWISE:
+if FLIP:
     im_src = im_src.transpose(Image.FLIP_LEFT_RIGHT)
 
 def frame_to_filename(frame):
@@ -35,9 +35,3 @@ for frame in xrange(NUMFRAMES):
     outfile = frame_to_filename(frame)
     im_new.save(outfile, 'png')
     frame_files.append(outfile)
-
-p = Popen([CONVERT, "-delay", str(FRAMERATE), "-dispose", "2"] + frame_files + [DST])
-p.communicate()
-
-
-

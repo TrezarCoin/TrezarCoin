@@ -157,6 +157,12 @@ extern bool fLogTimestamps;
 extern bool fReopenDebugLog;
 extern bool fStakeGen;
 
+extern long long nLastWalletStakeTime;
+extern unsigned long long nMinWeightInputs;
+extern unsigned long long nAvgWeightInputs;
+extern unsigned long long nMaxWeightInputs;
+extern unsigned long long nTotalStakeWeight;
+
 void RandAddSeed();
 void RandAddSeedPerfmon();
 int ATTR_WARN_PRINTF(1,2) OutputDebugStringF(const char* pszFormat, ...);

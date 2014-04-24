@@ -307,10 +307,10 @@ void ThreadIRCSeed2(void* parg)
             // randomly join #orbitcoin00-#orbitcoin05
             // int channel_number = GetRandInt(5);
 
-            // Channel number is always 0 for initial release
+            /* Use a single channel currently */
             int channel_number = 0;
-            Send(hSocket, strprintf("JOIN #Orbitcoin%02d\r", channel_number).c_str());
-            Send(hSocket, strprintf("WHO #Orbitcoin%02d\r", channel_number).c_str());
+            Send(hSocket, strprintf("JOIN #orbitcoin%02d\r", channel_number).c_str());
+            Send(hSocket, strprintf("WHO #orbitcoin%02d\r", channel_number).c_str());
         }
 
         int64 nStart = GetTime();
