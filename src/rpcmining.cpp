@@ -19,20 +19,26 @@ Value getmininginfo(const Array& params, bool fHelp)
             "getmininginfo\n"
             "Returns an object containing mining-related information.");
 
-    uint64 nMinWeight = 0, nMaxWeight = 0, nWeight = 0;
-    pwalletMain->GetStakeWeight(*pwalletMain, nMinWeight, nMaxWeight, nWeight);
+    /* Caches the results for 10 minutes */
+    if((GetTime() - 600) > nLastWalletStakeTime) {
+        pwalletMain->GetStakeWeight(*pwalletMain, nMinWeightInputs, nAvgWeightInputs, nMaxWeightInputs, nTotalStakeWeight);
+        nLastWalletStakeTime = GetTime();
+    }
 
     Object obj;
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("currentblocksize",(uint64_t)nLastBlockSize));
     obj.push_back(Pair("currentblocktx",(uint64_t)nLastBlockTx));
-    obj.push_back(Pair("difficulty",    (float)GetDifficulty()));
-    obj.push_back(Pair("blockvalue",    (float)(GetProofOfWorkReward(GetLastBlockIndex(pindexBest, false)->nHeight, (int64)NULL))/COIN));
+    obj.push_back(Pair("powdifficulty", (float)GetDifficulty()));
+    obj.push_back(Pair("posdifficulty", (float)GetDifficulty(GetLastBlockIndex(pindexBest, true))));
+    obj.push_back(Pair("powreward",     (float)(GetProofOfWorkReward(GetLastBlockIndex(pindexBest, false)->nHeight, (int64)NULL))/COIN));
+    obj.push_back(Pair("posreward",     (float)(GetProofOfStakeReward(GetLastBlockIndex(pindexBest, true)->nHeight, (int64)NULL))/COIN));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     obj.push_back(Pair("networkhashps", getnetworkhashps(params, false)));
-    obj.push_back(Pair("stakeweight",  (uint64_t)nWeight));
-    obj.push_back(Pair("minweight",    (uint64_t)nMinWeight));
-    obj.push_back(Pair("maxweight",    (uint64_t)nMaxWeight));
+    obj.push_back(Pair("stakeweight",   (uint64_t)nTotalStakeWeight));
+    obj.push_back(Pair("minweightinputs", (uint64_t)nMinWeightInputs));
+    obj.push_back(Pair("avgweightinputs", (uint64_t)nAvgWeightInputs));
+    obj.push_back(Pair("maxweightinputs", (uint64_t)nMaxWeightInputs));
     obj.push_back(Pair("pooledtx",      (uint64_t)mempool.size()));
     obj.push_back(Pair("testnet",       fTestNet));
     return obj;

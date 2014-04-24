@@ -11,6 +11,8 @@
 #include <QDateTime>
 #include <QTimer>
 
+double GetDifficulty(const CBlockIndex* blockindex);
+
 static const int64 nClientStartupTime = GetTime();
 
 ClientModel::ClientModel(OptionsModel *optionsModel, QObject *parent) :
@@ -30,6 +32,11 @@ ClientModel::ClientModel(OptionsModel *optionsModel, QObject *parent) :
 ClientModel::~ClientModel()
 {
     unsubscribeFromCoreSignals();
+}
+
+double ClientModel::getDifficulty(bool PoS) {
+
+    return(GetDifficulty(GetLastBlockIndex(pindexBest, PoS)));
 }
 
 int ClientModel::getNumConnections() const

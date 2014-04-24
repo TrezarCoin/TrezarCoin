@@ -370,7 +370,7 @@ void CWallet::WalletUpdateSpent(const CTransaction &tx, bool fBlock)
                     printf("WalletUpdateSpent: bad wtx %s\n", wtx.GetHash().ToString().c_str());
                 else if (!wtx.IsSpent(txin.prevout.n) && IsMine(wtx.vout[txin.prevout.n]))
                 {
-                    printf("WalletUpdateSpent found spent coin %snvc %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
+                    printf("WalletUpdateSpent found spent coin %sorb %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
                     wtx.MarkSpent(txin.prevout.n);
                     wtx.WriteToDisk();
                     NotifyTransactionChanged(this, txin.prevout.hash, CT_UPDATED);
@@ -867,7 +867,7 @@ void CWallet::ReacceptWalletTransactions()
                 }
                 if (fUpdated)
                 {
-                    printf("ReacceptWalletTransactions found spent coin %snvc %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
+                    printf("ReacceptWalletTransactions found spent coin %sorb %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
                     wtx.MarkDirty();
                     wtx.WriteToDisk();
                 }
@@ -1434,20 +1434,23 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& w
     return CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, strTxComment, coinControl);
 }
 
-/* A quick stake weight calculator */
+/* A quick stake weight calculator for a single input */
 bool CWallet::GetStakeWeightQuick(const int64& nTime, const int64& nValue, uint64& nWeight) {
     CBigNum bnCoinDayWeight = 0;
     int64 nTimeWeight;
 
+    /* Stake weight reported is zero if time weight isn't positive */
     nTimeWeight = GetWeight(nTime, (int64)GetTime());
     if(nTimeWeight > 0) bnCoinDayWeight = CBigNum(nValue) * nTimeWeight / COIN / (24 * 60 * 60);
     nWeight = bnCoinDayWeight.getuint64();
     return true;
 }
 
-// Get current stake weight
-bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeight, uint64& nMaxWeight, uint64& nWeight)
-{
+/* Get a total wallet stake weight */
+bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeightInputs, uint64& nAvgWeightInputs, uint64& nMaxWeightInputs, uint64& nTotalStakeWeight) {
+    CBigNum bnCoinDayWeight = 0;
+    int64 nTimeWeight;
+
     // Choose coins to use
     int64 nBalance = GetBalance();
     int64 nReserveBalance = 0;
@@ -1471,6 +1474,8 @@ bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeight, uint
     if (setCoins.empty())
         return false;
 
+    nMinWeightInputs = 0, nAvgWeightInputs = 0, nMaxWeightInputs = 0, nTotalStakeWeight = 0;
+
     CCoinsViewCache &view = *pcoinsTip;
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
@@ -1481,40 +1486,33 @@ bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeight, uint
                 continue;
         }
 
-        int64 nTimeWeight = GetWeight((int64)pcoin.first->nTime, (int64)GetTime());
-        CBigNum bnCoinDayWeight = CBigNum(pcoin.first->vout[pcoin.second].nValue) * nTimeWeight / COIN / (24 * 60 * 60);
-
-        // Weight is greater than zero
-        if (nTimeWeight > 0)
-        {
-            nWeight += bnCoinDayWeight.getuint64();
+        nTimeWeight = GetWeight((int64)pcoin.first->nTime, (int64)GetTime());
+        if(nTimeWeight > 0) {
+            /* Calculate stake weight */
+            bnCoinDayWeight = CBigNum(pcoin.first->vout[pcoin.second].nValue) * nTimeWeight / COIN / (24 * 60 * 60);
+            nTotalStakeWeight += bnCoinDayWeight.getuint64();
+            /* Minimum weight reached */
+            if(nTimeWeight < (nStakeMaxAge / 2)) nMinWeightInputs++;
+            /* Average weight reached */
+            else if(nTimeWeight < nStakeMaxAge) nAvgWeightInputs++;
+            /* Maximum weight reached */
+            else nMaxWeightInputs++;
         }
 
-        // Weight is greater than zero, but the maximum value isn't reached yet
-        if (nTimeWeight > 0 && nTimeWeight < nStakeMaxAge)
-        {
-            nMinWeight += bnCoinDayWeight.getuint64();
-        }
-
-        // Maximum weight was reached
-        if (nTimeWeight == nStakeMaxAge)
-        {
-            nMaxWeight += bnCoinDayWeight.getuint64();
-        }
     }
 
     return true;
 }
 
-bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew, CKey& key)
-{
+bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew, CKey& key, int64 nStakeReward) {
+
     // The following split & combine thresholds are important to security
     // Should not be adjusted if you don't understand the consequences
-    static unsigned int nStakeSplitAge = (60 * 60 * 24 * 30);
-    const CBlockIndex* pIndex0 = GetLastBlockIndex(pindexBest, false);
-    int64 nCombineThreshold = 0;
-    if(pIndex0->pprev)
-      nCombineThreshold = GetProofOfWorkReward(pIndex0->nHeight, MIN_TX_FEE) / 3;
+
+    /* 20 days for Orbitcoin */
+    static unsigned int nStakeSplitAge = (nStakeMinAge + nStakeMaxAge);
+    /* 20 ORBs */
+    int64 nCombineThreshold = MIN_STAKE_AMOUNT;
 
     CBlockIndex* pindexPrev = pindexBest;
 
@@ -1563,7 +1561,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 continue;
         }
 
-        static int nMaxStakeSearchInterval = 60;
+        static int nMaxStakeSearchInterval = 30;
         if (coins.nBlockTime + nStakeMinAge > txNew.nTime - nMaxStakeSearchInterval)
             continue; // only count coins meeting min age requirement
 
@@ -1668,8 +1666,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             break; // if kernel is found stop searching
     }
 
-    if (nCredit == 0 || nCredit > nBalance - nReserveBalance)
-        return false;
+    /* At this point, stake amount must be positive and within the stake limit if defined */
+    if(!nCredit || (nCredit > (nBalance - nReserveBalance)))
+      return false;
 
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
@@ -1680,21 +1679,21 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         {
             int64 nTimeWeight = GetWeight((int64)pcoin.first->nTime, (int64)txNew.nTime);
 
-            // Stop adding more inputs if already too many inputs
-            if (txNew.vin.size() >= 100)
-                break;
-            // Stop adding more inputs if value is already pretty significant
-            if (nCredit > nCombineThreshold)
-                break;
-            // Stop adding inputs if reached reserve limit
-            if (nCredit + pcoin.first->vout[pcoin.second].nValue > nBalance - nReserveBalance)
-                break;
-            // Do not add additional significant input
-            if (pcoin.first->vout[pcoin.second].nValue > nCombineThreshold)
-                continue;
-            // Do not add input that is still too young
-            if (nTimeWeight < nStakeMaxAge)
-                continue;
+            /* Do not add too many inputs */
+            if(txNew.vin.size() >= 10)
+              break;
+            /* Do not add any inputs if above the threshold already */
+            if(nCredit > nCombineThreshold)
+              break;
+            /* Do not add a new input exceeding the stake limit if defined */
+            if(nCredit + pcoin.first->vout[pcoin.second].nValue > nBalance - nReserveBalance)
+              break;
+            /* Do not add any large inputs capable of stake generation on their own */
+            if(pcoin.first->vout[pcoin.second].nValue > nCombineThreshold)
+              continue;
+            /* Do not add any inputs under the min. age */
+            if(nTimeWeight < nStakeMinAge)
+              continue;
 
             txNew.vin.push_back(CTxIn(pcoin.first->GetHash(), pcoin.second));
             nCredit += pcoin.first->vout[pcoin.second].nValue;
@@ -1702,14 +1701,12 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         }
     }
 
-    // Calculate coin age reward
-    {
-        uint64 nCoinAge;
+    /* Fail if the minimal stake amount not reached */
+    if(nCredit < MIN_STAKE_AMOUNT)
+      return error("CreateCoinStake() : stake amount below the minimum");
 
-        if (!txNew.GetCoinAge(nCoinAge))
-            return error("CreateCoinStake : failed to calculate coin age");
-        nCredit += GetProofOfStakeReward();
-    }
+    /* Add the block reward including fees if any */
+    nCredit += nStakeReward;
 
     int64 nMinFee = 0;
     while (true)
@@ -2275,7 +2272,7 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64& nBalanceInQuestion, bool
             {
                 if (pcoin->IsSpent(n) && coins.IsAvailable(n))
                 {
-                    printf("FixSpentCoins found lost coin %snvc %s[%d], %s\n",
+                    printf("FixSpentCoins found lost coin %sorb %s[%d], %s\n",
                         FormatMoney(pcoin->vout[n].nValue).c_str(), hash.ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
                     nMismatchFound++;
                     nBalanceInQuestion += pcoin->vout[n].nValue;
@@ -2288,7 +2285,7 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64& nBalanceInQuestion, bool
                 }
                 else if (!pcoin->IsSpent(n) && !coins.IsAvailable(n))
                 {
-                    printf("FixSpentCoins found spent coin %snvc %s[%d], %s\n",
+                    printf("FixSpentCoins found spent coin %sorb %s[%d], %s\n",
                         FormatMoney(pcoin->vout[n].nValue).c_str(), hash.ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
                     nMismatchFound++;
                     nBalanceInQuestion += pcoin->vout[n].nValue;

@@ -41,9 +41,9 @@ uint256 nPoWBase = uint256("0x00000000ffff00000000000000000000000000000000000000
 CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 16);
 CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 16);
 
-unsigned int nStakeMinAge = 60 * 60 * 24 * 5;   // 5 days as zero time weight
-unsigned int nStakeMaxAge = 60 * 60 * 24 * 15;  // 15 days as full weight
-unsigned int nStakeTargetSpacing = 30;		// 30 seconds block spacing
+unsigned int nStakeMinAge = 60 * 60 * 24 * 5;   /* Orbitcoin: positive time weight after 5 days */
+unsigned int nStakeMaxAge = 60 * 60 * 24 * 15;  /* Orbitcoin: full time weight at 20 days (5 + 15) */
+unsigned int nBaseTargetSpacing = 30;		/* 30 seconds base spacing */
 unsigned int nModifierInterval = 6 * 60 * 60;   // time to elapse before new modifier is computed
 
 int nCoinbaseMaturity = 200;
@@ -1042,27 +1042,41 @@ uint256 WantedByOrphan(const CBlock* pblockOrphan)
 int64 GetProofOfWorkReward(int nHeight, int64 nFees) {
     int64 nSubsidy = 0;
 
-    if(nHeight > 0) nSubsidy = 100000 * COIN;
-    if(nHeight > 10) nSubsidy = 0.25 * COIN;
-    if(nHeight > 2102400) nSubsidy = 0.125 * COIN;
-    if(nHeight > 3153600) nSubsidy = 0.0625 * COIN;
-    if(nHeight > 4204800) nSubsidy = 0.03125 * COIN;
-    if(nHeight > 5256000) nSubsidy = 0.015625 * COIN;
+    if(nHeight > 0)            nSubsidy = 100000 * COIN;
+    if(nHeight > 10)           nSubsidy = 0.25 * COIN;
 
-    return nSubsidy + nFees;
+    if(fTestNet) {
+        if(nHeight > 1850)     nSubsidy = 1 * COIN;
+    } else {
+        if(nHeight > 610000)   nSubsidy = 2 * COIN;
+        if(nHeight > 660000)   nSubsidy = 1 * COIN;
+        if(nHeight > 2000000)  nSubsidy >>= ((nHeight / 1000000) - 1);
+    }
+
+    return(nSubsidy + nFees);
 }
 
-int64 GetProofOfStakeReward() {
+int64 GetProofOfStakeReward(int nHeight, int64 nFees) {
+    int64 nSubsidy = 0;
 
-    return 0;
+    if(fTestNet) {
+        if(nHeight <= 1850)    nFees = 0;
+        if(nHeight >  1850)    nSubsidy = 1 * COIN;
+    } else {
+        if(nHeight <= 610000)  nFees = 0;
+        if(nHeight >  610000)  nSubsidy = 10 * COIN;
+        if(nHeight >  660000)  nSubsidy = 5 * COIN;
+        if(nHeight >  760000)  nSubsidy = 1 * COIN;
+        if(nHeight >  2000000) nSubsidy >>= ((nHeight / 1000000) - 1);
+    }
+
+    return(nSubsidy + nFees);
 }
-
-static const int64 nTargetTimespan = 60 * 60;  // 1 hour
 
 int64 inline GetTargetSpacingWorkMax() {
 
-    if(fTestNet) return 3 * nStakeTargetSpacing; // 1.5 minutes on testnet
-    return 12 * nStakeTargetSpacing; // 6 minutes
+    if(fTestNet) return 3 * nBaseTargetSpacing;
+    return 12 * nBaseTargetSpacing;
 }
 
 // ppcoin: find last block index up to pindex
@@ -1073,10 +1087,8 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
     return pindex;
 }
 
-unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake, bool fPrettyPrint)
-{
+unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake, bool fPrettyPrint) {
     CBigNum bnTargetLimit, bnNew;
-    int64 nTargetSpacing, nActualSpacing, nInterval;
 
     /* Separate range limits */
     if(fTestNet) {
@@ -1098,39 +1110,127 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     /* The next block */
     int nHeight = pindexLast->nHeight + 1;
 
-    // ppcoin: target change every block
-    // ppcoin: retarget with exponential moving toward target spacing
-    bnNew.SetCompact(pindexPrev->nBits);
-    if(fProofOfStake) nTargetSpacing = nStakeTargetSpacing;
-    else nTargetSpacing = min(GetTargetSpacingWorkMax(),
-      (int64)nStakeTargetSpacing * (1 + pindexLast->nHeight - pindexPrev->nHeight));
+    if((fTestNet && (nHeight <= 2000)) || (!fTestNet && (nHeight <= 610000))) {
 
-    nActualSpacing = (int64)pindexPrev->nTime - (int64)pindexPrevPrev->nTime;
-    if(fTestNet || (nHeight > 417000)) nActualSpacing = max(nActualSpacing, (int64)0);
+        /* Legacy every block retargets of the PPC style */
 
-    if(nHeight > 585000) {
-        nActualSpacing = max(nActualSpacing, (int64)15);
-        nActualSpacing = min(nActualSpacing, (int64)90);
+        int64 nTargetTimespan = 60 * 60;
+        int64 nInterval, nTargetSpacing, nActualSpacing;
+
+        if(fProofOfStake)
+          nTargetSpacing = nBaseTargetSpacing;
+        else
+          nTargetSpacing = min(GetTargetSpacingWorkMax(),
+            (int64)nBaseTargetSpacing * (1 + pindexLast->nHeight - pindexPrev->nHeight));
+
+        nActualSpacing = (int64)pindexPrev->nTime - (int64)pindexPrevPrev->nTime;
+
+        /* Initial hard forked limit */
+        if(fTestNet || (nHeight > 417000)) nActualSpacing = max(nActualSpacing, (int64)0);
+
+        /* Further hard forked limits */
+        if(nHeight > 585000) {
+            nActualSpacing = max(nActualSpacing, (int64)15);
+            nActualSpacing = min(nActualSpacing, (int64)90);
+        }
+
+        if(fPrettyPrint) {
+            fProofOfStake? printf("RETARGET PoS ") : printf("RETARGET PoW ");
+            printf("heights: pindexLast = %d, pindexPrev = %d, pindexPrevPrev = %d\n",
+              pindexLast->nHeight, pindexPrev->nHeight, pindexPrevPrev->nHeight);
+            printf("RETARGET time stamps: pindexLast = %u, pindexPrev = %u, pindexPrevPrev = %u\n",
+              pindexLast->nTime, pindexPrev->nTime, pindexPrevPrev->nTime);
+        }
+
+        nInterval = nTargetTimespan / nTargetSpacing;
+
+        bnNew.SetCompact(pindexPrev->nBits);
+        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
+        bnNew /= ((nInterval + 1) * nTargetSpacing);
+
+        if(bnNew > bnTargetLimit) bnNew = bnTargetLimit;
+
+        if(fPrettyPrint)
+          printf("RETARGET nTargetTimespan = %"PRI64d", nTargetSpacing = %"PRI64d", nInterval = %"PRI64d"\n",
+            nTargetTimespan, nTargetSpacing, nInterval);
+
+    } else {
+
+        /* New Orbitcoin every block retargets with two averaging windows of 5 and 20 blocks,
+         * 0.25 damping and +1% to -2% limiting */
+
+        int64 nIntervalShort = 5, nIntervalLong = 20, nTargetSpacing, nTargetTimespan,
+              nActualTimespan, nActualTimespanShort, nActualTimespanLong, nActualTimespanAvg,
+              nActualTimespanMax, nActualTimespanMin;
+
+        if(fProofOfStake) {
+          if(nHeight > 760000) nTargetSpacing = 2*nBaseTargetSpacing;
+          else nTargetSpacing = 4*nBaseTargetSpacing;
+        } else {
+          if(nHeight > 760000) nTargetSpacing = 4*nBaseTargetSpacing;
+          else nTargetSpacing = 2*nBaseTargetSpacing;
+        }
+
+        nTargetTimespan = nTargetSpacing * nIntervalLong;
+
+        /* The short averaging window */
+        const CBlockIndex* pindexShort = pindexPrev;
+        for(int i = 0; pindexShort && (i < nIntervalShort); i++)
+          pindexShort = GetLastBlockIndex(pindexShort->pprev, fProofOfStake);
+        nActualTimespanShort = (int64)pindexPrev->nTime - (int64)pindexShort->nTime;
+
+        /* The long averaging window */
+        const CBlockIndex* pindexLong = pindexShort;
+        for(int i = 0; pindexLong && (i < (nIntervalLong - nIntervalShort)); i++)
+          pindexLong = GetLastBlockIndex(pindexLong->pprev, fProofOfStake);
+        nActualTimespanLong = (int64)pindexPrev->nTime - (int64)pindexLong->nTime;
+
+        /* Time warp protection */
+        nActualTimespanShort = max(nActualTimespanShort, (nTargetSpacing * nIntervalShort * 15 / 20));
+        nActualTimespanShort = min(nActualTimespanShort, (nTargetSpacing * nIntervalShort * 20 / 15));
+        nActualTimespanLong  = max(nActualTimespanLong,  (nTargetSpacing * nIntervalLong  * 15 / 20));
+        nActualTimespanLong  = min(nActualTimespanLong,  (nTargetSpacing * nIntervalLong  * 20 / 15));
+
+        /* The average of both windows */
+        nActualTimespanAvg = (nActualTimespanShort * (nIntervalLong / nIntervalShort) + nActualTimespanLong) / 2;
+
+        /* 0.25 damping */
+        nActualTimespan = nActualTimespanAvg + 3*nTargetTimespan;
+        nActualTimespan /= 4;
+
+        if(fPrettyPrint) {
+            fProofOfStake? printf("RETARGET PoS ") : printf("RETARGET PoW ");
+            printf("heights: Last = %d, Prev = %d, Short = %d, Long = %d\n",
+              pindexLast->nHeight, pindexPrev->nHeight, pindexShort->nHeight, pindexLong->nHeight);
+            printf("RETARGET time stamps: Last = %u, Prev = %u, Short = %u, Long = %u\n",
+              pindexLast->nTime, pindexPrev->nTime, pindexShort->nTime, pindexLong->nTime);
+            printf("RETARGET windows: short = %"PRI64d" (%"PRI64d"), long = %"PRI64d", average = %"PRI64d", damped = %"PRI64d"\n",
+              nActualTimespanShort, nActualTimespanShort*(nIntervalLong/nIntervalShort), nActualTimespanLong,
+              nActualTimespanAvg, nActualTimespan);
+        }
+
+        /* Difficulty limiters */
+        nActualTimespanMax = nTargetTimespan*102/100;
+        nActualTimespanMin = nTargetTimespan*100/101;
+        if(nActualTimespan < nActualTimespanMin) nActualTimespan = nActualTimespanMin;
+        if(nActualTimespan > nActualTimespanMax) nActualTimespan = nActualTimespanMax;
+
+        /* Retarget */
+        bnNew.SetCompact(pindexPrev->nBits);
+        bnNew *= nActualTimespan;
+        bnNew /= nTargetTimespan;
+
+        if(bnNew > bnTargetLimit) bnNew = bnTargetLimit;
+
+        if(fPrettyPrint)
+          printf("RETARGET nTargetTimespan = %"PRI64d", nActualTimespan = %"PRI64d", nTargetTimespan/nActualTimespan = %.4f\n",
+            nTargetTimespan, nActualTimespan, (float)nTargetTimespan/nActualTimespan);
+
     }
 
     if(fPrettyPrint) {
-        fProofOfStake? printf("RETARGET PoS ") : printf("RETARGET PoW ");
-        printf("heights: pindexLast = %d, pindexPrev = %d, pindexPrevPrev = %d\n",
-          pindexLast->nHeight, pindexPrev->nHeight, pindexPrevPrev->nHeight);
-        printf("RETARGET time stamps: pindexLast = %u, pindexPrev = %u, pindexPrevPrev = %u\n",
-          pindexLast->nTime, pindexPrev->nTime, pindexPrevPrev->nTime);
-    }
-
-    nInterval = nTargetTimespan / nTargetSpacing;
-
-    bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
-    bnNew /= ((nInterval + 1) * nTargetSpacing);
-
-    if(bnNew > bnTargetLimit) bnNew = bnTargetLimit;
-
-    if(fPrettyPrint) {
-        printf("RETARGET nTargetTimespan = %lld, nTargetSpacing = %lld, nInterval = %lld\n", nTargetTimespan, nTargetSpacing, nInterval);
-        printf("Before: %08x  %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString().c_str());
+        printf("Before: %08x  %s\n", pindexPrev->nBits,
+          CBigNum().SetCompact(pindexPrev->nBits).getuint256().ToString().c_str());
         printf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
     }
 
@@ -1346,7 +1446,6 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
 
         CBlockIndex *pindexBlock = inputs.GetBestBlock();
         int64 nValueIn = 0;
-        int64 nFees = 0;
         for (unsigned int i = 0; i < vin.size(); i++)
         {
             const COutPoint &prevout = vin[i].prevout;
@@ -1366,44 +1465,40 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
             nValueIn += coins.vout[prevout.n].nValue;
             if (!MoneyRange(coins.vout[prevout.n].nValue) || !MoneyRange(nValueIn))
                 return DoS(100, error("CheckInputs() : txin values out of range"));
+
+            if((prevout.hash == hashBad) && (pindexBlock->nHeight > 610000)) {
+               return error("CheckInputs(): %s bad hash detected\n",
+                 GetHash().ToString().substr(0,10).c_str());
+            }
+
         }
 
-        if (IsCoinStake())
-        {
-            if (!pblock)
-                return error("CheckInputs() : %s is a coinstake, but no block specified", GetHash().ToString().substr(0,10).c_str());
+        if(IsCoinStake()) {
 
-            // Coin stake tx earns reward instead of paying fee
-            uint64 nCoinAge;
-            if (!GetCoinAge(nCoinAge))
-                return error("CheckInputs() : %s unable to get coin age for coinstake", GetHash().ToString().substr(0,10).c_str());
+            /* Do not accept too many inputs */
+            if(vin.size() > (uint64)MAX_STAKE_INPUTS)
+              return DoS(25, error("CheckInputs() : too many inputs (%lu) of a coin stake %s",
+                vin.size(), GetHash().ToString().substr(0,10).c_str()));
 
-            int64 nCalculatedStakeReward, nStakeReward = GetValueOut() - nValueIn;
+            /* Orbitcoin: not using coin age for reward calculation,
+             * using for input verification to prevent stake amount manipulations;
+             * reward control is in ConnectBlock() when all transactions are processed
+             * with all fees present and accounted for */
+            uint64 nCoinAge = 0, nCoinAgeFails = 0;
+            if(!GetCoinAge(&nCoinAge, &nCoinAgeFails))
+              return DoS(50, error("CheckInputs() : unable to calculate coin age for a coin stake %s",
+                GetHash().ToString().substr(0,10).c_str()));
+            if(nCoinAgeFails)
+              return DoS(50, error("CheckInputs() : %"PRI64u" inputs of a coin stake %s don't meet the min. age requirement",
+                nCoinAgeFails, GetHash().ToString().substr(0,10).c_str()));
 
-            // Coin stakes of any size are high priority
-            nCalculatedStakeReward = GetProofOfStakeReward() - GetMinFee(1, true, GMF_SEND) + MIN_TX_FEE;
-            if(nCalculatedStakeReward < 0) nCalculatedStakeReward = 0;
-            if(nStakeReward > nCalculatedStakeReward)
-              return DoS(100, error("CheckInputs() : coinstake pays too much(actual=%"PRI64d" vs calculated=%"PRI64d")", nStakeReward, nCalculatedStakeReward));
-        }
-        else
-        {
-            if (nValueIn < GetValueOut())
-                return DoS(100, error("ChecktInputs() : %s value in < value out", GetHash().ToString().substr(0,10).c_str()));
+        } else {
 
-            // Tally transaction fees
-            int64 nTxFee = nValueIn - GetValueOut();
-            if (nTxFee < 0)
-                return DoS(100, error("CheckInputs() : %s nTxFee < 0", GetHash().ToString().substr(0,10).c_str()));
-            nFees += nTxFee;
-            if (!MoneyRange(nFees))
-                return DoS(100, error("CheckInputs() : nFees out of range"));
+            /* Output must not exceed input for regular transactions */
+            if(nValueIn < GetValueOut())
+              return DoS(100, error("CheckInputs() : transaction %s input value < output value",
+                GetHash().ToString().substr(0,10).c_str()));
 
-            // Don't allow free transactions before the chain switch
-//            if(!fTestNet && (nTime <= CHAIN_SWITCH_TIME)) {
-//                if(nTxFee < GetMinFee(1, false, GMF_SEND))
-//                  return pblock? DoS(100, error("CheckInputs() : %s not paying required fee=%s, paid=%s", GetHash().ToString().substr(0,10).c_str(), FormatMoney(GetMinFee(1, false, GMF_SEND)).c_str(), FormatMoney(nTxFee).c_str())) : false;
-//            }
         }
 
         // The first loop above does all the inexpensive checks.
@@ -1419,14 +1514,16 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
                 const COutPoint &prevout = vin[i].prevout;
                 const CCoins &coins = inputs.GetCoins(prevout.hash);
 
-                // Verify signature
-                if (!VerifySignature(coins, *this, i, fStrictPayToScriptHash, fStrictEncodings, 0)) {
-                    // only during transition phase for P2SH: do not invoke anti-DoS code for
-                    // potentially old clients relaying bad P2SH transactions
-                    if (fStrictPayToScriptHash && VerifySignature(coins, *this, i, false, fStrictEncodings, 0))
-                        return error("CheckInputs() : %s P2SH VerifySignature failed", GetHash().ToString().substr(0,10).c_str());
+                /* ECDSA signature verification */
+                if(!VerifySignature(coins, *this, i, fStrictPayToScriptHash, fStrictEncodings, 0)) {
 
-                    return DoS(100,error("CheckInputs() : %s VerifySignature failed", GetHash().ToString().substr(0,10).c_str()));
+                    if(fStrictPayToScriptHash && VerifySignature(coins, *this, i, false, fStrictEncodings, 0))
+                      return DoS(100,error("CheckInputs() : transaction %s P2SH signature verification failed",
+                        GetHash().ToString().substr(0,10).c_str()));
+
+                    return DoS(100,error("CheckInputs() : transaction %s signature verificaton failed",
+                      GetHash().ToString().substr(0,10).c_str()));
+
                 }
             }
         }
@@ -1435,51 +1532,53 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
     return true;
 }
 
+/* Checks a transaction before accepting to the memory pool */
+bool CTransaction::ClientCheckInputs() const {
 
-bool CTransaction::ClientCheckInputs() const
-{
-    if (IsCoinBase())
-        return false;
+    /* Coin base and coin stake transactions are never relayed without a block */
+    if(IsCoinBase() || IsCoinStake())
+      return(false);
 
-    // Take over previous transactions' spent pointers
-    {
-        LOCK(mempool.cs);
-        int64 nValueIn = 0;
-        for (unsigned int i = 0; i < vin.size(); i++)
-        {
-            // Get prev tx from single transactions in memory
-            COutPoint prevout = vin[i].prevout;
-            if (!mempool.exists(prevout.hash))
-                return false;
-            CTransaction& txPrev = mempool.lookup(prevout.hash);
+    LOCK(mempool.cs);
+    int64 nValueIn = 0;
+    for(unsigned int i = 0; i < vin.size(); i++) {
 
-            if (prevout.n >= txPrev.vout.size())
-                return false;
+        /* Get inputs */
+        COutPoint prevout = vin[i].prevout;
 
-            // Verify signature
-            if (!VerifySignature(CCoins(txPrev, -1, -1), *this, i, true, false, 0))
-                return error("ConnectInputs() : VerifySignature failed");
+        if(!mempool.exists(prevout.hash))
+          return(false);
 
-            ///// this is redundant with the mempool.mapNextTx stuff,
-            ///// not sure which I want to get rid of
-            ///// this has to go away now that posNext is gone
-            // // Check for conflicts
-            // if (!txPrev.vout[prevout.n].posNext.IsNull())
-            //     return error("ConnectInputs() : prev tx already used");
-            //
-            // // Flag outpoints as used
-            // txPrev.vout[prevout.n].posNext = posThisTx;
-
-            nValueIn += txPrev.vout[prevout.n].nValue;
-
-            if (!MoneyRange(txPrev.vout[prevout.n].nValue) || !MoneyRange(nValueIn))
-                return error("ClientConnectInputs() : txin values out of range");
+        if(prevout.hash == hashBad) {
+           return error("ClientCheckInputs(): %s bad hash detected\n",
+             GetHash().ToString().substr(0,10).c_str());
         }
-        if (GetValueOut() > nValueIn)
-            return false;
+
+        CTransaction& txPrev = mempool.lookup(prevout.hash);
+
+        /* A subtransaction index check */
+        if(prevout.n >= txPrev.vout.size())
+          return(false);
+
+        /* A simple value range check */
+        if(!MoneyRange(txPrev.vout[prevout.n].nValue) || !MoneyRange(nValueIn))
+          return error("ClientCheckInputs() : transaction %s value out of range",
+            GetHash().ToString().substr(0,10).c_str());
+
+        /* ECDSA signature verification */
+        if(!VerifySignature(CCoins(txPrev, -1, -1), *this, i, true, false, 0))
+          return error("ClientCheckInputs() : transaction %s signature verificaton failed",
+            GetHash().ToString().substr(0,10).c_str());
+
+        nValueIn += txPrev.vout[prevout.n].nValue;
+
     }
 
-    return true;
+    /* Output must not exceed input for regular transactions */
+    if(nValueIn < GetValueOut())
+      return(false);
+
+    return(true);
 }
 
 bool CBlock::DisconnectBlock(CBlockIndex *pindex, CCoinsViewCache &view)
@@ -1599,7 +1698,7 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view, bool fJust
 
     CBlockUndo blockundo;
 
-    int64 nFees = 0, nValueIn = 0, nValueOut = 0;
+    int64 nFees = 0, nValueIn = 0, nValueOut = 0, nActualStakeReward = 0;
     unsigned int nSigOps = 0;
     for (unsigned int i=0; i<vtx.size(); i++)
     {
@@ -1630,8 +1729,13 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view, bool fJust
             nValueIn += nTxValueIn;
             nValueOut += nTxValueOut;
 
-            if (!tx.IsCoinStake())
-                nFees += nTxValueIn - nTxValueOut;
+            if(tx.IsCoinStake()) {
+                /* Orbitcoin: combined value of stake inputs must satisfy the limit */ 
+                if(!fTestNet && (pindex->nHeight > 610000) && (nTxValueIn < MIN_STAKE_AMOUNT))
+                  return DoS(100, error("ConnectBlock() : block %d proof-of-stake input amount too low (%"PRI64d" actual, %"PRI64d" expected)",
+                    pindex->nHeight, nActualStakeReward, MIN_STAKE_AMOUNT));
+                nActualStakeReward = nTxValueOut - nTxValueIn;
+            } else nFees += nTxValueIn - nTxValueOut;
 
             if (!tx.CheckInputs(view, CS_AFTER_CHECKPOINT, fStrictPayToScriptHash, false, this))
                 return false;
@@ -1648,10 +1752,15 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view, bool fJust
             blockundo.vtxundo.push_back(txundo);
     }
 
-    // Check PoW block reward
+    /* Check PoW block reward */
     if(IsProofOfWork() && (vtx[0].GetValueOut() > GetProofOfWorkReward(pindex->nHeight, nFees)))
-      return error("ConnectBlock() : block %d proof-of-work reward is too high (%lld actual, %lld expected)",
-        pindex->nHeight, vtx[0].GetValueOut(), GetProofOfWorkReward(pindex->nHeight, nFees));
+      return DoS(100, error("ConnectBlock() : block %d proof-of-work reward is too high (%"PRI64d" actual, %"PRI64d" expected)",
+        pindex->nHeight, vtx[0].GetValueOut(), GetProofOfWorkReward(pindex->nHeight, nFees)));
+
+    /* Check PoS block reward */
+    if(IsProofOfStake() && (nActualStakeReward > GetProofOfStakeReward(pindex->nHeight, nFees)))
+      return DoS(100, error("ConnectBlock() : block %d proof-of-stake reward is too high (%"PRI64d" actual, %"PRI64d" expected)",
+        pindex->nHeight, nActualStakeReward, GetProofOfStakeReward(pindex->nHeight, nFees)));
 
     pindex->nMint = nValueOut - nValueIn + nFees;
     pindex->nMoneySupply = (pindex->pprev? pindex->pprev->nMoneySupply : 0) + nValueOut - nValueIn;
@@ -1868,60 +1977,77 @@ bool SetBestChain(CBlockIndex* pindexNew)
 // guaranteed to be in main chain by sync-checkpoint. This rule is
 // introduced to help nodes establish a consistent view of the coin
 // age (trust score) of competing branches.
-bool CTransaction::GetCoinAge(uint64& nCoinAge) const
-{
+
+/* Reports the total coin age of all inputs of a transaction
+ * and the number of inputs failing to meet the min. coin age */
+bool CTransaction::GetCoinAge(uint64 *pCoinAge, uint64 *pCoinAgeFails) const {
+    uint64 nCoinAgeFails = 0;
     CCoinsViewCache &inputs = *pcoinsTip;
+    CBigNum bnCentSecond = 0;
 
-    CBigNum bnCentSecond = 0;  // coin age in the unit of cent-seconds
-    nCoinAge = 0;
+    if(IsCoinBase())
+      return(true);
 
-    if (IsCoinBase())
-        return true;
+    if(!pCoinAge || !pCoinAgeFails)
+      return(false);
 
-    for (unsigned int i = 0; i < vin.size(); i++)
-    {
+    for(unsigned int i = 0; i < vin.size(); i++) {
         const COutPoint &prevout = vin[i].prevout;
         CCoins coins;
-        if (!inputs.GetCoins(prevout.hash, coins))
-            continue;
 
-        if (nTime < coins.nTime)
-            return false;  // Transaction timestamp violation
+        if(!inputs.GetCoins(prevout.hash, coins))
+          continue;
 
-        // only count coins meeting min age requirement
-        if (coins.nBlockTime + nStakeMinAge > nTime)
-            continue;
+        /* Transaction earlier than input */
+        if(nTime < coins.nTime)
+          return(false);
 
-        int64 nValueIn = coins.vout[vin[i].prevout.n].nValue;
-        bnCentSecond += CBigNum(nValueIn) * (nTime-coins.nTime) / CENT;
+        /* Minumum age requirement must be met */
+        if(coins.nBlockTime + nStakeMinAge > nTime) nCoinAgeFails++;
+        else {
+            int64 nValueIn = coins.vout[vin[i].prevout.n].nValue;
+            bnCentSecond += CBigNum(nValueIn) * (nTime-coins.nTime) / CENT;
+        }
     }
 
     CBigNum bnCoinDay = bnCentSecond * CENT / COIN / (24 * 60 * 60);
-    if (fDebug && GetBoolArg("-printcoinage"))
-        printf("coin age bnCoinDay=%s\n", bnCoinDay.ToString().c_str());
-    nCoinAge = bnCoinDay.getuint64();
-    return true;
+
+    if(fDebug && GetBoolArg("-printcoinage"))
+      printf("%"PRI64d" transaction inputs < nStakeMinAge, bnCoinDay=%s\n coin-days",
+        nCoinAgeFails, bnCoinDay.ToString().c_str());
+
+    *pCoinAge = bnCoinDay.getuint64();
+    *pCoinAgeFails = nCoinAgeFails;
+
+    return(true);
 }
 
-// Total coin age spent in block, in the unit of coin-days.
-bool CBlock::GetCoinAge(uint64& nCoinAge) const
-{
-    nCoinAge = 0;
+/* Reports the total coin age consumed by all transactions in a block
+ * and the number of transactions with one or more inputs under the min. coin age
+ * (coin base transactions are ignored) */
+bool CBlock::GetCoinAge(uint64 *pCoinAge, uint64 *pCoinAgeFails) const {
+    uint64 nTxCoinAge = 0, nBlockCoinAge = 0, nTxCoinAgeFails = 0, nBlockCoinAgeFails = 0;
 
-    BOOST_FOREACH(const CTransaction& tx, vtx)
-    {
-        uint64 nTxCoinAge;
-        if (tx.GetCoinAge(nTxCoinAge))
-            nCoinAge += nTxCoinAge;
-        else
-            return false;
+    if(!pCoinAge || !pCoinAgeFails)
+      return(false);
+
+    for(unsigned int i = 0; i < vtx.size(); i++) {
+        const CTransaction &tx = vtx[i];
+
+        if(tx.GetCoinAge(&nTxCoinAge, &nTxCoinAgeFails)) {
+          nBlockCoinAge += nTxCoinAge;
+          nBlockCoinAgeFails += nTxCoinAgeFails;
+        } else return(false);
     }
 
-    if (nCoinAge == 0) // block coin age minimum 1 coin-day
-        nCoinAge = 1;
-    if (fDebug && GetBoolArg("-printcoinage"))
-        printf("block coin age total nCoinDays=%"PRI64d"\n", nCoinAge);
-    return true;
+    if(fDebug && GetBoolArg("-printcoinage"))
+      printf("%"PRI64d" transactions with input(s) < nStakeMinAge, nBlockCoinAge=%"PRI64d" coin-days\n",
+        nBlockCoinAgeFails, nBlockCoinAge);
+
+    *pCoinAge = nBlockCoinAge;
+    *pCoinAgeFails = nBlockCoinAgeFails;
+
+    return(true);
 }
 
 bool CBlock::AddToBlockIndex(const CDiskBlockPos &pos)
@@ -2368,21 +2494,26 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 {
     // Check for duplicate
     uint256 hash = pblock->GetHash();
-    if (mapBlockIndex.count(hash))
-        return error("ProcessBlock() : already have block %d %s", mapBlockIndex[hash]->nHeight, hash.ToString().substr(0,20).c_str());
-    if (mapOrphanBlocks.count(hash))
-        return error("ProcessBlock() : already have block (orphan) %s", hash.ToString().substr(0,20).c_str());
+    if(mapBlockIndex.count(hash))
+      return error("ProcessBlock() : block %s height %d already have",
+        hash.ToString().substr(0,20).c_str(), mapBlockIndex[hash]->nHeight);
+    if(mapOrphanBlocks.count(hash))
+      return error("ProcessBlock() : orphan block %s already have",
+        hash.ToString().substr(0,20).c_str());
 
     // Preliminary checks
-    if (!pblock->CheckBlock())
-        return error("ProcessBlock() : CheckBlock FAILED");
+    if(!pblock->CheckBlock())
+      return error("ProcessBlock() : CheckBlock FAILED");
 
     if (pblock->IsProofOfStake())
     {
         // Limited duplicity on stake: prevents block flood attack
         // Duplicate stake allowed only when there is orphan child block
-        if (setStakeSeen.count(pblock->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash) && !Checkpoints::WantedByPendingSyncCheckpoint(hash))
-            return error("ProcessBlock() : duplicate proof-of-stake (%s, %d) for block %s", pblock->GetProofOfStake().first.ToString().c_str(), pblock->GetProofOfStake().second, hash.ToString().c_str());
+        if(setStakeSeen.count(pblock->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash)
+          && !Checkpoints::WantedByPendingSyncCheckpoint(hash))
+          return error("ProcessBlock() : block %s duplicate proof-of-stake (%s, %d)",
+            hash.ToString().c_str(), pblock->GetProofOfStake().first.ToString().c_str(),
+            pblock->GetProofOfStake().second);
 
         bool fFatal = false;
         uint256 hashProofOfStake;
@@ -2395,15 +2526,18 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // Invalid coinstake script, blockhash signature or no generator defined, nothing to do here
                 // This also may occur when supplied proof-of-stake doesn't satisfy required target
                 if(pfrom) pfrom->Misbehaving(100);
-                return error("ProcessBlock() : invalid signatures found in proof-of-stake block %s", hash.ToString().c_str());
+                return error("ProcessBlock() : block %s invalid proof-of-stake signatures",
+                  hash.ToString().c_str());
             }
             else
             {
                 // Blockhash and coinstake signatures are OK but target checkings failed
                 // This may occur during initial block download
-                if(pfrom && (pblock->GetBlockTime() > Checkpoints::GetLastCheckpointTime()))
+                if(pfrom && (pblock->GetBlockTime() > Checkpoints::GetLastCheckpointTime())
+                  && !IsInitialBlockDownload())
                   pfrom->Misbehaving(1); // Small DoS penalty
-                printf("WARNING: ProcessBlock(): proof-of-stake target checkings failed for block %s, we'll try again later\n", hash.ToString().c_str());
+                printf("WARNING: ProcessBlock(): block %s proof-of-stake target checkings failed, try again later\n",
+                  hash.ToString().c_str());
                 return false;
             }
         }
@@ -2481,8 +2615,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 }
 
 // novacoin: attempt to generate suitable proof-of-stake
-bool CBlock::SignBlock(CWallet& wallet)
-{
+bool CBlock::SignBlock(CWallet& wallet, int64 nStakeReward) {
+
     // if we are trying to sign
     //    something except proof-of-stake block template
     if (!vtx[0].vout[0].IsEmpty())
@@ -2501,7 +2635,7 @@ bool CBlock::SignBlock(CWallet& wallet)
 
     if (nSearchTime > nLastCoinStakeSearchTime)
     {
-        if (wallet.CreateCoinStake(wallet, nBits, nSearchTime-nLastCoinStakeSearchTime, txCoinStake, key))
+        if (wallet.CreateCoinStake(wallet, nBits, nSearchTime-nLastCoinStakeSearchTime, txCoinStake, key, nStakeReward))
         {
             if (txCoinStake.nTime >= max(pindexBest->GetMedianTimePast()+1, PastDrift(pindexBest->GetBlockTime())))
             {
@@ -2821,8 +2955,9 @@ bool LoadBlockIndex(bool fAllowNew)
 
         bnProofOfStakeLimit = bnProofOfStakeLimitTestNet;
         bnProofOfWorkLimit  = bnProofOfWorkLimitTestNet;
-        nStakeMinAge = 20 * 60; // testnet min. stake age is 20 minutes
-        nStakeMaxAge = 60 * 60; // testnet max. stake age is 60 minutes
+
+        nStakeMinAge = 20 * 60;      /* Orbitcoin (testnet): positive time weight after 20 minutes */
+        nStakeMaxAge = 20 * 60 * 60; /* Orbitcoin (testnet): full time weight at 20 hours (+20 minutes) */
         nModifierInterval = 60; // testnet modifier interval is 1 minute
         nCoinbaseMaturity = 10; // testnet maturity is 10 blocks
     }
@@ -3269,14 +3404,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return true;
         }
 
-        // Disconnect all obsolete clients after the chain switch
+        /* Disconnect all obsolete clients after 25 Apr 2014 12:00:00 GMT */
         unsigned int nAdjTime = GetAdjustedTime();
-        if((fTestNet && (nAdjTime > TESTNET_CHAIN_SWITCH_TIME)) ||
-          (!fTestNet && (nAdjTime > CHAIN_SWITCH_TIME))) {
+        if(nAdjTime > 1398427200) {
             if(pfrom->nVersion < MIN_PROTOCOL_VERSION) {
-                printf("obsolete node %s with client %d, disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
+                printf("obsolete node %s with client %d, disconnecting\n",
+                  pfrom->addr.ToString().c_str(), pfrom->nVersion);
                 pfrom->fDisconnect = true;
-                return true;
+                return(true);
             }
         }
 

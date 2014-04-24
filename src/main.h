@@ -43,8 +43,10 @@ static const int64 MIN_TX_FEE = 0.1 * CENT;
 static const int64 MIN_RELAY_TX_FEE = 0.1 * CENT;
 static const int64 TX_DUST = 0.01 * CENT;
 
-static const int64 MAX_MONEY = 31000000 * COIN;
+static const int64 MAX_MONEY = 1000000 * COIN;
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
+static const int64 MIN_STAKE_AMOUNT = 20 * COIN;
+static const int64 MAX_STAKE_INPUTS = 10;
 
 static const unsigned int CHAIN_SWITCH_TIME         = 1393848000; // 03 Mar 2014 12:00:00 GMT
 static const unsigned int TESTNET_CHAIN_SWITCH_TIME = 1393473600; // 27 Feb 2014 04:00:00 GMT
@@ -61,6 +63,7 @@ static const int fHaveUPnP = false;
 
 static const uint256 hashGenesisBlock("0x683373dac7ec1b01a9e10d4f5ef3dda0bf4c31ddefe5cffa14550dc0c776e699");
 static const uint256 hashGenesisBlockTestNet("0x0000a6a079a91fe96443c0be34a0b140057d4259f51286c9d99d175238bf4b7f");
+static const uint256 hashBad("0xd35932546cfe616d9b88f0795da3e8f07093e86861880f8b62acf7acf7a27db4");
 
 inline int64 PastDrift(int64 nTime)   { return nTime - 15 * 60; } // max. 15 minutes from the past
 inline int64 FutureDrift(int64 nTime) { return nTime + 15 * 60; } // max. 15 minutes to the future
@@ -125,7 +128,7 @@ bool LoadExternalBlockFile(FILE* fileIn);
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake, bool fPrettyPrint);
 int64 GetProofOfWorkReward(int nHeight, int64 nFees);
-int64 GetProofOfStakeReward();
+int64 GetProofOfStakeReward(int nHeight, int64 nFees);
 unsigned int ComputeMinWork(unsigned int nBase, int64 nTime);
 unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime);
 int GetNumBlocksOfPeers();
@@ -643,7 +646,9 @@ public:
 
     // Try to accept this transaction into the memory pool
     bool AcceptToMemoryPool(bool fCheckInputs=true, bool* pfMissingInputs=NULL);
-    bool GetCoinAge(uint64& nCoinAge) const;  // Get transaction coin age
+
+    /* Calculates transaction coin age related information */
+    bool GetCoinAge(uint64 *pCoinAge=NULL, uint64 *pCoinAgeFails=NULL) const;
 protected:
     static const CTxOut &GetOutputFor(const CTxIn& input, CCoinsViewCache& mapInputs);
 };
@@ -1386,11 +1391,11 @@ public:
     // Store block on disk
     bool AcceptBlock();
 
-    // Get total coinage consumed
-    bool GetCoinAge(uint64& nCoinAge) const;
+    /* Calculates block coin age related information */
+    bool GetCoinAge(uint64 *pCoinAge=NULL, uint64 *pCoinAgeFails=NULL) const;
 
     // Generate proof-of-stake block signature
-    bool SignBlock(CWallet& keystore);
+    bool SignBlock(CWallet& keystore, int64 nStakeReward);
 
     /* Generate a proof-of-work block signature */
     bool SignWorkBlock(const CKeyStore& keystore);

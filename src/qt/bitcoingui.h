@@ -1,6 +1,12 @@
 #ifndef BITCOINGUI_H
 #define BITCOINGUI_H
 
+extern long long nLastWalletStakeTime;
+extern unsigned long long nMinWeightInputs;
+extern unsigned long long nAvgWeightInputs;
+extern unsigned long long nMaxWeightInputs;
+extern unsigned long long nTotalStakeWeight;
+
 #include <QMainWindow>
 #include <QSystemTrayIcon>
 
@@ -67,6 +73,7 @@ private:
     SignVerifyMessageDialog *signVerifyMessageDialog;
 
     QLabel *labelEncryptionIcon;
+    QLabel *labelStakeMining;
     QLabel *labelConnectionsIcon;
     QLabel *labelBlocksIcon;
     QLabel *progressBarLabel;
@@ -96,7 +103,9 @@ private:
     TransactionView *transactionView;
     RPCConsole *rpcConsole;
 
-    QMovie *syncIconMovie;
+    /** Keep track of the previous number of blocks to detect progress */
+    int prevBlocks;
+    int spinnerFrame;
 
     /** Create the main UI actions. */
     void createActions();
@@ -117,6 +126,8 @@ public slots:
        @see WalletModel::EncryptionStatus
     */
     void setEncryptionStatus(int status);
+    /** Set stake mining status */
+    void setStakeMining();
 
     /** Notify the user of an error in the network or transaction handling code. */
     void error(const QString &title, const QString &message, bool modal);
