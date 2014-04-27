@@ -1,13 +1,27 @@
+Orbitcoin
+===========
 
-Orbitcoin official development tree
+Orbitcoin (ORB) is a decentralised open source digital currency.
 
-Orbitcoin (ORB), a hybrid Scrypt PoW + PoS based cryptocurrency.
+ - advanced hybrid Scrypt proof-of-work (PoW) and proof-of-stake (PoS)
+ - ~3.5 million coins to be produced
+ - 40 seconds combined block target (1 minute for PoW, 2 minutes for PoS)
+ - retargets every block using Orbitcoin Super Shield (OSS)
+ - time warp and instamining protection
+ - advanced checkpointing against 51% attacks
+ - transaction messaging supported
+ - the 1st implementation of 0% PoS
+ - PoW and PoS blocks carry the same fixed reward of 1 ORB
+ - 6 confirmations for regular transactions
+ - 200 confirmations for minted coins
+ - very low transaction fees (most transactions are free)
+ - no destruction of transaction fees (all collected by a block finder)
+ - the default P2P port is 15298, RPC port is 15299
+ - I2P/Tor ready
 
-* 30 seconds target for PoS and PoW blocks
-* balanced weighting
-* 0.25 ORB per PoW block reward currently
-* PoW block reward halves yearly
-* 0% PoS block reward
-* difficulty retargets every block
-* default P2P port is 15298
-* default RPC port is 15299
+
+Download
+--------
+
+Please visit https://cryptocointalk.com/forum/325-orbitcoin-orb/ if you need pre-compiled binaries.
+

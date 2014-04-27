@@ -1156,7 +1156,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 
     } else {
 
-        /* New Orbitcoin every block retargets with two averaging windows of 5 and 20 blocks,
+        /* Orbitcoin Super Shield (OSS) re-targets every block using two averaging windows of 5 and 20 blocks,
          * 0.25 damping and +1% to -2% limiting */
 
         int64 nIntervalShort = 5, nIntervalLong = 20, nTargetSpacing, nTargetTimespan,
