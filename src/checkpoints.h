@@ -8,7 +8,9 @@
 #include "util.h"
 #include "net.h"
 
-#define CHECKPOINT_MAX_SPAN (60 * 60) // max 60 minutes before latest block
+/* Should be equal to the default number of confirmations for regular transactions
+ * to avoid double spends; also defined by NumConfirmations in qt/transactionrecord.h */
+#define CHECKPOINT_DEFAULT_DEPTH 6
 
 #ifdef WIN32
 #undef STRICT
