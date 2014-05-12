@@ -121,8 +121,12 @@ Value getrawtransaction(const Array& params, bool fHelp)
 
     CTransaction tx;
     uint256 hashBlock = 0;
-    if (!GetTransaction(hash, tx, hashBlock, true))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available about transaction");
+    if(!GetTransaction(hash, tx, hashBlock, true)) {
+        if(pwalletMain->mapWallet.count(hash))
+          tx = (CTransaction)pwalletMain->mapWallet[hash];
+        else
+          throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available about this transaction");
+    }
 
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
     ssTx << tx;

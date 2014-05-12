@@ -30,7 +30,9 @@ CClientUIInterface uiInterface;
 std::string strWalletFileName;
 unsigned int nNodeLifespan;
 unsigned int nDerivationMethodIndex;
+unsigned int nMsgSleep;
 unsigned int nMinerSleep;
+unsigned int nStakeMinDepth;
 bool fUseFastIndex;
 bool fUseFastStakeMiner;
 enum Checkpoints::CPMode CheckpointsMode;
@@ -67,7 +69,7 @@ void Shutdown(void* parg)
     static bool fTaken;
 
     // Make this thread recognisable as the shutdown thread
-    RenameThread("orb-shutoff");
+    RenameThread("orb-shutdown");
 
     bool fFirstThread = false;
     {
@@ -81,16 +83,22 @@ void Shutdown(void* parg)
     static bool fExit;
     if (fFirstThread)
     {
+        printf("Shutdown() : in progress...\n");
         fShutdown = true;
         nTransactionsUpdated++;
         bitdb.Flush(false);
         StopNode();
         {
             LOCK(cs_main);
-            pcoinsTip->Flush();
-            pblocktree->Flush();
+            if(pwalletMain) pwalletMain->SetBestChain(CBlockLocator(pindexBest));
+            if(pblocktree)  pblocktree->Flush();
+            if(pcoinsTip)   pcoinsTip->Flush();
             delete pcoinsTip;
+            pcoinsTip = NULL;
             delete pcoinsdbview;
+            pcoinsdbview = NULL;
+            delete pblocktree;
+            pblocktree = NULL;
         }
         bitdb.Flush(true);
         boost::filesystem::remove(GetPidFile());
@@ -98,8 +106,8 @@ void Shutdown(void* parg)
         delete pwalletMain;
         NewThread(ExitTimeout, NULL);
         Sleep(50);
-        printf("Orbitcoin exited\n\n");
         fExit = true;
+        printf("Shutdown() : completed\n\n");
 #ifndef QT_GUI
         // ensure non-UI client gets exited here, but let Bitcoin-Qt reach 'return 0;' in bitcoin.cpp
         exit(0);
@@ -368,9 +376,18 @@ bool AppInit2()
 
     // ********************************************************* Step 2: parameter interactions
 
+    fTestNet = GetBoolArg("-testnet");
+    if(fTestNet) SoftSetBoolArg("-irc", true);
+
     nNodeLifespan = GetArg("-addrlifespan", 7);
     fUseFastIndex = GetBoolArg("-fastindex", true);
+    /* Polling delay for message handling, in milliseconds */
+    nMsgSleep = GetArg("-msgsleep", 20);
+    /* Polling delay for stake mining, in milliseconds */
     nMinerSleep = GetArg("-minersleep", 500);
+    /* Minimal input depth (age) for stake mining, in confirmations */
+    if(fTestNet) nStakeMinDepth = GetArg("-stakemindepth", 100);
+    else nStakeMinDepth = GetArg("-stakemindepth", 10000);
 
     CheckpointsMode = Checkpoints::STRICT;
     std::string strCpMode = GetArg("-cppolicy", "strict");
@@ -385,11 +402,6 @@ bool AppInit2()
         CheckpointsMode = Checkpoints::PERMISSIVE;
 
     nDerivationMethodIndex = 0;
-
-    fTestNet = GetBoolArg("-testnet");
-    if (fTestNet) {
-        SoftSetBoolArg("-irc", true);
-    }
 
     if (mapArgs.count("-bind")) {
         // when specifying an explicit binding address, you want to listen on it
@@ -712,7 +724,7 @@ bool AppInit2()
     pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
 
     if (!LoadBlockIndex())
-        return InitError(_("Error loading blkindex.dat"));
+        return InitError(_("Error loading block index, see debug.log for details"));
 
     // as LoadBlockIndex can take several minutes, it's possible the user
     // requested to kill bitcoin-qt during the last operation. If so, exit.

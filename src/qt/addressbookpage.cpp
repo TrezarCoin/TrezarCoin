@@ -62,7 +62,7 @@ AddressBookPage::AddressBookPage(Mode mode, Tabs tab, QWidget *parent) :
     }
 
     // Context menu actions
-    QAction *copyLabelAction = new QAction(tr("Copy &Label"), this);
+    QAction *copyLabelAction = new QAction(tr("Copy &label"), this);
     QAction *copyAddressAction = new QAction(ui->copyToClipboard->text(), this);
     QAction *editAction = new QAction(tr("&Edit"), this);
     QAction *showQRCodeAction = new QAction(ui->showQRCode->text(), this);

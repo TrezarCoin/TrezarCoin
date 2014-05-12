@@ -9,10 +9,12 @@ bool TransactionRecord::showTransaction(const CWalletTx &wtx, bool ShowOrphans)
 {
     /* The default behaviour is to show all transactions as they come
      * including orphans, but show confirmed only after a client restart */
-    if(ShowOrphans) return true;
+    if(ShowOrphans)
+      return(true);
     /* Don't display PoW/PoS base transactions with no single confirmation */
     if((wtx.IsCoinBase() || wtx.IsCoinStake()) &&
-      (wtx.GetDepthInMainChain() < 1)) return false;
+      (wtx.GetDepthInMainChain() < 1))
+      return(false);
     /* All other transactions are displayed always and immediately */
     return true;
 }
@@ -67,7 +69,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                     if (hashPrev == hash)
                         continue; // last coinstake output
 
-                    sub.type = TransactionRecord::Generated;
+                    sub.type = TransactionRecord::Staked;
                     sub.credit = nNet > 0 ? nNet : wtx.GetValueOut() - nDebit;
                     hashPrev = hash;
                 }
@@ -187,22 +189,22 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
     }
     else
     {
-        if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
-        {
-            status.status = TransactionStatus::Offline;
+        if(!status.depth) {
+            status.status = TransactionStatus::Pending;
         }
-        else if (status.depth < NumConfirmations)
-        {
+        else if(status.depth < 0) {
+            status.status = TransactionStatus::Failed;
+        }
+        else if(status.depth < NumConfirmations) {
             status.status = TransactionStatus::Unconfirmed;
         }
-        else
-        {
+        else {
             status.status = TransactionStatus::HaveConfirmations;
         }
     }
 
     // For generated transactions, determine maturity
-    if(type == TransactionRecord::Generated)
+    if(type == TransactionRecord::Generated || type == TransactionRecord::Staked)
     {
         int64 nCredit = wtx.GetCredit(true);
         if (nCredit == 0)
@@ -219,7 +221,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
             }
             else
             {
-                status.maturity = TransactionStatus::NotAccepted;
+                status.maturity = TransactionStatus::Orphan;
             }
         }
         else
