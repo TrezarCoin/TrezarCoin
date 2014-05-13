@@ -43,7 +43,7 @@ CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 16);
 
 uint nStakeMinAge = 60 * 60 * 24 * 5;     /* Orbitcoin: positive time weight after 5 days */
 uint nStakeMaxAge = 60 * 60 * 24 * 15;    /* Orbitcoin: full time weight at 20 days (5 + 15) */
-uint nBaseTargetSpacing = 30;		  /* 30 seconds base spacing */
+uint nBaseTargetSpacing = 30;             /* Orbitcoin: base spacing of 30 seconds */
 uint nModifierInterval = 6 * 60 * 60;     /* Orbitcoin: old interval of 6 hours between stake modifiers */
 uint nModifierIntervalNew = 3 * 60 * 60;  /* Orbitcoin: new interval of 3 hours between stake modifiers */
 
@@ -1473,7 +1473,7 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
             /* Do not accept too many inputs */
             if(vin.size() > (uint64)MAX_STAKE_INPUTS)
               return DoS(25, error("CheckInputs() : too many inputs (%u) of a coin stake %s",
-                vin.size(), GetHash().ToString().substr(0,10).c_str()));
+                (uint) vin.size(), GetHash().ToString().substr(0,10).c_str()));
 
             /* Orbitcoin: not using coin age for reward calculation,
              * using for input verification to prevent stake amount manipulations;
@@ -1689,7 +1689,7 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view, bool fJust
             if (view.HaveCoins(hash) && !view.GetCoins(hash).IsPruned())
                 return error("ConnectBlock() : tried to overwrite transaction");
         }
-    }    
+    }
 
     CBlockUndo blockundo;
 
@@ -2586,7 +2586,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             // earlier by duplicate-stake check so we ask for it again directly
             if (!IsInitialBlockDownload())
                 pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
- 
+
         }
         return true;
     }
@@ -2761,7 +2761,7 @@ bool CBlock::CheckStakeSignature(uint256& hashProofOfStake, bool& fCritical) con
 bool CBlock::CheckWorkSignature() const {
     vector<valtype> vSolutions;
     txnouttype whichType;
-    
+
     /* Don't attempt to verify a PoS block */
     if(vtx[0].vout[0].IsEmpty())
       return(false);
