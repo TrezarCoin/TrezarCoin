@@ -19,7 +19,7 @@ TransactionFilterProxy::TransactionFilterProxy(QObject *parent) :
     typeFilter(ALL_TYPES),
     minAmount(0),
     limitRows(-1),
-    showInactive(true)
+    showFailed(true)
 {
 }
 
@@ -34,7 +34,8 @@ bool TransactionFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &
     qint64 amount = llabs(index.data(TransactionTableModel::AmountRole).toLongLong());
     int status = index.data(TransactionTableModel::StatusRole).toInt();
 
-    if(!showInactive && ((status == TransactionStatus::Failed) || (status == TransactionStatus::Orphan)))
+    /* Don't display failed transactions including PoW/PoS base orphans */
+    if(!showFailed && (status == TransactionStatus::Failed))
       return(false);
 
     if(!(TYPE(type) & typeFilter))
@@ -79,8 +80,8 @@ void TransactionFilterProxy::setLimit(int limit)
     this->limitRows = limit;
 }
 
-void TransactionFilterProxy::setShowInactive(bool showInactive) {
-    this->showInactive = showInactive;
+void TransactionFilterProxy::setShowFailed(bool showFailed) {
+    this->showFailed = showFailed;
     invalidateFilter();
 }
 

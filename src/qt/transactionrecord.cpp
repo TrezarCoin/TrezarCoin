@@ -5,18 +5,17 @@
 
 /* Return positive answer if transaction should be shown in list.
  */
-bool TransactionRecord::showTransaction(const CWalletTx &wtx, bool ShowOrphans)
+bool TransactionRecord::showTransaction(const CWalletTx &wtx, bool ShowFailed)
 {
-    /* The default behaviour is to show all transactions as they come
-     * including orphans, but show confirmed only after a client restart */
-    if(ShowOrphans)
+    /* The default behaviour is to show all transactions as they come including failed,
+     * but show pending and confirmed only after a client restart */
+    if(ShowFailed)
       return(true);
-    /* Don't display PoW/PoS base transactions with no single confirmation */
-    if((wtx.IsCoinBase() || wtx.IsCoinStake()) &&
-      (wtx.GetDepthInMainChain() < 1))
+    /* Don't display failed transactions including PoW/PoS base orphans */
+    if(wtx.GetDepthInMainChain() < 0)
       return(false);
     /* All other transactions are displayed always and immediately */
-    return true;
+    return(true);
 }
 
 /*
@@ -189,22 +188,20 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
     }
     else
     {
-        if(!status.depth) {
-            status.status = TransactionStatus::Pending;
-        }
-        else if(status.depth < 0) {
-            status.status = TransactionStatus::Failed;
-        }
-        else if(status.depth < NumConfirmations) {
-            status.status = TransactionStatus::Unconfirmed;
-        }
+        if(status.depth >= NumConfirmations)
+          status.status = TransactionStatus::HaveConfirmations;
         else {
-            status.status = TransactionStatus::HaveConfirmations;
+            if(status.depth > 0)
+              status.status = TransactionStatus::Unconfirmed;
+            if(!status.depth)
+              status.status = TransactionStatus::Pending;
+            if(status.depth < 0)
+              status.status = TransactionStatus::Failed;
         }
     }
 
     // For generated transactions, determine maturity
-    if(type == TransactionRecord::Generated || type == TransactionRecord::Staked)
+    if((type == TransactionRecord::Generated) || (type == TransactionRecord::Staked))
     {
         int64 nCredit = wtx.GetCredit(true);
         if (nCredit == 0)

@@ -1472,7 +1472,7 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
 
             /* Do not accept too many inputs */
             if(vin.size() > (uint64)MAX_STAKE_INPUTS)
-              return DoS(25, error("CheckInputs() : too many inputs (%lu) of a coin stake %s",
+              return DoS(25, error("CheckInputs() : too many inputs (%u) of a coin stake %s",
                 vin.size(), GetHash().ToString().substr(0,10).c_str()));
 
             /* Orbitcoin: not using coin age for reward calculation,

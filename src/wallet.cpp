@@ -1555,7 +1555,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
     if(setCoins.empty()) return(false);
     if(fDebug && GetBoolArg("-printcoinstake"))
-      printf("CreateCoinStake() : %lu inputs selected\n", setCoins.size());
+      printf("CreateCoinStake() : %u inputs selected\n", setCoins.size());
 
     int64 nCredit = 0;
     CScript scriptPubKeyKernel;

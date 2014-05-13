@@ -32,7 +32,7 @@ public:
     void setLimit(int limit);
 
     /** Whether to show failed transactions or not */
-    void setShowInactive(bool showInactive);
+    void setShowFailed(bool showFailed);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
 protected:
@@ -45,7 +45,7 @@ private:
     quint32 typeFilter;
     qint64 minAmount;
     int limitRows;
-    bool showInactive;
+    bool showFailed;
 
 signals:
 
