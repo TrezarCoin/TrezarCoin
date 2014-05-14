@@ -27,6 +27,8 @@ using namespace boost;
 
 static const int MAX_OUTBOUND_CONNECTIONS = 16;
 
+extern unsigned int nMsgSleep;
+
 void ThreadMessageHandler2(void* parg);
 void ThreadSocketHandler2(void* parg);
 void ThreadOpenConnections2(void* parg);
@@ -1326,7 +1328,7 @@ void static ThreadStakeMinter(void* parg)
             if(!fShutdown)
               printf("ThreadStakeMinter paused, %d threads remaining\n", vnThreadsRunning[THREAD_MINTER]);
         }
-        while(!fStakeGen && !fShutdown) Sleep(5000);
+        while(!fStakeGen && !fShutdown) Sleep(1000);
         if(fShutdown)
           printf("ThreadStakeMinter exited, %d threads remaining\n", vnThreadsRunning[THREAD_MINTER]);
     }
@@ -1655,7 +1657,7 @@ void ThreadMessageHandler2(void* parg)
         // Reduce vnThreadsRunning so StopNode has permission to exit while
         // we're sleeping, but we must always check fShutdown after doing this.
         vnThreadsRunning[THREAD_MESSAGEHANDLER]--;
-        Sleep(100);
+        Sleep(nMsgSleep);
         if (fRequestShutdown)
             StartShutdown();
         vnThreadsRunning[THREAD_MESSAGEHANDLER]++;

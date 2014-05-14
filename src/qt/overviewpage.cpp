@@ -164,6 +164,7 @@ void OverviewPage::setModel(WalletModel *model)
         filter->setDynamicSortFilter(true);
         filter->setSortRole(Qt::EditRole);
         filter->setSortRole(TransactionTableModel::DateRole);
+        filter->setShowFailed(false);
         filter->sort(TransactionTableModel::Status, Qt::DescendingOrder);
 
         ui->listTransactions->setModel(filter);

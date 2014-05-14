@@ -373,7 +373,8 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
 
         // Fill in header
         pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
-        pblock->nTime          = max(pindexPrev->GetMedianTimePast()+1, pblock->GetMaxTransactionTime());
+        pblock->nTime          = max((pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1),
+          pblock->GetMaxTransactionTime());
         pblock->nTime          = max(pblock->GetBlockTime(), PastDrift(pindexPrev->GetBlockTime()));
         if(!fProofOfStake) pblock->UpdateTime(pindexPrev);
         pblock->nNonce         = 0;
@@ -491,14 +492,16 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
 {
     uint256 proofHash = 0, hashTarget = 0;
     uint256 hashBlock = pblock->GetHash();
-    bool fFatal = false;
+    bool fCritical = true;
 
     if(!pblock->IsProofOfStake())
-        return error("CheckStake() : %s is not a proof-of-stake block", hashBlock.GetHex().c_str());
+      return(error("CheckStake() : %s is not a proof-of-stake block",
+        hashBlock.GetHex().c_str()));
 
-    // verify hash target and signature of coinstake tx
-    if (!CheckProofOfStake(pblock->vtx[1], pblock->nBits, proofHash, hashTarget, fFatal, true))
-        return error("CheckStake() : proof-of-stake checking failed");
+    /* Verify hash target and coin stake signature */
+    if(!CheckProofOfStake(pblock->vtx[1], pblock->nBits, proofHash, hashTarget, fCritical, true))
+      return(error("CheckStake() : proof-of-stake check failed"));
+        
 
     //// debug print
     printf("CheckStake() : new proof-of-stake block found  \n  hash: %s \nproofhash: %s  \ntarget: %s\n", hashBlock.GetHex().c_str(), proofHash.GetHex().c_str(), hashTarget.GetHex().c_str());
@@ -508,8 +511,8 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
     // Found a solution
     {
         LOCK(cs_main);
-        if (pblock->hashPrevBlock != hashBestChain)
-            return error("CheckStake() : generated block is stale");
+        if(pblock->hashPrevBlock != hashBestChain)
+          return(error("CheckStake() : generated block is stale"));
 
         // Track how many getdata requests this block gets
         {
@@ -518,8 +521,8 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
         }
 
         // Process this block the same as if we had received it from another node
-        if (!ProcessBlock(NULL, pblock))
-            return error("CheckStake() : ProcessBlock, block not accepted");
+        if(!ProcessBlock(NULL, pblock))
+          return(error("CheckStake() : ProcessBlock, block not accepted"));
     }
 
     return true;
@@ -569,10 +572,10 @@ void StakeMiner(CWallet *pwallet) {
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
             CheckStake(pblock.get(), *pwallet);
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
-            Sleep(500);
         }
-        else
-            Sleep(nMinerSleep);
+
+        Sleep(nMinerSleep);
+
     }
 }
 

@@ -176,7 +176,7 @@ public:
     void WalletUpdateSpent(const CTransaction& prevout, bool fBlock = false);
     int ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate = false);
     void ReacceptWalletTransactions();
-    void ResendWalletTransactions();
+    void ResendWalletTransactions(bool fForce=false);
     int64 GetBalance() const;
     int64 GetUnconfirmedBalance() const;
     int64 GetImmatureBalance() const;
@@ -644,12 +644,15 @@ public:
     bool IsConfirmed() const
     {
         // Quick answer in most cases
-        if (!IsFinal())
-            return false;
-        if (GetDepthInMainChain() >= 1)
-            return true;
-        if (!IsFromMe()) // using wtx's cached debit
-            return false;
+        if(!IsFinal())
+          return(false);
+        int nDepth = GetDepthInMainChain();
+        if(nDepth >= 1)
+          return(true);
+        if(nDepth < 0)
+          return(false);
+        if(!IsFromMe()) // using wtx's cached debit
+          return(false);
 
         // If no confirmations but it's from us, we can still
         // consider it confirmed if all dependencies are confirmed
@@ -661,12 +664,15 @@ public:
         {
             const CMerkleTx* ptx = vWorkQueue[i];
 
-            if (!ptx->IsFinal())
-                return false;
-            if (ptx->GetDepthInMainChain() >= 1)
-                continue;
-            if (!pwallet->IsFromMe(*ptx))
-                return false;
+            if(!ptx->IsFinal())
+              return(false);
+            nDepth = ptx->GetDepthInMainChain();
+            if(nDepth >= 1)
+              continue;
+            if(nDepth < 0)
+              return(false);
+            if(!pwallet->IsFromMe(*ptx))
+              return(false);
 
             if (mapPrev.empty())
             {

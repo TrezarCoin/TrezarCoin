@@ -9,10 +9,7 @@
 using namespace std;
 
 void static BatchWriteCoins(CLevelDBBatch &batch, const uint256 &hash, const CCoins &coins) {
-    if (coins.IsPruned())
-        batch.Erase(make_pair('c', hash));
-    else
-        batch.Write(make_pair('c', hash), coins);
+    batch.Write(make_pair('c', hash), coins);
 }
 
 void static BatchWriteHashBestChain(CLevelDBBatch &batch, const uint256 &hash) {
@@ -22,8 +19,8 @@ void static BatchWriteHashBestChain(CLevelDBBatch &batch, const uint256 &hash) {
 CCoinsViewDB::CCoinsViewDB(bool fMemory) : db(GetDataDir() / "coins", fMemory) {
 }
 
-bool CCoinsViewDB::GetCoins(uint256 txid, CCoins &coins) { 
-    return db.Read(make_pair('c', txid), coins); 
+bool CCoinsViewDB::GetCoins(uint256 txid, CCoins &coins) {
+    return db.Read(make_pair('c', txid), coins);
 }
 
 bool CCoinsViewDB::SetCoins(uint256 txid, const CCoins &coins) {
@@ -33,7 +30,7 @@ bool CCoinsViewDB::SetCoins(uint256 txid, const CCoins &coins) {
 }
 
 bool CCoinsViewDB::HaveCoins(uint256 txid) {
-    return db.Exists(make_pair('c', txid)); 
+    return db.Exists(make_pair('c', txid));
 }
 
 CBlockIndex *CCoinsViewDB::GetBestBlock() {
@@ -48,7 +45,7 @@ CBlockIndex *CCoinsViewDB::GetBestBlock() {
 
 bool CCoinsViewDB::SetBestBlock(CBlockIndex *pindex) {
     CLevelDBBatch batch;
-    BatchWriteHashBestChain(batch, pindex->GetBlockHash()); 
+    BatchWriteHashBestChain(batch, pindex->GetBlockHash());
     return db.WriteBatch(batch);
 }
 
@@ -135,10 +132,14 @@ bool CCoinsViewDB::GetStats(CCoinsStats &stats) {
                 uint256 txhash;
                 ssKey >> txhash;
 
-                stats.nTransactions++;
-                BOOST_FOREACH(const CTxOut &out, coins.vout) {
-                    if (!out.IsNull())
-                        stats.nTransactionOutputs++;
+                if(!coins.IsPruned()) {
+                    stats.nTransactions++;
+                    BOOST_FOREACH(const CTxOut &out, coins.vout) {
+                        if(!out.IsNull())
+                          stats.nTransactionOutputs++;
+                    }
+                } else {
+                    stats.nPrunedTransactions++;
                 }
                 stats.nSerializedSize += 32 + slValue.size();
             }

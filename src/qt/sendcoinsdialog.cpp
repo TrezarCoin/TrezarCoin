@@ -37,8 +37,8 @@ SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
 
 #if QT_VERSION >= 0x040700
     /* Do not move this to the XML file, Qt before 4.7 will choke on it */
-    ui->editTxComment->setPlaceholderText(tr("Enter a transaction comment (Note: This information is public)"));
-    ui->lineEditCoinControlChange->setPlaceholderText(tr("Enter an Orbitcoin address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)"));
+    ui->editTxComment->setPlaceholderText(tr("Enter a transaction comment up to 140 characters (NOTE: this information is public)"));
+    ui->lineEditCoinControlChange->setPlaceholderText(tr("Enter an Orbitcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)"));
 #endif
 
     addEntry();

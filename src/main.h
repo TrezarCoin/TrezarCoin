@@ -39,6 +39,8 @@ static const unsigned int BLOCKFILE_CHUNK_SIZE = 0x1000000; // 16 MiB
 static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 static const unsigned int MEMPOOL_HEIGHT = 0x7FFFFFFF;
 
+static const uint BLOCK_LIMITER_TIME = 90;
+
 static const int64 MIN_TX_FEE = 0.1 * CENT;
 static const int64 MIN_RELAY_TX_FEE = 0.1 * CENT;
 static const int64 TX_DUST = 0.01 * CENT;
@@ -48,8 +50,22 @@ static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 static const int64 MIN_STAKE_AMOUNT = 20 * COIN;
 static const int64 MAX_STAKE_INPUTS = 10;
 
-static const unsigned int CHAIN_SWITCH_TIME         = 1393848000; // 03 Mar 2014 12:00:00 GMT
-static const unsigned int TESTNET_CHAIN_SWITCH_TIME = 1393473600; // 27 Feb 2014 04:00:00 GMT
+static const int HFORK1_HEIGHT                  = 417000;
+
+static const uint CHAIN_SWITCH_TIME             = 1393848000;  /* 03 Mar 2014 12:00:00 GMT */
+static const uint TESTNET_CHAIN_SWITCH_TIME     = 1393473600;  /* 27 Feb 2014 04:00:00 GMT */
+
+static const int HFORK3_HEIGHT                  = 585000;
+
+static const int HFORK4_HEIGHT                  = 610000;
+static const int TESTNET_HFORK4A_HEIGHT         = 1850;
+static const int TESTNET_HFORK4B_HEIGHT         = 2000;
+
+static const int HFORK5_HEIGHT                  = 650000;
+static const int TESTNET_HFORK5_HEIGHT          = 3400;
+
+static const int BONANZA1_HEIGHT                = 660000;
+static const int BONANZA2_HEIGHT                = 760000;
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
@@ -141,7 +157,7 @@ CBlockIndex * InsertBlockIndex(uint256 hash);
 uint256 WantedByOrphan(const CBlock* pblockOrphan);
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
 void StakeMiner(CWallet *pwallet);
-void ResendWalletTransactions();
+void ResendWalletTransactions(bool fForce=false);
 
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
@@ -788,6 +804,7 @@ public:
  *
  * Serialized format:
  * - VARINT(nVersion)
+ * - VARINT(nFlags)
  * - VARINT(nCode)
  * - unspentness bitvector, for vout[2] and further; least significant byte first
  * - the non-spent CTxOuts (via CTxOutCompressor)
@@ -795,20 +812,26 @@ public:
  * - VARINT(nTime + is_coinstake)
  * - VARINT(nBlockTime)
  *
+ * The nFlag value consists of:
+ * - bit 1: is coinbase
+ * - bit 2: is coinstake
+ * - bit 3: is pruned
+ *
  * The nCode value consists of:
- * - bit 1: IsCoinBase()
  * - bit 2: vout[0] is not spent
  * - bit 4: vout[1] is not spent
  * - The higher bits encode N, the number of non-zero bytes in the following bitvector.
  *   - In case both bit 2 and bit 4 are unset, they encode N-1, as there must be at
  *     least one non-spent output).
  *
- * Example: 0104835800816115944e077fe7c803cfa57f29b36bf87c1d358bb85e40f1d75240f1d752
- *          <><><--------------------------------------------><----><------><------>
- *          |  \                  |                            /      /       /
- *     version code            vout[1]                     height timestamp block timestamp
+ * Example: 010004835800816115944e077fe7c803cfa57f29b36bf87c1d358bb85e40f1d75240f1d752
+ *          <><><><--------------------------------------------><----><------><------>
+ *          |  | \                  |                            /      /       /
+ *     version |  code            vout[1]                     height timestamp block timestamp
+ *           flags
  *
  *    - version = 1
+ *    - flags = 4
  *    - code = 4 (vout[1] is not spent, and 0 non-zero bytes of bitvector follow)
  *    - unspentness bitvector: as 0 non-zero bytes follow, it has length 0
  *    - vout[1]: 835800816115944e077fe7c803cfa57f29b36bf87c1d35
@@ -817,17 +840,20 @@ public:
  *               * 816115944e077fe7c803cfa57f29b36bf87c1d35: address uint160
  *    - height = 203998
  *    - time   = 1389883712
+ *    - is_coinbase = 0
  *    - is_coinstake = 0
  *    - block time   = 1389883712
  *
  *
- * Example: 0109044086ef97d5790061b01caab50f1b8e9c50a5057eb43c2d9563a4eebbd123008c988f1a4a4de2161e0f50aac7f17e7f9555caa486af3b40f1d75240f1d752
- *          <><><--><--------------------------------------------------><----------------------------------------------><----><------><------>
- *         /  \   \                     |                                                           |                     /      /       /
- *  version  code  unspentness       vout[4]                                                     vout[16]           height   timestamp block timestamp
+ * Example: 010508044086ef97d5790061b01caab50f1b8e9c50a5057eb43c2d9563a4eebbd123008c988f1a4a4de2161e0f50aac7f17e7f9555caa486af3b40f1d75240f1d752
+ *          <><><><--><--------------------------------------------------><----------------------------------------------><----><------><------>
+ *          /  | \   \                     |                                                           |                     /      /       /
+ *     version | code unspentness       vout[4]                                                     vout[16]              height timestamp block timestamp
+ *           flags
  *
  *  - version = 1
- *  - code = 9 (coinbase, neither vout[0] or vout[1] are unspent,
+ *  - flags = 5
+ *  - code = 8 (neither vout[0] or vout[1] are unspent,
  *                2 (1, +1 because both bit 2 and bit 4 are unset) non-zero bitvector bytes follow)
  *  - unspentness bitvector: bits 2 (0x04) and 14 (0x4000) are set, so vout[2+2] and vout[14+2] are unspent
  *  - vout[4]: 86ef97d5790061b01caab50f1b8e9c50a5057eb43c2d9563a4ee
@@ -840,7 +866,21 @@ public:
  *              * 8c988f1a4a4de2161e0f50aac7f17e7f9555caa4: address uint160
  *  - height = 120891
  *  - time   = 1389883712
+ *  - is_coinbase = 1
  *  - is_coinstake = 0
+ *  - block time   = 1389883712
+ *
+ * Example: 010686af3b40f1d75240f1d752
+ *          <><><----><------><------>
+ *          /  |    \      |        \
+ *   version flags height timestamp block timestamp
+ *
+ *  - version = 1
+ *  - flags = 6 (00000110)
+ *  - height = 120891
+ *  - time   = 1389883712
+ *  - is_coinbase = 0
+ *  - is_coinstake = 1
  *  - block time   = 1389883712
  */
 class CCoins
@@ -876,8 +916,8 @@ public:
 
     // remove spent outputs at the end of vout
     void Cleanup() {
-        while (vout.size() > 0 && vout.back().IsNull())
-            vout.pop_back();
+        while((vout.size() > 0) && (vout.back().IsNull() || vout.back().IsEmpty()))
+          vout.pop_back();
     }
 
     // equality test
@@ -923,103 +963,157 @@ public:
         return fCoinStake;
     }
 
-    unsigned int GetSerializeSize(int nType, int nVersion) const {
-        unsigned int nSize = 0;
-        unsigned int nMaskSize = 0, nMaskCode = 0;
-        CalcMaskSize(nMaskSize, nMaskCode);
-        bool fFirst = vout.size() > 0 && !vout[0].IsNull();
-        bool fSecond = vout.size() > 1 && !vout[1].IsNull();
-        assert(fFirst || fSecond || nMaskCode);
-        unsigned int nCode = 8*(nMaskCode - (fFirst || fSecond ? 0 : 1)) + (fCoinBase ? 1 : 0) + (fFirst ? 2 : 0) + (fCoinStake ? 1 : 0) + (fSecond ? 4 : 0);
+    uint GetSerializeSize(int nType, int nVersion) const {
+        uint nSize = 0;
+        bool fPruned = IsPruned();
+
         // version
         nSize += ::GetSerializeSize(VARINT(this->nVersion), nType, nVersion);
-        // size of header code
-        nSize += ::GetSerializeSize(VARINT(nCode), nType, nVersion);
-        // spentness bitmask
-        nSize += nMaskSize;
-        // txouts themself
-        for (unsigned int i = 0; i < vout.size(); i++)
-            if (!vout[i].IsNull())
+        uchar nFlags = 0;
+        // coinbase, coinstake and prune flags
+        nFlags = (fCoinBase ? 1 : 0)<<0 | (fCoinStake ? 1 : 0)<<1 | (fPruned ? 1 : 0)<<2;
+        // size of flags
+        nSize += ::GetSerializeSize(VARINT(nFlags), nType, nVersion);
+
+        if(!IsPruned()) {
+            uint nMaskSize = 0, nMaskCode = 0;
+            CalcMaskSize(nMaskSize, nMaskCode);
+            bool fFirst = vout.size() > 0 && !vout[0].IsNull();
+            bool fSecond = vout.size() > 1 && !vout[1].IsNull();
+
+            assert(fFirst || fSecond || nMaskCode);
+            uint nCode = 8*(nMaskCode - (fFirst || fSecond ? 0 : 1)) + (fFirst ? 2 : 0) + (fSecond ? 4 : 0);
+            // size of header code
+            nSize += ::GetSerializeSize(VARINT(nCode), nType, nVersion);
+            // spentness bitmask
+            nSize += nMaskSize;
+            // txouts themselves
+            for(uint i = 0; i < vout.size(); i++)
+              if(!vout[i].IsNull())
                 nSize += ::GetSerializeSize(CTxOutCompressor(REF(vout[i])), nType, nVersion);
-        // height
-        nSize += ::GetSerializeSize(VARINT(nHeight), nType, nVersion);
-        // timestamp and coinstake flag
-        nSize += ::GetSerializeSize(VARINT(nTime*2+(fCoinStake ? 1 : 0)), nType, nVersion);
-        // block timestamp
-        nSize += ::GetSerializeSize(VARINT(nBlockTime), nType, nVersion);
-        return nSize;
+            // height
+            nSize += ::GetSerializeSize(VARINT(nHeight), nType, nVersion);
+            // timestamp and coinstake flag
+            nSize += ::GetSerializeSize(VARINT(nTime), nType, nVersion);
+            // block timestamp
+            nSize += ::GetSerializeSize(VARINT(nBlockTime), nType, nVersion);
+        } else {
+            // size of height
+            nSize += ::GetSerializeSize(VARINT(nHeight), nType, nVersion);
+            // size of timestamp
+            nSize += ::GetSerializeSize(VARINT(nTime), nType, nVersion);
+            // size of block timestamp
+            nSize += ::GetSerializeSize(VARINT(nBlockTime), nType, nVersion);
+        }
+
+        return(nSize);
     }
 
     template<typename Stream>
     void Serialize(Stream &s, int nType, int nVersion) const {
-        unsigned int nMaskSize = 0, nMaskCode = 0;
-        CalcMaskSize(nMaskSize, nMaskCode);
-        bool fFirst = vout.size() > 0 && !vout[0].IsNull();
-        bool fSecond = vout.size() > 1 && !vout[1].IsNull();
-        assert(fFirst || fSecond || nMaskCode);
-        unsigned int nCode = 8*(nMaskCode - (fFirst || fSecond ? 0 : 1)) + (fCoinBase ? 1 : 0) + (fFirst ? 2 : 0) + (fSecond ? 4 : 0);
+        bool fPruned = IsPruned();
+        uchar nFlags = 0;
+        nFlags = (fCoinBase ? 1 : 0)<<0 | (fCoinStake ? 1 : 0)<<1 | (fPruned ? 1 : 0)<<2;
+
         // version
         ::Serialize(s, VARINT(this->nVersion), nType, nVersion);
-        // header code
-        ::Serialize(s, VARINT(nCode), nType, nVersion);
-        // spentness bitmask
-        for (unsigned int b = 0; b<nMaskSize; b++) {
-            unsigned char chAvail = 0;
-            for (unsigned int i = 0; i < 8 && 2+b*8+i < vout.size(); i++)
-                if (!vout[2+b*8+i].IsNull())
+        // flags
+        ::Serialize(s, VARINT(nFlags), nType, nVersion);
+
+        if(!fPruned) {
+            uint nMaskSize = 0, nMaskCode = 0;
+            CalcMaskSize(nMaskSize, nMaskCode);
+            bool fFirst = vout.size() > 0 && !vout[0].IsNull();
+            bool fSecond = vout.size() > 1 && !vout[1].IsNull();
+
+            assert(fFirst || fSecond || nMaskCode);
+
+            uint nCode = 8*(nMaskCode - (fFirst || fSecond ? 0 : 1)) + (fFirst ? 2 : 0) + (fSecond ? 4 : 0);
+
+            // header code
+            ::Serialize(s, VARINT(nCode), nType, nVersion);
+            // spentness bitmask
+            for(uint b = 0; b<nMaskSize; b++) {
+                uchar chAvail = 0;
+                for(uint i = 0; i < 8 && 2+b*8+i < vout.size(); i++)
+                  if(!vout[2+b*8+i].IsNull())
                     chAvail |= (1 << i);
-            ::Serialize(s, chAvail, nType, nVersion);
+                ::Serialize(s, chAvail, nType, nVersion);
+            }
+            // txouts themselves
+            for(uint i = 0; i < vout.size(); i++) {
+                if(!vout[i].IsNull())
+                  ::Serialize(s, CTxOutCompressor(REF(vout[i])), nType, nVersion);
+            }
+            // coinbase height
+            ::Serialize(s, VARINT(nHeight), nType, nVersion);
+            // transaction timestamp and coinstake flag
+            ::Serialize(s, VARINT(nTime), nType, nVersion);
+            // block timestamp
+            ::Serialize(s, VARINT(nBlockTime), nType, nVersion);
+        } else {
+            // coinbase height
+            ::Serialize(s, VARINT(nHeight), nType, nVersion);
+            // transaction timestamp
+            ::Serialize(s, VARINT(nTime), nType, nVersion);
+            // block timestamp
+            ::Serialize(s, VARINT(nBlockTime), nType, nVersion);
         }
-        // txouts themself
-        for (unsigned int i = 0; i < vout.size(); i++) {
-            if (!vout[i].IsNull())
-                ::Serialize(s, CTxOutCompressor(REF(vout[i])), nType, nVersion);
-        }
-        // coinbase height
-        ::Serialize(s, VARINT(nHeight), nType, nVersion);
-        // transaction timestamp and coinstake flag
-        ::Serialize(s, VARINT(nTime*2+(fCoinStake ? 1 : 0)), nType, nVersion);
-        // block time
-        ::Serialize(s, VARINT(nBlockTime), nType, nVersion);
     }
 
     template<typename Stream>
     void Unserialize(Stream &s, int nType, int nVersion) {
-        unsigned int nCode = 0, nCodeTime = 0;
+        uchar nFlags = 0;
+
         // version
         ::Unserialize(s, VARINT(this->nVersion), nType, nVersion);
-        // header code
-        ::Unserialize(s, VARINT(nCode), nType, nVersion);
-        fCoinBase = nCode & 1;
-        std::vector<bool> vAvail(2, false);
-        vAvail[0] = nCode & 2;
-        vAvail[1] = nCode & 4;
-        unsigned int nMaskCode = (nCode / 8) + ((nCode & 6) != 0 ? 0 : 1);
-        // spentness bitmask
-        while (nMaskCode > 0) {
-            unsigned char chAvail = 0;
-            ::Unserialize(s, chAvail, nType, nVersion);
-            for (unsigned int p = 0; p < 8; p++) {
-                bool f = (chAvail & (1 << p)) != 0;
-                vAvail.push_back(f);
+        // coinbase and coinstake flags
+        ::Unserialize(s, VARINT(nFlags), nType, nVersion);
+
+        fCoinBase = nFlags & (1<<0);
+        fCoinStake = nFlags & (1<<1);
+        bool fPruned = nFlags & (1<<2);
+
+        if(!fPruned) {
+            uint nCode = 0;
+            // header code
+            ::Unserialize(s, VARINT(nCode), nType, nVersion);
+            std::vector<bool> vAvail(2, false);
+            vAvail[0] = nCode & 2;
+            vAvail[1] = nCode & 4;
+            uint nMaskCode = (nCode / 8) + ((nCode & 6) != 0 ? 0 : 1);
+            // spentness bitmask
+            while(nMaskCode > 0) {
+                uchar chAvail = 0;
+                ::Unserialize(s, chAvail, nType, nVersion);
+                for(uint p = 0; p < 8; p++) {
+                    bool f = (chAvail & (1 << p)) != 0;
+                    vAvail.push_back(f);
+                }
+                if(chAvail != 0)
+                  nMaskCode--;
             }
-            if (chAvail != 0)
-                nMaskCode--;
+            // txouts themselves
+            vout.assign(vAvail.size(), CTxOut());
+            for(unsigned int i = 0; i < vAvail.size(); i++) {
+                if(vAvail[i])
+                  ::Unserialize(s, REF(CTxOutCompressor(vout[i])), nType, nVersion);
+            }
+            // coinbase height
+            ::Unserialize(s, VARINT(nHeight), nType, nVersion);
+            // transaction timestamp
+            ::Unserialize(s, VARINT(nTime), nType, nVersion);
+            nTime = nTime;
+            // block timestamp
+            ::Unserialize(s, VARINT(nBlockTime), nType, nVersion);
+        } else {
+            // coinbase height
+            ::Unserialize(s, VARINT(nHeight), nType, nVersion);
+            // transaction timestamp
+            ::Unserialize(s, VARINT(nTime), nType, nVersion);
+            // block timestamp
+            ::Unserialize(s, VARINT(nBlockTime), nType, nVersion);
         }
-        // txouts themself
-        vout.assign(vAvail.size(), CTxOut());
-        for (unsigned int i = 0; i < vAvail.size(); i++) {
-            if (vAvail[i])
-                ::Unserialize(s, REF(CTxOutCompressor(vout[i])), nType, nVersion);
-        }
-        // coinbase height
-        ::Unserialize(s, VARINT(nHeight), nType, nVersion);
-        // transaction timestamp
-        ::Unserialize(s, VARINT(nCodeTime), nType, nVersion);
-        nTime = nCodeTime / 2;
-        fCoinStake = nCodeTime & 1;
-        // block timestamp
-        ::Unserialize(s, VARINT(nBlockTime), nType, nVersion);
         Cleanup();
     }
 
@@ -1058,10 +1152,12 @@ public:
     // check whether the entire CCoins is spent
     // note that only !IsPruned() CCoins can be serialized
     bool IsPruned() const {
+        if(vout.size() == 0) return(true);
+
         BOOST_FOREACH(const CTxOut &out, vout)
-            if (!out.IsNull())
-                return false;
-        return true;
+          if(!out.IsNull()) return(false);
+
+        return(true);
     }
 };
 
@@ -1400,11 +1496,11 @@ public:
     /* Generate a proof-of-work block signature */
     bool SignWorkBlock(const CKeyStore& keystore);
 
-    // Get generator key
-    bool GetGenerator(CKey& GeneratorKey) const;
+    /* Get a proof-of-stake generation key */
+    bool GetGenerator(CKey& key) const;
 
-    // Validate proof-of-stake block signature
-    bool CheckSignature(bool& fFatal, uint256& hashProofOfStake) const;
+    /* Verify a proof-of-stake block signature */
+    bool CheckStakeSignature(uint256& hashProofOfStake, bool& fCritical) const;
 
     /* Verify a proof-of-work block signature */
     bool CheckWorkSignature() const;
@@ -1718,6 +1814,43 @@ public:
             pindex = pindex->pnext;
         }
         return pindex->GetMedianTimePast();
+    }
+
+    /* Advanced average block time calculator */
+    uint GetAverageTimePast(uint nAvgTimeSpan, uint nMinDelay) const {
+        uint avg[nAvgTimeSpan], nTempTime, i;
+        uint64 nAvgAccum;
+        const CBlockIndex* pindex = this;
+
+        /* Keep it fail safe */
+        if(!nAvgTimeSpan) return(0);
+
+        /* Initialise the elements to zero */
+        for(i = 0; i < nAvgTimeSpan; i++)
+          avg[i] = 0;
+
+        /* Fill with the time stamps */
+        for(i = nAvgTimeSpan; i && pindex; i--, pindex = pindex->pprev)
+          avg[i-1] = pindex->nTime;
+
+        /* Not enough input blocks */
+        if(!avg[0]) return(0);
+
+        /* Time travel aware accumulator */
+        nTempTime = avg[0];
+        for(i = 1, nAvgAccum = nTempTime; i < nAvgTimeSpan; i++) { 
+            /* Update the accumulator either with an actual or minimal
+             * delay supplied to prevent extremely fast blocks */
+            if(avg[i] < (nTempTime + nMinDelay))
+              nTempTime += nMinDelay;
+            else
+              nTempTime  = avg[i];
+            nAvgAccum += nTempTime;
+        }
+
+        nTempTime = (uint)(nAvgAccum/(uint64)nAvgTimeSpan);
+
+        return(nTempTime);
     }
 
     /**
@@ -2059,10 +2192,11 @@ struct CCoinsStats
 {
     int nHeight;
     uint64 nTransactions;
+    uint64 nPrunedTransactions;
     uint64 nTransactionOutputs;
     uint64 nSerializedSize;
 
-    CCoinsStats() : nHeight(0), nTransactions(0), nTransactionOutputs(0), nSerializedSize(0) {}
+    CCoinsStats() : nHeight(0), nTransactions(0), nPrunedTransactions(0), nTransactionOutputs(0), nSerializedSize(0) {}
 };
 
 /** Abstract view on the open txout dataset. */
@@ -2084,8 +2218,15 @@ public:
 
     // Modify the currently active block index
     virtual bool SetBestBlock(CBlockIndex *pindex);
+
+    // Do a bulk modification (multiple SetCoins + one SetBestBlock)
     virtual bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, CBlockIndex *pindex);
+
+    // Calculate statistics about the unspent transaction output set
     virtual bool GetStats(CCoinsStats &stats);
+
+    // As we use CCoinsViews polymorphically, have a virtual destructor
+    virtual ~CCoinsView() {}
 };
 
 /** CCoinsView backed by another CCoinsView */
@@ -2120,12 +2261,18 @@ public:
     bool GetCoinsReadOnly(uint256 txid, CCoins &coins);
     bool SetCoins(uint256 txid, const CCoins &coins);
     bool HaveCoins(uint256 txid);
-    CCoins &GetCoins(uint256 txid);
+    CCoins &GetCoins(const uint256 txid);
     CBlockIndex *GetBestBlock();
     bool SetBestBlock(CBlockIndex *pindex);
     bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, CBlockIndex *pindex);
+
+    // Push the modifications applied to this cache to its base.
+    // Failure to call this method before destruction will cause the changes to be forgotten.
     bool Flush();
+
+    // Calculate the size of the cache (in number of transactions)
     unsigned int GetCacheSize();
+
 private:
     std::map<uint256,CCoins>::iterator FetchCoins(uint256 txid);
 };

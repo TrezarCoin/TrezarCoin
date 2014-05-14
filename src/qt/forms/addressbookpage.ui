@@ -63,7 +63,7 @@
         <string>Create a new address</string>
        </property>
        <property name="text">
-        <string>&amp;New Address</string>
+        <string>&amp;New address</string>
        </property>
        <property name="icon">
         <iconset resource="../bitcoin.qrc">
@@ -77,7 +77,7 @@
         <string>Copy the currently selected address to the system clipboard</string>
        </property>
        <property name="text">
-        <string>&amp;Copy Address</string>
+        <string>&amp;Copy address</string>
        </property>
        <property name="icon">
         <iconset resource="../bitcoin.qrc">
@@ -88,7 +88,7 @@
      <item>
       <widget class="QPushButton" name="showQRCode">
        <property name="text">
-        <string>Show &amp;QR Code</string>
+        <string>Show &amp;QR code</string>
        </property>
        <property name="icon">
         <iconset resource="../bitcoin.qrc">
@@ -102,7 +102,7 @@
         <string>Sign a message to prove you own a Orbitcoin address</string>
        </property>
        <property name="text">
-        <string>Sign &amp;Message</string>
+        <string>Sign &amp;message</string>
        </property>
        <property name="icon">
         <iconset resource="../bitcoin.qrc">
@@ -116,7 +116,7 @@
         <string>Verify a message to ensure it was signed with a specified Orbitcoin address</string>
        </property>
        <property name="text">
-        <string>&amp;Verify Message</string>
+        <string>&amp;Verify message</string>
        </property>
        <property name="icon">
         <iconset resource="../bitcoin.qrc">

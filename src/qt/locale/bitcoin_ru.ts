@@ -54,7 +54,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-11"/>
-        <source>&amp;New Address</source>
+        <source>&amp;New address</source>
         <translation>&amp;Новый адрес</translation>
     </message>
     <message>
@@ -64,12 +64,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+60"/>
-        <source>&amp;Copy Address</source>
+        <source>&amp;Copy address</source>
         <translation>&amp;Копировать адрес</translation>
     </message>
     <message>
         <location line="+11"/>
-        <source>Show &amp;QR Code</source>
+        <source>Show &amp;QR code</source>
         <translation>Показать &amp;QR код</translation>
     </message>
     <message>
@@ -79,7 +79,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+3"/>
-        <source>Sign &amp;Message</source>
+        <source>Sign &amp;message</source>
         <translation>&amp;Подписать сообщение</translation>
     </message>
     <message>
@@ -94,7 +94,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+3"/>
-        <source>&amp;Verify Message</source>
+        <source>&amp;Verify message</source>
         <translation>&amp;Проверить сообщение</translation>
     </message>
     <message>
@@ -104,7 +104,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location filename="../addressbookpage.cpp" line="+65"/>
-        <source>Copy &amp;Label</source>
+        <source>Copy &amp;label</source>
         <translation>Копировать &amp;метку</translation>
     </message>
     <message>
@@ -905,7 +905,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <location line="+86"/>
         <location line="+38"/>
         <source>0.00 ORB</source>
-        <translation type="unfinished"></translation>
+        <translation>0.00 ORB</translation>
     </message>
     <message>
         <location line="+131"/>
@@ -1561,7 +1561,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+3"/>
-        <source>Add &amp;Recipient</source>
+        <source>Add &amp;recipient</source>
         <translation>&amp;Добавить получателя</translation>
     </message>
     <message>
@@ -1570,14 +1570,9 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Управление монетами</translation>
     </message>
     <message>
-        <location line="+20"/>
-        <source>Inputs...</source>
-        <translation>Входы...</translation>
-    </message>
-    <message>
         <location line="+7"/>
-        <source>automatically selected</source>
-        <translation>автоматический выбор</translation>
+        <source>inputs selected automatically</source>
+        <translation>автоматический выбор входов</translation>
     </message>
     <message>
         <location line="+19"/>
@@ -1587,7 +1582,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+77"/>
         <source>Quantity:</source>
-        <translation type="unfinished">Количество:</translation>
+        <translation>Количество:</translation>
     </message>
     <message>
         <location line="+22"/>
@@ -1598,55 +1593,55 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="-19"/>
         <source>Bytes:</source>
-        <translation type="unfinished">Размер:</translation>
+        <translation>Размер:</translation>
     </message>
     <message>
         <location line="+51"/>
         <source>Amount:</source>
-        <translation type="unfinished"></translation>
+        <translation>Сумма:</translation>
     </message>
     <message>
         <location line="+22"/>
         <location line="+86"/>
         <location line="+86"/>
         <location line="+32"/>
-        <source>0.00 BTC</source>
-        <translation type="unfinished">123.456 BTC {0.00 ?}</translation>
+        <source>0.00 ORB</source>
+        <translation>0.00 ORB</translation>
     </message>
     <message>
         <location line="-191"/>
         <source>Priority:</source>
-        <translation type="unfinished">Приоритет:</translation>
+        <translation>Приоритет:</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>medium</source>
-        <translation type="unfinished"></translation>
+        <translation>средний</translation>
     </message>
     <message>
         <location line="+32"/>
         <source>Fee:</source>
-        <translation type="unfinished">Комиссия:</translation>
+        <translation>Комиссия:</translation>
     </message>
     <message>
         <location line="+35"/>
         <source>Low Output:</source>
-        <translation type="unfinished">Мелкие входы:</translation>
+        <translation>Мелочь на выходе:</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>no</source>
-        <translation type="unfinished">нет</translation>
+        <translation>нет</translation>
     </message>
     <message>
         <location line="+32"/>
         <source>After Fee:</source>
-        <translation type="unfinished">С комиссией:</translation>
+        <translation>С комиссией:</translation>
     </message>
     <message>
         <location line="+35"/>
-        <source>Change</source>
-        <translation type="unfinished"></translation>
+        <source>Change:</source>
+        <translation>Сдача:</translation>
     </message>
     <message>
         <location line="+50"/>
@@ -1655,8 +1650,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-173"/>
-        <source>Enter an Orbitcoin address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Введите Orbitcoin-адрес (например 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <source>Enter an Orbitcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</source>
+        <translation>Введите Orbitcoin-адрес (например oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
     </message>
     <message>
         <location filename="../forms/sendcoinsdialog.ui" line="+129"/>
@@ -1665,7 +1660,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+3"/>
-        <source>Clear &amp;All</source>
+        <source>Clear &amp;all</source>
         <translation>Очистить &amp;всё</translation>
     </message>
     <message>
@@ -1675,8 +1670,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+10"/>
-        <source>123.456 BTC</source>
-        <translation>123.456 BTC</translation>
+        <source>123.456 ORB</source>
+        <translation>123.456 ORB</translation>
     </message>
     <message>
         <location line="+31"/>
@@ -1691,42 +1686,42 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location filename="../sendcoinsdialog.cpp" line="+15"/>
         <source>Copy quantity</source>
-        <translation type="unfinished">Копировать количество</translation>
+        <translation>Копировать количество</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy amount</source>
-        <translation type="unfinished"></translation>
+        <translation>Копировать сумму</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy fee</source>
-        <translation type="unfinished">Копировать комиссию</translation>
+        <translation>Копировать комиссию</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy after fee</source>
-        <translation type="unfinished">Копировать с комиссией</translation>
+        <translation>Копировать с комиссией</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy bytes</source>
-        <translation type="unfinished">Копировать объем</translation>
+        <translation>Копировать размер</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy priority</source>
-        <translation type="unfinished">Копировать приоритет</translation>
+        <translation>Копировать приоритет</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy low output</source>
-        <translation type="unfinished"></translation>
+        <translation>Копировать мелочь на выходе</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy change</source>
-        <translation type="unfinished">Копировать сдачу</translation>
+        <translation>Копировать сдачу</translation>
     </message>
     <message>
         <location line="+86"/>
@@ -1829,8 +1824,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+18"/>
-        <source>The address to send the payment to  (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Адрес получателя платежа (например 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <source>The address to send the payment to  (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</source>
+        <translation>Адрес получателя платежа (например oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1859,8 +1854,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="+1"/>
-        <source>Enter an Orbitcoin address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Введите Orbitcoin-адрес (например 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <source>Enter an Orbitcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</source>
+        <translation>Введите Orbitcoin-адрес (например oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
     </message>
 </context>
 <context>
@@ -1883,8 +1878,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+18"/>
-        <source>The address to sign the message with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Адрес, которым вы хотите подписать сообщение  (напр. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <source>The address to sign the message with (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</source>
+        <translation>Адрес, которым вы хотите подписать сообщение  (напр. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1947,8 +1942,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+21"/>
-        <source>The address the message was signed with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Адрес, которым было подписано сообщение (напр. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <source>The address the message was signed with (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</source>
+        <translation>Адрес, которым было подписано сообщение (напр. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
     </message>
     <message>
         <location line="+40"/>
@@ -1963,8 +1958,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location filename="../signverifymessagedialog.cpp" line="+27"/>
         <location line="+3"/>
-        <source>Enter an Orbitcoin address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Введите адрес Orbitcoin (напр. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <source>Enter an Orbitcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</source>
+        <translation>Введите адрес Orbitcoin (напр. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
     </message>
     <message>
         <location line="-2"/>
@@ -2061,13 +2056,23 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+8"/>
-        <source>%1/offline</source>
-        <translation>%1/отключен</translation>
+        <source>orphan</source>
+        <translation>осиротевший</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>failed</source>
+        <translation>отвергнутый</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>pending</source>
+        <translation>ожидается</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>%1/unconfirmed</source>
-        <translation>%1/не подтверждено</translation>
+        <translation>%1/подтверждается</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -2284,8 +2289,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+3"/>
-        <source>Offline (%1 confirmations)</source>
-        <translation>Оффлайн (%1 подтверждений)</translation>
+        <source>Pending</source>
+        <translation>Ожидается</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Failed</source>
+        <translation>Отказано</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -2313,8 +2323,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+3"/>
-        <source>Generated but not accepted</source>
-        <translation>Сгенерировано, но не подтверждено</translation>
+        <source>Generated but orphaned</source>
+        <translation>Сгенерировано, но отклонено</translation>
     </message>
     <message>
         <location line="+43"/>
@@ -2338,8 +2348,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+3"/>
-        <source>Mined</source>
-        <translation>Добыто</translation>
+        <source>PoW Mined</source>
+        <translation>Добыто PoW</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>PoS Mined</source>
+        <translation>Добыто PoS</translation>
     </message>
     <message>
         <location line="+39"/>

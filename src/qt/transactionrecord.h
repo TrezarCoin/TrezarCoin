@@ -15,7 +15,7 @@ class TransactionStatus
 public:
     TransactionStatus():
             confirmed(false), sortKey(""), maturity(Mature),
-            matures_in(0), status(Offline), depth(0), open_for(0), cur_num_blocks(-1)
+            matures_in(0), status(Pending), depth(0), open_for(0), cur_num_blocks(-1)
     { }
 
     enum Maturity
@@ -23,15 +23,16 @@ public:
         Immature,
         Mature,
         MaturesWarning, /**< Transaction will likely not mature because no nodes have confirmed */
-        NotAccepted
+        Orphan
     };
 
     enum Status {
         OpenUntilDate,
         OpenUntilBlock,
-        Offline,
+        Pending,
         Unconfirmed,
-        HaveConfirmations
+        HaveConfirmations,
+        Failed
     };
 
     bool confirmed;
@@ -68,7 +69,8 @@ public:
         SendToOther,
         RecvWithAddress,
         RecvFromOther,
-        SendToSelf
+        SendToSelf,
+        Staked
     };
 
     /** Number of confirmation needed for transaction */
@@ -95,7 +97,7 @@ public:
 
     /** Decompose CWallet transaction to model transaction records.
      */
-    static bool showTransaction(const CWalletTx &wtx, bool ShowOrphans);
+    static bool showTransaction(const CWalletTx &wtx, bool ShowFailed);
     static QList<TransactionRecord> decomposeTransaction(const CWallet *wallet, const CWalletTx &wtx);
 
     /** @name Immutable transaction attributes

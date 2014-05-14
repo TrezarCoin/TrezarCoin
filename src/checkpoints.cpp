@@ -27,6 +27,7 @@ namespace Checkpoints
         ( 0,     std::make_pair(hashGenesisBlock, 1375030725) )
         ( 433333, std::make_pair(uint256("0x2ecb07c0bb2e53f0af0bd79d24510e73de3be324e622bfef5dbe28896c37ad75"), 1392829201) )
         ( 600000, std::make_pair(uint256("0x00000025e4214dd10eb7a4d7d088935dbc5c05b18574b56574d19c839e48e8ff"), 1398098754) )
+        ( 640000, std::make_pair(uint256("0x00000002a1fa028fb65a879c28ff66fbc4ea7dde26486c76f036315bcc17cfd7"), 1399864393) )
     ;
 
     // TestNet has no checkpoints
@@ -191,14 +192,14 @@ namespace Checkpoints
         return false;
     }
 
-    // Automatically select a suitable sync-checkpoint 
-    uint256 AutoSelectSyncCheckpoint()
-    {
+    /* Checkpoint master: selects a block for checkpointing according to the policy */
+    uint256 AutoSelectSyncCheckpoint() {
+        /* No immediate checkpointing on either PoW or PoS blocks,
+         * select by depth in the main chain rather than block time */
         const CBlockIndex *pindex = pindexBest;
-        // Search backward for a block within max span and maturity window
-        while (pindex->pprev && (pindex->GetBlockTime() + CHECKPOINT_MAX_SPAN > pindexBest->GetBlockTime() || pindex->nHeight + 8 > pindexBest->nHeight))
-            pindex = pindex->pprev;
-        return pindex->GetBlockHash();
+        while(pindex->pprev && (pindex->nHeight + (int)GetArg("-checkpointdepth", CHECKPOINT_DEFAULT_DEPTH))
+          > pindexBest->nHeight) pindex = pindex->pprev;
+        return(pindex->GetBlockHash());
     }
 
     // Check against synchronized checkpoint

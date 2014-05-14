@@ -21,12 +21,17 @@ QString TransactionDesc::FormatTxStatus(const CWalletTx& wtx)
     else
     {
         int nDepth = wtx.GetDepthInMainChain();
-        if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
-            return tr("%1/offline").arg(nDepth);
-        else if (nDepth < 6)
-            return tr("%1/unconfirmed").arg(nDepth);
-        else
-            return tr("%1 confirmations").arg(nDepth);
+        if(nDepth < 0) {
+            if(wtx.IsCoinBase() || wtx.IsCoinStake())
+              return tr("orphan");
+            else
+              return tr("failed");
+        }
+        if(!nDepth)
+          return tr("pending");
+        if(nDepth < 6)
+          return tr("%1/unconfirmed").arg(nDepth);
+        return tr("%1 confirmations").arg(nDepth);
     }
 }
 
@@ -60,10 +65,11 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
         //
         // From
         //
-        if (wtx.IsCoinBase())
+        if(wtx.IsCoinBase() || wtx.IsCoinStake())
         {
             strHTML += "<b>" + tr("Source") + ":</b> " + tr("Generated") + "<br>";
         }
+
         else if (wtx.mapValue.count("from") && !wtx.mapValue["from"].empty())
         {
             // Online transaction

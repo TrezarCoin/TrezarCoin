@@ -24,16 +24,16 @@
      </property>
      <item>
       <widget class="QLabel" name="labelTxComment">
-	   <property name="text">
-	    <string>Transaction &amp;comment: </string>
-	   </property>
-	   <property name="alignment">
-	    <set>Qt::AlignLeft|Qt::AlignTrailing|Qt::AlignVCenter</set>
-	   </property>
-	   <property name="buddy">
-	    <cstring>editTxComment</cstring>
-	   </property>
-	  </widget>
+       <property name="text">
+        <string>Transaction &amp;comment: </string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeft|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+       <property name="buddy">
+        <cstring>editTxComment</cstring>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QValidatedLineEdit" name="editTxComment">
@@ -41,7 +41,7 @@
         <bool>true</bool>
        </property>
        <property name="toolTip">
-        <string>Enter a transaction comment (Note: this information is public)</string>
+        <string>Enter a transaction comment up to 140 characters (NOTE: this information is public)</string>
        </property>
       </widget>
      </item>
@@ -50,9 +50,9 @@
    <item>
     <widget class="QFrame" name="frameCoinControl">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
+       <verstretch>160</verstretch>
       </sizepolicy>
      </property>
      <property name="maximumSize">
@@ -95,35 +95,6 @@
          <number>10</number>
         </property>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayoutCoinControl1">
-          <property name="bottomMargin">
-           <number>15</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="labelCoinControlFeatures">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">font-weight:bold;</string>
-            </property>
-            <property name="text">
-             <string>Coin Control</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
          <layout class="QHBoxLayout" name="horizontalLayoutCoinControl2" stretch="0,0,0,0">
           <property name="spacing">
            <number>8</number>
@@ -134,17 +105,17 @@
           <item>
            <widget class="QPushButton" name="pushButtonCoinControl">
             <property name="styleSheet">
-             <string notr="true"/>
+             <string notr="true">font-weight:bold;</string>
             </property>
             <property name="text">
-             <string>Inputs...</string>
+             <string>Coin Control</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QLabel" name="labelCoinControlAutomaticallySelected">
             <property name="text">
-             <string>automatically selected</string>
+             <string>inputs selected automatically</string>
             </property>
             <property name="margin">
              <number>5</number>
@@ -536,7 +507,7 @@
                   <string notr="true">font-weight:bold;</string>
                  </property>
                  <property name="text">
-                  <string>Change</string>
+                  <string>Change:</string>
                  </property>
                 </widget>
                </item>
@@ -695,7 +666,7 @@
         <string>Send to multiple recipients at once</string>
        </property>
        <property name="text">
-        <string>Add &amp;Recipient</string>
+        <string>Add &amp;recipient</string>
        </property>
        <property name="icon">
         <iconset resource="../bitcoin.qrc">
@@ -718,7 +689,7 @@
         <string>Remove all transaction fields</string>
        </property>
        <property name="text">
-        <string>Clear &amp;All</string>
+        <string>Clear &amp;all</string>
        </property>
        <property name="icon">
         <iconset resource="../bitcoin.qrc">

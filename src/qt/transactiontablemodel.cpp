@@ -285,8 +285,11 @@ QString TransactionTableModel::formatTxStatus(const TransactionRecord *wtx) cons
     case TransactionStatus::OpenUntilDate:
         status = tr("Open until %1").arg(GUIUtil::dateTimeStr(wtx->status.open_for));
         break;
-    case TransactionStatus::Offline:
-        status = tr("Offline (%1 confirmations)").arg(wtx->status.depth);
+    case TransactionStatus::Pending:
+        status = tr("Pending");
+        break;
+    case TransactionStatus::Failed:
+        status = tr("Failed");
         break;
     case TransactionStatus::Unconfirmed:
         status = tr("Unconfirmed (%1 of %2 confirmations)").arg(wtx->status.depth).arg(TransactionRecord::NumConfirmations);
@@ -296,8 +299,8 @@ QString TransactionTableModel::formatTxStatus(const TransactionRecord *wtx) cons
         break;
     }
 
-    if(wtx->type == TransactionRecord::Generated)
-    {
+    if((wtx->type == TransactionRecord::Generated) || (wtx->type == TransactionRecord::Staked)) {
+
         switch(wtx->status.maturity)
         {
         case TransactionStatus::Immature:
@@ -308,10 +311,11 @@ QString TransactionTableModel::formatTxStatus(const TransactionRecord *wtx) cons
         case TransactionStatus::MaturesWarning:
             status += "\n" + tr("This block was not received by any other nodes and will probably not be accepted!");
             break;
-        case TransactionStatus::NotAccepted:
-            status += "\n" + tr("Generated but not accepted");
+        case TransactionStatus::Orphan:
+            status += "\n" + tr("Generated but orphaned");
             break;
         }
+
     }
 
     return status;
@@ -361,7 +365,9 @@ QString TransactionTableModel::formatTxType(const TransactionRecord *wtx) const
     case TransactionRecord::SendToSelf:
         return tr("Payment to yourself");
     case TransactionRecord::Generated:
-        return tr("Mined");
+        return tr("PoW Mined");
+    case TransactionRecord::Staked:
+        return tr("PoS Mined");
     default:
         return QString();
     }
@@ -372,6 +378,7 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
     switch(wtx->type)
     {
     case TransactionRecord::Generated:
+    case TransactionRecord::Staked:
         return QIcon(":/icons/tx_mined");
     case TransactionRecord::RecvWithAddress:
     case TransactionRecord::RecvFromOther:
@@ -394,6 +401,7 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, b
     case TransactionRecord::RecvWithAddress:
     case TransactionRecord::SendToAddress:
     case TransactionRecord::Generated:
+    case TransactionRecord::Staked:
         return lookupAddress(wtx->address, tooltip);
     case TransactionRecord::SendToOther:
         return QString::fromStdString(wtx->address);
@@ -411,6 +419,7 @@ QVariant TransactionTableModel::addressColor(const TransactionRecord *wtx) const
     case TransactionRecord::RecvWithAddress:
     case TransactionRecord::SendToAddress:
     case TransactionRecord::Generated:
+    case TransactionRecord::Staked:
         {
         QString label = walletModel->getAddressTableModel()->labelForAddress(QString::fromStdString(wtx->address));
         if(label.isEmpty())
@@ -439,7 +448,7 @@ QString TransactionTableModel::formatTxAmount(const TransactionRecord *wtx, bool
 
 QVariant TransactionTableModel::txStatusDecoration(const TransactionRecord *wtx) const
 {
-    if(wtx->type == TransactionRecord::Generated)
+    if((wtx->type == TransactionRecord::Generated) || (wtx->type == TransactionRecord::Staked))
     {
         switch(wtx->status.maturity)
         {
@@ -451,8 +460,9 @@ QVariant TransactionTableModel::txStatusDecoration(const TransactionRecord *wtx)
         case TransactionStatus::Mature:
             return QIcon(":/icons/transaction_confirmed");
         case TransactionStatus::MaturesWarning:
-        case TransactionStatus::NotAccepted:
             return QIcon(":/icons/transaction_0");
+        case TransactionStatus::Orphan:
+            return QIcon(":/icons/transaction_failed");
         }
     }
     else
@@ -463,8 +473,10 @@ QVariant TransactionTableModel::txStatusDecoration(const TransactionRecord *wtx)
         case TransactionStatus::OpenUntilDate:
             return QColor(64,64,255);
             break;
-        case TransactionStatus::Offline:
-            return QColor(192,192,192);
+        case TransactionStatus::Pending:
+            return QIcon(":/icons/transaction_0");
+        case TransactionStatus::Failed:
+            return QIcon(":/icons/transaction_failed");
         case TransactionStatus::Unconfirmed:
             switch(wtx->status.depth)
             {
@@ -574,9 +586,13 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
         return QString::fromStdString(rec->getTxID());
     case ConfirmedRole:
         // Return True if transaction counts for balance
-        return rec->status.confirmed && !(rec->type == TransactionRecord::Generated && rec->status.maturity != TransactionStatus::Mature);
+        return(rec->status.confirmed &&
+          !(((rec->type == TransactionRecord::Generated) || (rec->type == TransactionRecord::Staked)) &&
+          rec->status.maturity != TransactionStatus::Mature));
     case FormattedAmountRole:
         return formatTxAmount(rec, false);
+    case StatusRole:
+        return rec->status.status;
     }
     return QVariant();
 }

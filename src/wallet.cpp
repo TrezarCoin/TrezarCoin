@@ -14,7 +14,9 @@
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace std;
+
 extern int nStakeMaxAge;
+extern unsigned int nStakeMinDepth;
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -911,23 +913,25 @@ void CWalletTx::RelayWalletTransaction()
     }
 }
 
-void CWallet::ResendWalletTransactions()
+void CWallet::ResendWalletTransactions(bool fForce)
 {
-    // Do this infrequently and randomly to avoid giving away
-    // that these are our transactions.
-    static int64 nNextTime;
-    if (GetTime() < nNextTime)
-        return;
-    bool fFirst = (nNextTime == 0);
-    nNextTime = GetTime() + GetRand(30 * 60);
-    if (fFirst)
-        return;
+    if(!fForce) {
+        // Do this infrequently and randomly to avoid giving away
+        // that these are our transactions.
+        static int64 nNextTime;
+        if(GetTime() < nNextTime)
+          return;
+        bool fFirst = (nNextTime == 0);
+        nNextTime = GetTime() + GetRand(30 * 60);
+        if(fFirst)
+          return;
 
-    // Only do it if there's been a new block since last time
-    static int64 nLastTime;
-    if (nTimeBestReceived < nLastTime)
-        return;
-    nLastTime = GetTime();
+        // Only do it if there's been a new block since last time
+        static int64 nLastTime;
+        if(nTimeBestReceived < nLastTime)
+          return;
+        nLastTime = GetTime();
+    }
 
     // Rebroadcast any of our txes that aren't in a block yet
     printf("ResendWalletTransactions()\n");
@@ -940,8 +944,8 @@ void CWallet::ResendWalletTransactions()
             CWalletTx& wtx = item.second;
             // Don't rebroadcast until it's had plenty of time that
             // it should have gotten in already by now.
-            if (nTimeBestReceived - (int64)wtx.nTimeReceived > 5 * 60)
-                mapSorted.insert(make_pair(wtx.nTimeReceived, &wtx));
+            if(fForce || (nTimeBestReceived - (int64_t)wtx.nTimeReceived > 5 * 60))
+              mapSorted.insert(make_pair(wtx.nTimeReceived, &wtx));
         }
         BOOST_FOREACH(PAIRTYPE(const unsigned int, CWalletTx*)& item, mapSorted)
         {
@@ -1019,22 +1023,26 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
         {
             const CWalletTx* pcoin = &(*it).second;
 
-            if (!pcoin->IsFinal())
-                continue;
+            if(!pcoin->IsFinal())
+              continue;
 
-            if (fOnlyConfirmed && !pcoin->IsConfirmed())
-                continue;
+            if(fOnlyConfirmed && !pcoin->IsConfirmed())
+              continue;
 
-            if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0)
-                continue;
+            if(pcoin->IsCoinBase() && (pcoin->GetBlocksToMaturity() > 0))
+              continue;
 
-            if(pcoin->IsCoinStake() && pcoin->GetBlocksToMaturity() > 0)
-                continue;
+            if(pcoin->IsCoinStake() && (pcoin->GetBlocksToMaturity() > 0))
+              continue;
+
+            int nDepth = pcoin->GetDepthInMainChain();
+            if(nDepth < 0)
+              continue;
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++)
                 if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].nValue >= nMinimumInputValue &&
                 (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
-                    vCoins.push_back(COutput(pcoin, i, pcoin->GetDepthInMainChain()));
+                    vCoins.push_back(COutput(pcoin, i, nDepth));
 
         }
     }
@@ -1468,11 +1476,11 @@ bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeightInputs
     set<pair<const CWalletTx*,unsigned int> > setCoins;
     int64 nValueIn = 0;
 
-    if (!SelectCoinsSimple(nBalance - nReserveBalance, GetTime(), nCoinbaseMaturity * 10, setCoins, nValueIn))
-        return false;
+    /* Select aged coins by depth in the main chain */
+    if(!SelectCoinsSimple(nBalance - nReserveBalance, GetTime(), nStakeMinDepth, setCoins, nValueIn))
+      return(false);
 
-    if (setCoins.empty())
-        return false;
+    if(setCoins.empty()) return(false);
 
     nMinWeightInputs = 0, nAvgWeightInputs = 0, nMaxWeightInputs = 0, nTotalStakeWeight = 0;
 
@@ -1541,12 +1549,13 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     set<pair<const CWalletTx*,unsigned int> > setCoins;
     int64 nValueIn = 0;
 
-    // Select coins with suitable depth
-    if (!SelectCoinsSimple(nBalance - nReserveBalance, txNew.nTime, nCoinbaseMaturity * 10, setCoins, nValueIn))
-        return false;
+    /* Select aged coins by depth in the main chain */
+    if(!SelectCoinsSimple(nBalance - nReserveBalance, txNew.nTime, nStakeMinDepth, setCoins, nValueIn))
+      return(false);
 
-    if (setCoins.empty())
-        return false;
+    if(setCoins.empty()) return(false);
+    if(fDebug && GetBoolArg("-printcoinstake"))
+      printf("CreateCoinStake() : %u inputs selected\n", (uint) setCoins.size());
 
     int64 nCredit = 0;
     CScript scriptPubKeyKernel;
@@ -1593,8 +1602,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             // Search nSearchInterval seconds back up to nMaxStakeSearchInterval
             uint256 hashProofOfStake = 0, targetProofOfStake = 0;
             COutPoint prevoutStake = COutPoint(pcoin.first->GetHash(), pcoin.second);
-            if (CheckStakeKernelHash(nBits, block, nTxPos, *pcoin.first, prevoutStake, txNew.nTime - n, hashProofOfStake, targetProofOfStake, fFatal, true))
-            {
+            if(CheckStakeKernelHash(nBits, block, nTxPos, *pcoin.first, prevoutStake, txNew.nTime - n,
+              hashProofOfStake, targetProofOfStake, fFatal, true, false)) {
+
                 // Found a kernel
                 if (fDebug && GetBoolArg("-printcoinstake"))
                     printf("CreateCoinStake : kernel found\n");
