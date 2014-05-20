@@ -630,6 +630,8 @@ void CNode::copyStats(CNodeStats &stats)
     X(fInbound);
     X(nReleaseTime);
     X(nStartingHeight);
+    X(nTxBytes);
+    X(nRxBytes);
     X(nMisbehavior);
 }
 #undef X
@@ -903,6 +905,7 @@ void ThreadSocketHandler2(void* parg)
                             vRecv.resize(nPos + nBytes);
                             memcpy(&vRecv[nPos], pchBuf, nBytes);
                             pnode->nLastRecv = GetTime();
+                            pnode->nRxBytes += nBytes;
                         }
                         else if (nBytes == 0)
                         {
@@ -944,6 +947,7 @@ void ThreadSocketHandler2(void* parg)
                         {
                             vSend.erase(vSend.begin(), vSend.begin() + nBytes);
                             pnode->nLastSend = GetTime();
+                            pnode->nTxBytes += nBytes;
                         }
                         else if (nBytes < 0)
                         {

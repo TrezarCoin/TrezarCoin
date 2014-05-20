@@ -61,6 +61,8 @@ Value getpeerinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("inbound", stats.fInbound));
         obj.push_back(Pair("releasetime", (boost::int64_t)stats.nReleaseTime));
         obj.push_back(Pair("startingheight", stats.nStartingHeight));
+        obj.push_back(Pair("txbytes", (boost::int64_t)stats.nTxBytes));
+        obj.push_back(Pair("rxbytes", (boost::int64_t)stats.nRxBytes));
         obj.push_back(Pair("banscore", stats.nMisbehavior));
 
         ret.push_back(obj);
