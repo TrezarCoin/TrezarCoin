@@ -1521,6 +1521,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     static unsigned int nStakeSplitAge = (nStakeMinAge + nStakeMaxAge);
     /* 20 ORBs */
     int64 nCombineThreshold = MIN_STAKE_AMOUNT;
+    /* 50 ORBs */
+    int64 nSplitThreshold = 2.5 * MIN_STAKE_AMOUNT;
 
     CBlockIndex* pindexPrev = pindexBest;
 
@@ -1663,8 +1665,12 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 vwtxPrev.push_back(pcoin.first);
                 txNew.vout.push_back(CTxOut(0, scriptPubKeyOut));
 
-                if(block.GetBlockTime() + nStakeSplitAge > txNew.nTime)
-                    txNew.vout.push_back(CTxOut(0, scriptPubKeyOut)); //split stake
+                /* Split large inputs into two near halves;
+                 * exact amounts to be defined after reward processing */
+                if((nCredit >= nSplitThreshold) &&
+                  (block.GetBlockTime() + nStakeSplitAge > txNew.nTime))
+                  txNew.vout.push_back(CTxOut(0, scriptPubKeyOut));
+
                 if (fDebug && GetBoolArg("-printcoinstake"))
                     printf("CreateCoinStake : added kernel type=%d\n", whichType);
                 fKernelFound = true;
@@ -1692,14 +1698,14 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             /* Do not add too many inputs */
             if(txNew.vin.size() >= 10)
               break;
-            /* Do not add any inputs if above the threshold already */
-            if(nCredit > nCombineThreshold)
+            /* Do not add any inputs if reached or exceeded the threshold already */
+            if(nCredit >= nCombineThreshold)
               break;
             /* Do not add a new input exceeding the stake limit if defined */
             if(nCredit + pcoin.first->vout[pcoin.second].nValue > nBalance - nReserveBalance)
               break;
             /* Do not add any large inputs capable of stake generation on their own */
-            if(pcoin.first->vout[pcoin.second].nValue > nCombineThreshold)
+            if(pcoin.first->vout[pcoin.second].nValue >= nCombineThreshold)
               continue;
             /* Do not add any inputs under the min. age */
             if(nTimeWeight < nStakeMinAge)
