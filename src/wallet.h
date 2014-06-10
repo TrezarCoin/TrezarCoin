@@ -177,11 +177,8 @@ public:
     int ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate = false);
     void ReacceptWalletTransactions();
     void ResendWalletTransactions(bool fForce=false);
-    int64 GetBalance() const;
-    int64 GetUnconfirmedBalance() const;
-    int64 GetImmatureBalance() const;
-    int64 GetStake() const;
-    int64 GetNewMint() const;
+    int64 GetBalance(uint nSettings);
+    int64 GetMinted(uint nSettings);
     bool CreateTransaction(const std::vector<std::pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet, std::string strTxComment, const CCoinControl *coinControl=NULL);
     bool CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet, std::string strTxComment, const CCoinControl *coinControl=NULL);
     bool CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey);

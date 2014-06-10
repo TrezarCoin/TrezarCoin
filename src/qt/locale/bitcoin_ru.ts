@@ -1269,64 +1269,69 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Отображаемая информация может быть устаревшей. Ваш бумажник автоматически синхронизируется с сетью Orbitcoin после подключения, но этот процесс пока не завершён.</translation>
     </message>
     <message>
-        <location line="-170"/>
+        <location line=""/>
         <source>Balance:</source>
         <translation>Баланс:</translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line=""/>
+        <source>Your available balance</source>
+        <translation>Ваш доступный баланс</translation>
+    </message>
+    <message>
+        <location line=""/>
         <source>Stake:</source>
-        <translation>Доля:</translation>
+        <translation>Депозит:</translation>
     </message>
     <message>
-        <location line="+84"/>
-        <source>Number of transactions:</source>
-        <translation>Количество транзакций:</translation>
+        <location line=""/>
+        <source>Total of coins out of the current balance impermanently due to a profit generated recently</source>
+        <translation>Общая сумма монет, недавно принёсших прибыль и временно не учитывающихся на балансе</translation>
     </message>
     <message>
-        <location line="-55"/>
+        <location line=""/>
         <source>Unconfirmed:</source>
-        <translation>Не подтверждено:</translation>
+        <translation>Подтверждается:</translation>
     </message>
     <message>
-        <location line="-107"/>
-        <source>Wallet</source>
-        <translation>Бумажник</translation>
+        <location line=""/>
+        <source>Total of coins not yet confirmed and count pending toward the current balance</source>
+        <translation>Общая сумма монет, окончательно не подтвержденных и ожидающих переучёт текущего баланса</translation>
     </message>
     <message>
-        <location line="+136"/>
+        <location line=""/>
         <source>Immature:</source>
-        <translation>Незрелые:</translation>
+        <translation>Формируется:</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <source>Mined balance that has not yet matured</source>
-        <translation>Баланс добытых монет, который ещё не созрел</translation>
+        <location line=""/>
+        <source>Mined balance not yet matured</source>
+        <translation>Баланс добытых монет в процессе окончательного формирования</translation>
     </message>
     <message>
-        <location line="+63"/>
+        <location line=""/>
+        <source>Consolidated balance:</source>
+        <translation>Сводный баланс:</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Consolidated (total) balance of all the accounts above</source>
+        <translation>Сводный (общий) баланс всех вышеуказанных счетов</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Number of transactions:</source>
+        <translation>Количество операций:</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Total number of transactions in your wallet</source>
+        <translation>Общее количество операций в вашем бумажнике</translation>
+    </message>
+    <message>
+        <location line=""/>
         <source>&lt;b&gt;Recent transactions&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Последние транзакции&lt;/b&gt;</translation>
-    </message>
-    <message>
-        <location line="-147"/>
-        <source>Your current balance</source>
-        <translation>Ваш текущий баланс</translation>
-    </message>
-    <message>
-        <location line="+58"/>
-        <source>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</source>
-        <translation>Общая сумма всех транзакций, которые до сих пор не подтверждены, и до сих пор не учитываются в текущем балансе</translation>
-    </message>
-    <message>
-        <location line="-29"/>
-        <source>Total of coins that was staked, and do not yet count toward the current balance</source>
-        <translation>Общая сумма всех монет, используемых для Proof-of-Stake, и не учитывающихся на балансе</translation>
-    </message>
-    <message>
-        <location line="+75"/>
-        <source>Total number of transactions in wallet</source>
-        <translation>Общее количество транзакций в Вашем бумажнике</translation>
+        <translation>&lt;b&gt;Последние операции&lt;/b&gt;</translation>
     </message>
     <message>
         <location filename="../overviewpage.cpp" line="+113"/>

@@ -1263,64 +1263,69 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>The displayed information may be out of date. Your wallet automatically synchronizes with the Orbitcoin network after a connection is established, but this process has not completed yet.</translation>
     </message>
     <message>
-        <location line="-170"/>
+        <location line=""/>
         <source>Balance:</source>
         <translation>Balance:</translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line=""/>
+        <source>Your available balance</source>
+        <translation>Your available balance</translation>
+    </message>
+    <message>
+        <location line=""/>
         <source>Stake:</source>
         <translation>Stake:</translation>
     </message>
     <message>
-        <location line="+84"/>
-        <source>Number of transactions:</source>
-        <translation>Number of transactions:</translation>
+        <location line=""/>
+        <source>Total of coins out of the current balance impermanently due to a profit generated recentlyt</source>
+        <translation>Total of coins out of the current balance impermanently due to a profit generated recently</translation>
     </message>
     <message>
-        <location line="-55"/>
+        <location line=""/>
         <source>Unconfirmed:</source>
         <translation>Unconfirmed:</translation>
     </message>
     <message>
-        <location line="-107"/>
-        <source>Wallet</source>
-        <translation>Wallet</translation>
+        <location line=""/>
+        <source>Total of coins not yet confirmed and count pending toward the current balance</source>
+        <translation>Total of coins not yet confirmed and count pending toward the current balance</translation>
     </message>
     <message>
-        <location line="+136"/>
+        <location line=""/>
         <source>Immature:</source>
         <translation>Immature:</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <source>Mined balance that has not yet matured</source>
-        <translation>Mined balance that has not yet matured</translation>
+        <location line=""/>
+        <source>Mined balance not yet matured</source>
+        <translation>Mined balance not yet matured</translation>
     </message>
     <message>
-        <location line="+63"/>
+        <location line=""/>
+        <source>Consolidated balance:</source>
+        <translation>Consolidated balance:</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Consolidated (total) balalnce of all the accounts above</source>
+        <translation>Consolidated (total) balalnce of all the accounts above</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Number of transactions:</source>
+        <translation>Number of transactions:</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Total number of transactions in your wallet</source>
+        <translation>Total number of transactions in your wallet</translation>
+    </message>
+    <message>
+        <location line=""/>
         <source>&lt;b&gt;Recent transactions&lt;/b&gt;</source>
         <translation>&lt;b&gt;Recent transactions&lt;/b&gt;</translation>
-    </message>
-    <message>
-        <location line="-147"/>
-        <source>Your current balance</source>
-        <translation>Your current balance</translation>
-    </message>
-    <message>
-        <location line="+58"/>
-        <source>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</source>
-        <translation>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</translation>
-    </message>
-    <message>
-        <location line="-29"/>
-        <source>Total of coins that was staked, and do not yet count toward the current balance</source>
-        <translation>Total of coins that was staked, and do not yet count toward the current balance</translation>
-    </message>
-    <message>
-        <location line="+75"/>
-        <source>Total number of transactions in wallet</source>
-        <translation>Total number of transactions in wallet</translation>
     </message>
     <message>
         <location filename="../overviewpage.cpp" line="+113"/>

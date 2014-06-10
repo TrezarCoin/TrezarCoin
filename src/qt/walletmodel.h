@@ -63,10 +63,11 @@ public:
     AddressTableModel *getAddressTableModel();
     TransactionTableModel *getTransactionTableModel();
 
-    qint64 getBalance() const;
-    qint64 getStake() const;
-    qint64 getUnconfirmedBalance() const;
-    qint64 getImmatureBalance() const;
+    qint64 getBalance();
+    qint64 getUnconfirmed();
+    qint64 getStake();
+    qint64 getImmature();
+
     int getNumTransactions() const;
     EncryptionStatus getEncryptionStatus() const;
 
@@ -141,9 +142,9 @@ private:
 
     // Cache some values to be able to detect changes
     qint64 cachedBalance;
+    qint64 cachedUnconfirmed;
     qint64 cachedStake;
-    qint64 cachedUnconfirmedBalance;
-    qint64 cachedImmatureBalance;
+    qint64 cachedImmature;
     qint64 cachedNumTransactions;
     EncryptionStatus cachedEncryptionStatus;
     int cachedNumBlocks;
@@ -167,7 +168,7 @@ public slots:
 
 signals:
     // Signal that balance in wallet changed
-    void balanceChanged(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
+    void balanceChanged(qint64 balance, qint64 stake, qint64 unconfirmed, qint64 immature);
 
     // Number of transactions in wallet changed
     void numTransactionsChanged(int count);

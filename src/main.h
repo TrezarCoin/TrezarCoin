@@ -26,6 +26,13 @@ class CRequestTracker;
 class CNode;
 class CBlockIndexTrustComparator;
 
+/* Maturity threshold for PoW/PoS base transactions, in blocks (confirmations) */
+extern int nBaseMaturity;
+static const int BASE_MATURITY = 200;
+static const int BASE_MATURITY_TESTNET = 10;
+/* Maturity threshold for regular transactions, in blocks (confirmations) */
+static const int TX_MATURITY = 6;
+
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
@@ -92,7 +99,6 @@ extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
 extern CBlockIndex* pindexGenesisBlock;
 extern unsigned int nStakeMinAge;
 extern unsigned int nNodeLifespan;
-extern int nCoinbaseMaturity;
 extern int nBestHeight;
 extern uint256 nBestChainTrust;
 extern uint256 nBestInvalidTrust;

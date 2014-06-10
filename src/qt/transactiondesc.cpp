@@ -1,9 +1,9 @@
 #include "transactiondesc.h"
+#include "transactionrecord.h"
 
 #include "guiutil.h"
 #include "bitcoinunits.h"
 
-#include "main.h"
 #include "wallet.h"
 #include "db.h"
 #include "ui_interface.h"
@@ -29,7 +29,7 @@ QString TransactionDesc::FormatTxStatus(const CWalletTx& wtx)
         }
         if(!nDepth)
           return tr("pending");
-        if(nDepth < 6)
+        if(nDepth < TransactionRecord::NumConfirmations)
           return tr("%1/unconfirmed").arg(nDepth);
         return tr("%1 confirmations").arg(nDepth);
     }

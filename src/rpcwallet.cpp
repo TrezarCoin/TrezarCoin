@@ -74,16 +74,17 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("version",       FormatFullVersion()));
     obj.push_back(Pair("protocolversion",(int)PROTOCOL_VERSION));
     obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
-    obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
-    obj.push_back(Pair("newmint",       ValueFromAmount(pwalletMain->GetNewMint())));
-    obj.push_back(Pair("stake",         ValueFromAmount(pwalletMain->GetStake())));
+    obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance(0x3))));
+    obj.push_back(Pair("allpowmint",    ValueFromAmount(pwalletMain->GetMinted(0x1))));
+    obj.push_back(Pair("allposmint",    ValueFromAmount(pwalletMain->GetMinted(0x2))));
+    obj.push_back(Pair("newpowmint",    ValueFromAmount(pwalletMain->GetMinted(0x5))));
+    obj.push_back(Pair("newposmint",    ValueFromAmount(pwalletMain->GetMinted(0x6))));
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("timeoffset",    (boost::int64_t)GetTimeOffset()));
     obj.push_back(Pair("moneysupply",   ValueFromAmount(pindexBest->nMoneySupply)));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
     obj.push_back(Pair("ip",            addrSeenByPeer.ToStringIP()));
-    obj.push_back(Pair("difficulty",    (double)GetDifficulty()));
     obj.push_back(Pair("testnet",       fTestNet));
     obj.push_back(Pair("keypoololdest", (boost::int64_t)pwalletMain->GetOldestKeyPoolTime()));
     obj.push_back(Pair("keypoolsize",   (int)pwalletMain->GetKeyPoolSize()));
@@ -553,12 +554,15 @@ Value getbalance(const Array& params, bool fHelp)
             "If [account] is not specified, returns the server's total available balance.\n"
             "If [account] is specified, returns the balance in the account.");
 
-    if (params.size() == 0)
-        return  ValueFromAmount(pwalletMain->GetBalance());
+    if(params.size() == 0)
+      /* Available + unconfirmed; the latter is also available technically */
+      return(ValueFromAmount(pwalletMain->GetBalance(0x3)));
 
     int nMinDepth = 1;
     if (params.size() > 1)
         nMinDepth = params[1].get_int();
+
+    /* Broken code below due to PoS, don't use */
 
     if (params[0].get_str() == "*") {
         // Calculate total balance a different way from GetBalance()
@@ -764,9 +768,9 @@ Value sendmany(const Array& params, bool fHelp)
     bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strTxComment);
     if (!fCreated)
     {
-        if (totalAmount + nFeeRequired > pwalletMain->GetBalance())
-            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
-        throw JSONRPCError(RPC_WALLET_ERROR, "Transaction creation failed");
+        if(totalAmount + nFeeRequired > pwalletMain->GetBalance(0x3))
+          throw(JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds"));
+        throw(JSONRPCError(RPC_WALLET_ERROR, "Transaction creation failed"));
     }
     if (!pwalletMain->CommitTransaction(wtx, keyChange))
         throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");

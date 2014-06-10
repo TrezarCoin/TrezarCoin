@@ -966,50 +966,49 @@ void CWallet::ResendWalletTransactions(bool fForce)
 //
 
 
-int64 CWallet::GetBalance() const
-{
+/* Calculates either available or unconfirmed balance or both:
+ * bit 0 = available balance;
+ * bit 1 = unconfirmed balance
+ * NOTE: this code makes use of TX_MATURITY rather than IsConfirmed() */
+int64 CWallet::GetBalance(uint nSettings) {
     int64 nTotal = 0;
-    {
-        LOCK(cs_wallet);
-        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-        {
-            const CWalletTx* pcoin = &(*it).second;
-            if (pcoin->IsConfirmed())
-                nTotal += pcoin->GetAvailableCredit();
-        }
+    LOCK(cs_wallet);
+    for(map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it) {
+        const CWalletTx* pcoin = &(*it).second;
+        int nDepth = pcoin->GetDepthInMainChain();
+        if((nSettings & 0x1) && (nDepth >= TX_MATURITY))
+          nTotal += pcoin->GetAvailableCredit();
+        if((nSettings & 0x2) && (nDepth < TX_MATURITY) && (nDepth > 0))
+          nTotal += pcoin->GetAvailableCredit();
     }
-
-    return nTotal;
+    return(nTotal);
 }
 
-int64 CWallet::GetUnconfirmedBalance() const
-{
+/* Calculates minted rewards, either immature or complete, for either PoW or PoS or both:
+ * bit 0 = PoW rewards;
+ * bit 1 = PoS rewards;
+ * bit 2 = immature only;
+ * bit 3 = PoS debit only */
+int64 CWallet::GetMinted(uint nSettings) {
     int64 nTotal = 0;
-    {
-        LOCK(cs_wallet);
-        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-        {
-            const CWalletTx* pcoin = &(*it).second;
-            if (!pcoin->IsFinal() || !pcoin->IsConfirmed())
-                nTotal += pcoin->GetAvailableCredit();
+    LOCK(cs_wallet);
+    for(map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it) {
+        const CWalletTx* pcoin = &(*it).second;
+        if(((nSettings & 0x1) && pcoin->IsCoinBase()) ||
+          ((nSettings & 0x2) && pcoin->IsCoinStake())) {
+            int nDepth = pcoin->GetDepthInMainChain();
+            if(nDepth > 0) {
+                if(((nSettings & 0x4) && (nDepth < nBaseMaturity)) || !(nSettings & 0x4)) {
+                    /* PoW base transactions have zero debit anyway */
+                    if(nSettings & 0x8)
+                      nTotal += CWallet::GetDebit(*pcoin);
+                    else                    
+                      nTotal += CWallet::GetCredit(*pcoin) - CWallet::GetDebit(*pcoin);
+                }
+            }
         }
     }
-    return nTotal;
-}
-
-int64 CWallet::GetImmatureBalance() const
-{
-    int64 nTotal = 0;
-    {
-        LOCK(cs_wallet);
-        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-        {
-            const CWalletTx& pcoin = (*it).second;
-            if (pcoin.IsCoinBase() && pcoin.GetBlocksToMaturity() > 0 && pcoin.IsInMainChain())
-                nTotal += GetCredit(pcoin);
-        }
-    }
-    return nTotal;
+    return(nTotal);
 }
 
 // populate vCoins with vector of spendable COutputs
@@ -1107,33 +1106,6 @@ static void ApproximateBestSubset(vector<pair<int64, pair<const CWalletTx*,unsig
             }
         }
     }
-}
-
-// ppcoin: total coins staked (non-spendable until maturity)
-int64 CWallet::GetStake() const
-{
-    int64 nTotal = 0;
-    LOCK(cs_wallet);
-    for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-    {
-        const CWalletTx* pcoin = &(*it).second;
-        if (pcoin->IsCoinStake() && pcoin->GetBlocksToMaturity() > 0 && pcoin->GetDepthInMainChain() > 0)
-            nTotal += CWallet::GetCredit(*pcoin);
-    }
-    return nTotal;
-}
-
-int64 CWallet::GetNewMint() const
-{
-    int64 nTotal = 0;
-    LOCK(cs_wallet);
-    for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-    {
-        const CWalletTx* pcoin = &(*it).second;
-        if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0 && pcoin->GetDepthInMainChain() > 0)
-            nTotal += CWallet::GetCredit(*pcoin);
-    }
-    return nTotal;
 }
 
 bool CWallet::SelectCoinsMinConf(int64 nTargetValue, unsigned int nSpendTime, int nConfMine, int nConfTheirs, vector<COutput> vCoins, set<pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64& nValueRet) const
@@ -1460,7 +1432,7 @@ bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeightInputs
     int64 nTimeWeight;
 
     // Choose coins to use
-    int64 nBalance = GetBalance();
+    int64 nBalance = GetBalance(0x1);
     int64 nReserveBalance = 0;
 
     if (mapArgs.count("-reservebalance") && !ParseMoney(mapArgs["-reservebalance"], nReserveBalance))
@@ -1538,7 +1510,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     txNew.vout.push_back(CTxOut(0, scriptEmpty));
 
     // Choose coins to use
-    int64 nBalance = GetBalance();
+    int64 nBalance = GetBalance(0x1);
     int64 nReserveBalance = 0;
 
     if (mapArgs.count("-reservebalance") && !ParseMoney(mapArgs["-reservebalance"], nReserveBalance))
@@ -1839,7 +1811,7 @@ string CWallet::SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew,
     if (!CreateTransaction(scriptPubKey, nValue, wtxNew, reservekey, nFeeRequired, strTxComment))
     {
         string strError;
-        if (nValue + nFeeRequired > GetBalance())
+        if (nValue + nFeeRequired > GetBalance(0x3))
             strError = strprintf(_("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds  "), FormatMoney(nFeeRequired).c_str());
         else
             strError = _("Error: Transaction creation failed  ");
@@ -1863,7 +1835,7 @@ string CWallet::SendMoneyToDestination(const CTxDestination& address, int64 nVal
     // Check amount
     if (nValue <= 0)
         return _("Invalid amount");
-    if (nValue + nTransactionFee > GetBalance())
+    if (nValue + nTransactionFee > GetBalance(0x3))
         return _("Insufficient funds");
 
     // Parse Bitcoin address

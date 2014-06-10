@@ -15,7 +15,7 @@
 WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *parent) :
     QObject(parent), wallet(wallet), optionsModel(optionsModel), addressTableModel(0),
     transactionTableModel(0),
-    cachedBalance(0), cachedStake(0), cachedUnconfirmedBalance(0), cachedImmatureBalance(0),
+    cachedBalance(0), cachedUnconfirmed(0), cachedStake(0), cachedImmature(0),
     cachedNumTransactions(0),
     cachedEncryptionStatus(Unencrypted),
     cachedNumBlocks(0)
@@ -36,24 +36,24 @@ WalletModel::~WalletModel()
     unsubscribeFromCoreSignals();
 }
 
-qint64 WalletModel::getBalance() const
-{
-    return wallet->GetBalance();
+qint64 WalletModel::getBalance() {
+    /* Available (confirmed) balance */
+    return(wallet->GetBalance(0x1));
 }
 
-qint64 WalletModel::getUnconfirmedBalance() const
-{
-    return wallet->GetUnconfirmedBalance();
+qint64 WalletModel::getUnconfirmed() {
+    /* Unconfirmed balance (mined rewards excluded) */
+    return(wallet->GetBalance(0x2));
 }
 
-qint64 WalletModel::getStake() const
-{
-    return wallet->GetStake();
+qint64 WalletModel::getStake() {
+    /* Immature PoS debit */
+    return(wallet->GetMinted(0xE));
 }
 
-qint64 WalletModel::getImmatureBalance() const
-{
-    return wallet->GetImmatureBalance();
+qint64 WalletModel::getImmature() {
+    /* Immature PoW and PoS rewards */
+    return(wallet->GetMinted(0x7));
 }
 
 int WalletModel::getNumTransactions() const
@@ -84,20 +84,19 @@ void WalletModel::pollBalanceChanged()
     }
 }
 
-void WalletModel::checkBalanceChanged()
-{
-    qint64 newBalance = getBalance();
-    qint64 newStake = getStake();
-    qint64 newUnconfirmedBalance = getUnconfirmedBalance();
-    qint64 newImmatureBalance = getImmatureBalance();
+void WalletModel::checkBalanceChanged() {
+    qint64 newBalance     = getBalance();
+    qint64 newStake       = getStake();
+    qint64 newUnconfirmed = getUnconfirmed();
+    qint64 newImmature    = getImmature();
 
-    if(cachedBalance != newBalance || cachedStake != newStake || cachedUnconfirmedBalance != newUnconfirmedBalance || cachedImmatureBalance != newImmatureBalance)
-    {
-        cachedBalance = newBalance;
-        cachedStake = newStake;
-        cachedUnconfirmedBalance = newUnconfirmedBalance;
-        cachedImmatureBalance = newImmatureBalance;
-        emit balanceChanged(newBalance, newStake, newUnconfirmedBalance, newImmatureBalance);
+    if((cachedBalance != newBalance) || (cachedStake != newStake) ||
+      (cachedUnconfirmed != newUnconfirmed) || (cachedImmature != newImmature)) {
+        cachedBalance     = newBalance;
+        cachedStake       = newStake;
+        cachedUnconfirmed = newUnconfirmed;
+        cachedImmature    = newImmature;
+        emit(balanceChanged(newBalance, newStake, newUnconfirmed, newImmature));
     }
 }
 

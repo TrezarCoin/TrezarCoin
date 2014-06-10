@@ -47,7 +47,7 @@ uint nBaseTargetSpacing = 30;             /* Orbitcoin: base spacing of 30 secon
 uint nModifierInterval = 6 * 60 * 60;     /* Orbitcoin: old interval of 6 hours between stake modifiers */
 uint nModifierIntervalNew = 3 * 60 * 60;  /* Orbitcoin: new interval of 3 hours between stake modifiers */
 
-int nCoinbaseMaturity = 200;
+int nBaseMaturity = BASE_MATURITY;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 
@@ -896,7 +896,7 @@ int CMerkleTx::GetBlocksToMaturity() const
 {
     if (!(IsCoinBase() || IsCoinStake()))
         return 0;
-    return max(0, (nCoinbaseMaturity+1) - GetDepthInMainChain());
+    return max(0, (nBaseMaturity + 1) - GetDepthInMainChain());
 }
 
 
@@ -1448,7 +1448,7 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
 
             // If prev is coinbase or coinstake, check that it's matured
             if (coins.IsCoinBase() || coins.IsCoinStake()) {
-                if (pindexBlock->nHeight - coins.nHeight < nCoinbaseMaturity)
+                if (pindexBlock->nHeight - coins.nHeight < nBaseMaturity)
                     return error("CheckInputs() : tried to spend %s at depth %d", coins.IsCoinBase() ? "coinbase" : "coinstake", pindexBlock->nHeight - coins.nHeight);
             }
 
@@ -2981,7 +2981,7 @@ bool LoadBlockIndex(bool fAllowNew)
         nStakeMaxAge = 20 * 60 * 60; /* Orbitcoin (testnet): full time weight at 20 hours (+20 minutes) */
         nModifierInterval = 60;      /* Orbitcoin (testnet): old stake modifier interval of 1 minute */
         nModifierIntervalNew = 30;   /* Orbitcoin (testnet): new stake modifier interval of 30 seconds */
-        nCoinbaseMaturity = 10; // testnet maturity is 10 blocks
+        nBaseMaturity = BASE_MATURITY_TESTNET;
     }
 
     //
