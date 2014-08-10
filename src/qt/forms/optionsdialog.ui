@@ -33,7 +33,7 @@
        <item>
         <widget class="QLabel" name="transactionFeeInfoLabel">
          <property name="text">
-          <string>Optional transaction fee per kB that helps make sure your transactions are processed quickly. Most transactions are 1 kB. Fee 0.01 recommended.</string>
+          <string>Optional transaction fee per kilobyte (1000 bytes). Makes sure your payments are processed quickly. Most payments are within 1 KB in size. Fee of 0.01 is recommended.</string>
          </property>
          <property name="textFormat">
           <enum>Qt::PlainText</enum>

@@ -56,7 +56,8 @@ public:
     {
         Unencrypted,  // !wallet->IsCrypted()
         Locked,       // wallet->IsCrypted() && wallet->IsLocked()
-        Unlocked      // wallet->IsCrypted() && !wallet->IsLocked()
+        Unlocked,       /* wallet->IsCrypted() && !wallet->IsLocked() && !fStakingOnly */
+        UnlockedStaking /* wallet->IsCrypted() && !wallet->IsLocked() && fStakingOnly */
     };
 
     OptionsModel *getOptionsModel();
@@ -94,11 +95,16 @@ public:
     // Passphrase only needed when unlocking
     bool setWalletLocked(bool locked, const SecureString &passPhrase=SecureString());
     bool changePassphrase(const SecureString &oldPass, const SecureString &newPass);
-    // Wallet backup
-    bool backupWallet(const QString &filename);
+    /* Wallet cloning */
+    bool cloneWallet(const QString &filename);
+    /* Wallet keys export / import */
+    bool exportWallet(const QString &filename);
+    bool importWallet(const QString &filename);
     // Stake weight calculation
     void getStakeWeightQuick(const qint64& nTime, const qint64& nValue, quint64& nWeight);
     void getStakeWeight(quint64& nMinWeightInputs, quint64& nAvgWeightInputs, quint64& nMaxWeightInputs, quint64& nTotalStakeWeight);
+    /* Wallet check & repair */
+    void repairWallet(int& nMismatchSpent, int& nOrphansFound, qint64& nBalanceInQuestion, bool fCheckOnly);
 
     // RAI object for unlocking wallet, returned by requestUnlock()
     class UnlockContext

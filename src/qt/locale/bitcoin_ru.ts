@@ -174,34 +174,44 @@ This product includes software developed by the OpenSSL Project for use in the O
         <translation>Повторите новый пароль</translation>
     </message>
     <message>
+        <location line=""/>
+        <source>for staking only</source>
+        <translation>только для стэйкинга</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Disables outgoing payments and key import/export functions</source>
+        <translation>Отключает исходящие платежи и импорт/экспорт ключей</translation>
+    </message>
+    <message>
         <location filename="../askpassphrasedialog.cpp" line="+33"/>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;10 or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
-        <translation>Введите новый пароль для бумажника. &lt;br/&gt; Пожалуйста, используйте фразы из &lt;b&gt;10 или более случайных символов,&lt;/b&gt; или &lt;b&gt;восьми и более слов.&lt;/b&gt;</translation>
+        <translation>Введите новый пароль для кошелька. &lt;br/&gt; Пожалуйста, используйте фразы из &lt;b&gt;10 или более случайных символов,&lt;/b&gt; или &lt;b&gt;восьми и более слов.&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Encrypt wallet</source>
-        <translation>Зашифровать бумажник</translation>
+        <translation>Зашифровать кошелёк</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>Для выполнения операции требуется пароль вашего бумажника.</translation>
+        <translation>Для выполнения операции требуется пароль вашего кошелька.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Unlock wallet</source>
-        <translation>Разблокировать бумажник</translation>
+        <translation>Разблокировать кошелёк</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
-        <translation>Для выполнения операции требуется пароль вашего бумажника.</translation>
+        <translation>Для выполнения операции требуется пароль вашего кошелька.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Decrypt wallet</source>
-        <translation>Расшифровать бумажник</translation>
+        <translation>Расшифровать кошелёк</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -211,22 +221,22 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+1"/>
         <source>Enter the old and new passphrase to the wallet.</source>
-        <translation>Введите старый и новый пароль для бумажника.</translation>
+        <translation>Введите старый и новый пароль для кошелька.</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Confirm wallet encryption</source>
-        <translation>Подтвердите шифрование бумажника</translation>
+        <translation>Подтвердите шифрование кошелька</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR COINS&lt;/b&gt;!</source>
-        <translation>Внимание: если вы зашифруете бумажник и потеряете пароль, вы &lt;b&gt;ПОТЕРЯЕТЕ ВСЕ ВАШИ МОНЕТЫ&lt;/b&gt;!</translation>
+        <translation>Внимание: если вы зашифруете кошелёк и потеряете пароль, вы &lt;b&gt;ПОТЕРЯЕТЕ ВСЕ ВАШИ МОНЕТЫ&lt;/b&gt;!</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Are you sure you wish to encrypt your wallet?</source>
-        <translation>Вы уверены, что хотите зашифровать ваш бумажник?</translation>
+        <translation>Вы уверены, что хотите зашифровать ваш кошелёк?</translation>
     </message>
     <message>
         <location line="+15"/>
@@ -243,12 +253,12 @@ This product includes software developed by the OpenSSL Project for use in the O
         <location line="-130"/>
         <location line="+58"/>
         <source>Wallet encrypted</source>
-        <translation>Бумажник зашифрован</translation>
+        <translation>Кошелёк зашифрован</translation>
     </message>
     <message>
         <location line="-56"/>
         <source>Orbitcoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
-        <translation>Сейчас программа закроется для завершения процесса шифрования. Помните, что шифрование вашего бумажника не может полностью защитить ваши монеты от кражи с помощью инфицирования вашего компьютера вредоносным ПО.</translation>
+        <translation>Сейчас программа закроется для завершения процесса шифрования. Помните, что шифрование вашего кошелька не может полностью защитить ваши монеты от кражи с помощью инфицирования вашего компьютера вредоносным ПО.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -256,12 +266,12 @@ This product includes software developed by the OpenSSL Project for use in the O
         <location line="+42"/>
         <location line="+6"/>
         <source>Wallet encryption failed</source>
-        <translation>Не удалось зашифровать бумажник</translation>
+        <translation>Не удалось зашифровать кошелёк</translation>
     </message>
     <message>
         <location line="-54"/>
         <source>Wallet encryption failed due to an internal error. Your wallet was not encrypted.</source>
-        <translation>Шифрование бумажника не удалось из-за внутренней ошибки. Ваш бумажник не был зашифрован.</translation>
+        <translation>Шифрование кошелька не удалось из-за внутренней ошибки. Ваш кошелёк не был зашифрован.</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -272,7 +282,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-37"/>
         <source>Wallet unlock failed</source>
-        <translation>Разблокировка бумажника не удалась</translation>
+        <translation>Разблокировка кошелька не удалась</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -284,12 +294,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-20"/>
         <source>Wallet decryption failed</source>
-        <translation>Расшифрование бумажника не удалось</translation>
+        <translation>Расшифрование кошелька не удалось</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Wallet passphrase was successfully changed.</source>
-        <translation>Пароль бумажника успешно изменён.</translation>
+        <translation>Пароль к кошельку успешно изменён.</translation>
     </message>
 </context>
 <context>
@@ -312,17 +322,17 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+1"/>
         <source>Show general overview of wallet</source>
-        <translation>Показать общий обзор действий с бумажником</translation>
+        <translation>Показать общий обзор действий с кошельком</translation>
     </message>
     <message>
-        <location line="+17"/>
-        <source>&amp;Transactions</source>
-        <translation>&amp;Транзакции</translation>
+        <location line=""/>
+        <source>&amp;Payments</source>
+        <translation>&amp;Платежи</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Browse transaction history</source>
-        <translation>Показать историю транзакций</translation>
+        <location line=""/>
+        <source>Browse your payment history</source>
+        <translation>Показать вашу историю платежей</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -337,7 +347,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-13"/>
         <source>&amp;Receive</source>
-        <translation>&amp;Получить Орбы</translation>
+        <translation>&amp;Получить</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -347,7 +357,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-7"/>
         <source>&amp;Send</source>
-        <translation>&amp;Отправить Орбы</translation>
+        <translation>&amp;Отправить</translation>
     </message>
     <message>
         <location line="+35"/>
@@ -376,47 +386,63 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+2"/>
-        <source>&amp;Options...</source>
-        <translation>Оп&amp;ции...</translation>
+        <source>&amp;Options</source>
+        <translation>&amp;Настройки</translation>
     </message>
     <message>
-        <location line="+4"/>
-        <source>&amp;Encrypt Wallet...</source>
-        <translation>&amp;Зашифровать бумажник</translation>
+        <location line=""/>
+        <source>Encrypt &amp;wallet</source>
+        <translation>&amp;Зашифровать кошелёк</translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>&amp;Backup Wallet...</source>
-        <translation>&amp;Сделать резервную копию бумажника</translation>
+        <location line=""/>
+        <source>&amp;Clone</source>
+        <translation>&amp;Клонировать</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Export keys</source>
+        <translation>&amp;Экспорт ключей</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Import keys</source>
+        <translation>&amp;Импорт ключей</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Lock</source>
+        <translation>&amp;Блокировать</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Unlock</source>
+        <translation>&amp;Разблокировать</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Enable PoS mining</source>
+        <translation>&amp;Включить PoS добычу</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Disable PoS mining</source>
+        <translation>&amp;Выключить PoS добычу</translation>
     </message>
     <message>
         <location line="+2"/>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change passphrase</source>
         <translation>&amp;Изменить пароль</translation>
     </message>
-    <message numerus="yes">
-        <location line="+241"/>
-        <source>~%n block(s) remaining</source>
-        <translation>
-            <numerusform>остался ~%n блок</numerusform>
-            <numerusform>осталось ~%n блоков</numerusform>
-            <numerusform>осталось ~%n блоков</numerusform>
-        </translation>
-    </message>
     <message>
-        <location line="+6"/>
-        <source>Processed %1 of %2 blocks of the transaction history</source>
-        <translation>Обработано %1 из %2 блоков истории операций</translation>
-    </message>
-    <message>
-        <location line="-242"/>
-        <source>&amp;Export...</source>
-        <translation>&amp;Экспорт...</translation>
+        <location line=""/>
+        <source>E&amp;xport</source>
+        <translation>&amp;Экспорт</translation>
     </message>
     <message>
         <location line="-58"/>
         <source>Send coins to an Orbitcoin address</source>
-        <translation>Отправить монеты на указанный адрес Orbitcoin</translation>
+        <translation>Отправить монеты по указанному адресу Orbitcoin</translation>
     </message>
     <message>
         <location line="+45"/>
@@ -431,17 +457,17 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-10"/>
         <source>Encrypt or decrypt wallet</source>
-        <translation>Зашифровать или расшифровать бумажник</translation>
+        <translation>Зашифровать или расшифровать кошелёк</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Backup wallet to another location</source>
-        <translation>Сделать резервную копию бумажника в другом месте</translation>
+        <translation>Сделать резервную копию кошелька в другом месте</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Change the passphrase used for wallet encryption</source>
-        <translation>Изменить пароль шифрования бумажника</translation>
+        <translation>Изменить пароль шифрования кошелька</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -454,9 +480,24 @@ This product includes software developed by the OpenSSL Project for use in the O
         <translation>Открыть консоль RPC</translation>
     </message>
     <message>
-        <location line="-5"/>
-        <source>&amp;Verify message...</source>
-        <translation>&amp;Проверить сообщение...</translation>
+        <location line=""/>
+        <source>&amp;Inspect wallet</source>
+        <translation>&amp;Обследовать кошелёк</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Repair wallet</source>
+        <translation>&amp;Починить кошелёк</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Sign message</source>
+        <translation>По&amp;дписать сообщение</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Verify message</source>
+        <translation>П&amp;роверить сообщение</translation>
     </message>
     <message>
         <location line="-186"/>
@@ -466,7 +507,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+0"/>
         <source>Wallet</source>
-        <translation>Бумажник</translation>
+        <translation>Кошелёк</translation>
     </message>
     <message>
         <location line="+168"/>
@@ -480,13 +521,13 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+39"/>
-        <source>&amp;File</source>
-        <translation>&amp;Файл</translation>
+        <source>&amp;Wallet</source>
+        <translation>&amp;Кошелёк</translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>&amp;Settings</source>
-        <translation>&amp;Настройки</translation>
+        <source>&amp;Tools</source>
+        <translation>&amp;Инструменты</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -525,9 +566,23 @@ This product includes software developed by the OpenSSL Project for use in the O
         </translation>
     </message>
     <message>
-        <location line="+40"/>
+        <location line=""/>
+        <source>Processed %1 of %2 blocks of the transaction history</source>
+        <translation>Обработано %1 из %2 блоков истории платежей</translation>
+    </message>
+    <message>
+        <location line=""/>
         <source>Processed %1 blocks of the transaction history</source>
-        <translation>Обработано %1 блоков истории транзакций</translation>
+        <translation>Обработано %1 блоков истории платежей</translation>
+    </message>
+    <message numerus="yes">
+        <location line=""/>
+        <source>~%n block(s) remaining</source>
+        <translation>
+            <numerusform>остался ~%n блок</numerusform>
+            <numerusform>осталось ~%n блоков</numerusform>
+            <numerusform>осталось ~%n блоков</numerusform>
+        </translation>
     </message>
     <message numerus="yes">
         <location line="+22"/>
@@ -566,6 +621,16 @@ This product includes software developed by the OpenSSL Project for use in the O
         </translation>
     </message>
     <message>
+        <location line=""/>
+        <source>The current PoW difficulty is %1</source>
+        <translation>Текущая PoW сложность %1</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>The current PoS difficulty is %1</source>
+        <translation>Текущая PoS сложность %1</translation>
+    </message>
+    <message>
         <location line="+6"/>
         <source>Up to date</source>
         <translation>Синхронизировано</translation>
@@ -576,29 +641,69 @@ This product includes software developed by the OpenSSL Project for use in the O
         <translation>Синхронизируется...</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>The last received block was generated %1.</source>
-        <translation>Последний полученный блок был сгенерирован %1.</translation>
+        <location line=""/>
+        <source>The last received block was generated %1 ago</source>
+        <translation>Последний полученный блок был сгенерирован %1 назад</translation>
     </message>
     <message>
-        <location line="+59"/>
-        <source>This transaction is over the size limit.  You can still send it for a fee of %1, which goes to the nodes that process your transaction and helps to support the network.  Do you want to pay the fee?</source>
-        <translation>Данная транзакция превышает предельно допустимый размер.  Но Вы можете всё равно совершить её, добавив комиссию в %1, которая отправится тем узлам, которые обработают Вашу транзакцию, и поможет поддержать сеть.  Вы хотите добавить комиссию?</translation>
+        <location line=""/>
+        <source>Transactions after this will not yet be visible</source>
+        <translation>Более поздние платежи в данный момент не отображаются</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>Confirm transaction fee</source>
-        <translation>Подтвердите комиссию</translation>
+        <location line=""/>
+        <source>Staking disabled</source>
+        <translation>Стэйкинг &lt;b&gt;отключен&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Wallet is offline, staking paused</source>
+        <translation>Кошелёк вне сети, стэйкинг &lt;b&gt;приостановлен&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Wallet is synchronising, staking paused</source>
+        <translation>Кошелёк синхронизируется, стэйкинг &lt;b&gt;приостановлен&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Wallet is locked, staking paused</source>
+        <translation>Кошелёк блокирован, стэйкинг &lt;b&gt;приостановлен&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>No mature coins found, staking paused</source>
+        <translation>Нет зрелых монет, стэйкинг &lt;b&gt;приостановлен&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Staking enabled for %1 inputs weighing %2 coin days</source>
+        <translation>Стэйкинг &lt;b&gt;включен&lt;/b&gt; для %1 входов, вес %2 монето-дней</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Inputs: %1 min. age, %2 avg. age, %3 max. age</source>
+        <translation>Входы: %1 мин. возраста, %2 срд. возраста, %3 макс. возраста</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>This transaction is oversized. It is possible to send it for a fee of %1. Are you ready to pay?</source>
+        <translation>Платёж превышает допустимый размер. Можно провести его с учётом комиссии в %1. Устраивает?</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Transaction fee request</source>
+        <translation>Запрос комиссии платежа</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Sent transaction</source>
-        <translation>Исходящая транзакция</translation>
+        <translation>Исходящий платёж</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Incoming transaction</source>
-        <translation>Входящая транзакция</translation>
+        <translation>Входящий платёж</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -626,34 +731,104 @@ Address: %4
         <translation>Не удалось обработать URI! Это может быть связано с неверным адресом Orbitcoin или неправильными параметрами URI.</translation>
     </message>
     <message>
-        <location line="+16"/>
-        <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</source>
-        <translation>Бумажник &lt;b&gt;зашифрован&lt;/b&gt; и в настоящее время &lt;b&gt;разблокирован&lt;/b&gt;</translation>
+        <location line=""/>
+        <source>Wallet is encrypted and unlocked</source>
+        <translation>Кошелёк &lt;b&gt;зашифрован&lt;/b&gt;&#160;и&#160;&lt;b&gt;разблокирован&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Wallet is encrypted and unlocked for staking only</source>
+        <translation>Кошелёк &lt;b&gt;зашифрован&lt;/b&gt;&#160;и&#160;&lt;b&gt;разблокирован&lt;/b&gt; только для стэйкинга</translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</source>
-        <translation>Бумажник &lt;b&gt;зашифрован&lt;/b&gt; и в настоящее время &lt;b&gt;заблокирован&lt;/b&gt;</translation>
+        <source>Wallet is encrypted and locked</source>
+        <translation>Кошелёк &lt;b&gt;зашифрован&lt;/b&gt;&#160;и&#160;&lt;b&gt;заблокирован&lt;/b&gt;</translation>
     </message>
     <message>
-        <location line="+23"/>
-        <source>Backup Wallet</source>
-        <translation>Сделать резервную копию бумажника</translation>
+        <location line=""/>
+        <source>Clone Wallet</source>
+        <translation>Клонировать кошелёк</translation>
     </message>
     <message>
-        <location line="+0"/>
+        <location line=""/>
         <source>Wallet Data (*.dat)</source>
-        <translation>Данные бумажника (*.dat)</translation>
+        <translation>Данные кошелька (*.dat)</translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>Backup Failed</source>
-        <translation>Резервное копирование не удалось</translation>
+        <location line=""/>
+        <source>Cloning Complete</source>
+        <translation>Успешно клонировано</translation>
     </message>
     <message>
-        <location line="+0"/>
-        <source>There was an error trying to save the wallet data to the new location.</source>
-        <translation>При попытке сохранения данных бумажника в новое место произошла ошибка.</translation>
+        <location line=""/>
+        <source>Cloning Failed</source>
+        <translation>Ошибка клонирования</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>A copy of your wallet has been saved to:&lt;br&gt;%1</source>
+        <translation>Копия вашего кошелька была сохранена в:&lt;br&gt;%1</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>There was an error while making a copy of your wallet.</source>
+        <translation>Возникла ошибка в процессе клонирования вашего кошелька.</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Export Wallet Keys</source>
+        <translation>Экспорт ключей кошелька</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Wallet Text (*.txt)</source>
+        <translation>Текст кошелька (*.txt)</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Export Complete</source>
+        <translation>Успешно экспортировано</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Export Failed</source>
+        <translation>Ошибка экспорта</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>All keys of your wallet have been exported into:&lt;br&gt;%1</source>
+        <translation>Все ключи из вашего кошелька были экспортированы в:&lt;br&gt;%1</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>There was an error while exporting your wallet keys.</source>
+        <translation>Возникла ошибка в процессе экспорта ключей из вашего кошелька.</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Import Wallet Keys</source>
+        <translation>Импорт ключей кошелька</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Import Complete</source>
+        <translation>Успешно импортировано</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Import Failed</source>
+        <translation>Ошибка импорта</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>All keys have been imported into your wallet from:&lt;br&gt;%1</source>
+        <translation>Все ключи были импортированы в ваш кошелёк из:&lt;br&gt;%1</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>There was an error while importing wallet keys from:&lt;br&gt;%1</source>
+        <translation>Возникла ошибка в процессе импорта ключей в ваш кошелёк из:&lt;br&gt;%1</translation>
     </message>
     <message>
         <location filename="../bitcoin.cpp" line="+109"/>
@@ -679,7 +854,7 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>Copy transaction ID</source>
-        <translation type="unfinished">Скопировать ID транзакции</translation>
+        <translation type="unfinished">Скопировать ID платежа</translation>
     </message>
     <message>
         <location line="+24"/>
@@ -998,7 +1173,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+5"/>
         <source>Could not unlock wallet.</source>
-        <translation>Не удается разблокировать бумажник.</translation>
+        <translation>Не удается разблокировать кошелёк.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1032,7 +1207,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+4"/>
         <source>UI options</source>
-        <translation>Опции интерфейса</translation>
+        <translation>Параметры интерфейса</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -1047,7 +1222,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+1"/>
         <source>Show splash screen on startup (default: 1)</source>
-        <translation>Показывать сплэш при запуске (по умолчанию: 1)</translation>
+        <translation>Показывать заставку при запуске (по умолчанию: 1)</translation>
     </message>
 </context>
 <context>
@@ -1055,7 +1230,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location filename="../forms/optionsdialog.ui" line="+14"/>
         <source>Options</source>
-        <translation>Опции</translation>
+        <translation>Настройки</translation>
     </message>
     <message>
         <location line="+16"/>
@@ -1063,9 +1238,9 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>&amp;Главная</translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Optional transaction fee per kB that helps make sure your transactions are processed quickly. Most transactions are 1 kB. Fee 0.01 recommended.</source>
-        <translation>Опциональная комиссия за каждый КБ транзакции, которая позволяет быть уверенным, что Ваша транзакция будет обработана быстро.  Большинство транзакций занимают 1КБ.  Рекомендуется комиссия 0.01.</translation>
+        <location line=""/>
+        <source>Optional transaction fee per kilobyte (1000 bytes). Makes sure your payments are processed quickly. Most payments are within 1 KB in size. Fee of 0.01 is recommended.</source>
+        <translation>Необязательная комиссия за каждый килобайт (1000 байт) платежа. Позволяет проводить ваши платежи быстро. Большинство платежей в пределах 1 КБ по размеру. Рекомендуется комиссия в размере 0,01.</translation>
     </message>
     <message>
         <location line="+15"/>
@@ -1085,7 +1260,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+7"/>
         <source>Detach block and address databases at shutdown. This means they can be moved to another data directory, but it slows down shutdown. The wallet is always detached.</source>
-        <translation>Отключить базы данных блоков и адресов при выходе. Это означает, что их можно будет переместить в другой каталог данных, но завершение работы будет медленнее. Бумажник всегда отключается.</translation>
+        <translation>Отключить базы данных блоков и адресов при выходе. Это означает, что их можно будет переместить в другой каталог данных, но завершение работы будет медленнее. Кошелёк всегда отключается.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1200,12 +1375,12 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+9"/>
         <source>Whether to show Orbitcoin addresses in the transaction list or not.</source>
-        <translation>Показывать ли адреса Orbitcoin в списке транзакций.</translation>
+        <translation>Показывать ли адреса Orbitcoin в списке платежей.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Display addresses in transaction list</source>
-        <translation>&amp;Показывать адреса в списке транзакций</translation>
+        <translation>&amp;Показывать адреса в списке платежей</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -1266,7 +1441,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <location line="+33"/>
         <location line="+212"/>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Orbitcoin network after a connection is established, but this process has not completed yet.</source>
-        <translation>Отображаемая информация может быть устаревшей. Ваш бумажник автоматически синхронизируется с сетью Orbitcoin после подключения, но этот процесс пока не завершён.</translation>
+        <translation>Отображаемая информация может быть устаревшей. Ваш кошелёк автоматически синхронизируется с сетью Orbitcoin после подключения, но этот процесс пока не завершён.</translation>
     </message>
     <message>
         <location line=""/>
@@ -1320,18 +1495,18 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line=""/>
-        <source>Number of transactions:</source>
-        <translation>Количество операций:</translation>
+        <source>Number of payments:</source>
+        <translation>Количество платежей:</translation>
     </message>
     <message>
         <location line=""/>
-        <source>Total number of transactions in your wallet</source>
-        <translation>Общее количество операций в вашем бумажнике</translation>
+        <source>Total number of payments in your wallet</source>
+        <translation>Общее количество платежей в вашем кошельке</translation>
     </message>
     <message>
         <location line=""/>
-        <source>&lt;b&gt;Recent transactions&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Последние операции&lt;/b&gt;</translation>
+        <source>&lt;b&gt;Recent payments&lt;/b&gt;</source>
+        <translation>&lt;b&gt;Последние платежи&lt;/b&gt;</translation>
     </message>
     <message>
         <location filename="../overviewpage.cpp" line="+113"/>
@@ -1532,17 +1707,12 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location filename="../rpcconsole.cpp" line="-33"/>
         <source>Welcome to the Orbitcoin RPC console.</source>
-        <translation>Добро пожаловать в RPC-консоль Orbitcoin.</translation>
+        <translation>Добро пожаловать в RPC консоль Orbitcoin.</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</source>
-        <translation>Используйте стрелки вверх и вниз для просмотра истории и &lt;b&gt;Ctrl-L&lt;/b&gt; для очистки экрана.</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Type &lt;b&gt;help&lt;/b&gt; for an overview of available commands.</source>
-        <translation>Напишите &lt;b&gt;help&lt;/b&gt; для просмотра доступных команд.</translation>
+        <location line=""/>
+        <source>Use up and down arrows to navigate history, Ctrl-L to clear screen. Type help for an overview of available commands.</source>
+        <translation>Используйте стрелки вверх и вниз для просмотра истории, &lt;b&gt;Ctrl-L&lt;/b&gt; для очистки экрана. Наберите &lt;b&gt;help&lt;/b&gt; для просмотра доступных команд.</translation>
     </message>
 </context>
 <context>
@@ -1558,6 +1728,16 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <location line="+5"/>
         <source>Send Coins</source>
         <translation>Отправка</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Transaction &amp;comment: </source>
+        <translation>Комментарий к п&amp;латежу: </translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Enter a transaction comment up to 140 characters (ATTENTION: this information is public)</source>
+        <translation>Введите комментарий к платежу до 140 символов (ВНИМАНИЕ: эта информация общедоступна)</translation>
     </message>
     <message>
         <location line="+651"/>
@@ -1661,7 +1841,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location filename="../forms/sendcoinsdialog.ui" line="+129"/>
         <source>Remove all transaction fields</source>
-        <translation>Удалить все поля транзакции</translation>
+        <translation>Удалить все поля платежа</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1766,7 +1946,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+5"/>
         <source>The total exceeds your balance when the %1 transaction fee is included.</source>
-        <translation>Сумма превысит Ваш баланс, если комиссия в размере %1 будет добавлена к транзакции</translation>
+        <translation>Сумма превысит Ваш баланс, если комиссия в размере %1 будет добавлена к платежу</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -1776,12 +1956,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+5"/>
         <source>Error: Transaction creation failed.</source>
-        <translation>Ошибка: не удалось создать транзакцию.</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>Error: The transaction was rejected. This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation>Ошибка: В транзакции отказано.  Такое может произойти, если некоторые монеты уже были потрачены, например, если Вы используете одну копию файла wallet.dat, а монеты были потрачены из другой копии, но не были отмечены как потраченные в этой.</translation>
+        <translation>Ошибка: не удалось создать платёж.</translation>
     </message>
     <message>
         <location line="+251"/>
@@ -1999,7 +2174,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="-73"/>
         <source>Wallet unlock was cancelled.</source>
-        <translation>Разблокировка бумажника была отменена.</translation>
+        <translation>Разблокировка кошелька была отменена.</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -2191,16 +2366,12 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+2"/>
         <source>Transaction ID</source>
-        <translation>ID транзакции</translation>
+        <translation>Идентификатор платежа</translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>Generated coins must mature 520 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Сгенерированные монеты должны подождать 520 блоков, прежде чем они могут быть потрачены. Когда Вы сгенерировали этот блок, он был отправлен в сеть для добавления в цепочку блоков. Если данная процедура не удастся, статус изменится на «не подтверждено», и монеты будут недействительны. Это иногда происходит в случае, если другой узел сгенерирует блок на несколько секунд раньше вас.</translation>
-    </message>
-    <message>
-        <source>Staked coins must wait 520 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \&quot;not accepted\&quot; and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</source>
-        <translation type="obsolete">Использованные в Proof-of-Stake монеты должны подождать 520 блоков, прежде чем они вернутся на баланс и смогут быть потрачены. Когда вы сгенерировали этот proof-of-stake блок, он был отправлен в сеть для добавления в цепочку блоков. Если данная процедура не удается, статус изменится на \&quot;не подтверждени\&quot; и блок будет недействителен. Это иногда происходит в случае, если другой узел сгенерирует блок на несколько секунд раньше вас.</translation>
+        <location line=""/>
+        <source>Generated coins must mature 200 blocks before they can be spent. Every block mined is broadcast to the network in order to be added to the block chain. If it fails to get into, its state changes to &quot;orphan&quot; and the block reward cannot be spent in the future. This may happen occasionally if another node generates a competing block at about the same time.</source>
+        <translation>Сгенерированные монеты могут быть потрачены через 200 блоков. Каждый сгенерированный блок отправляется в сеть для добавления в цепочку блоков. В случае неудачи статус изменится на «осиротевший» и награду за блок не удастся потратить в будущем. Это может произойти, если другой узел сгенерирует конкурирующий блок примерно в то же время.</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -2210,7 +2381,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+8"/>
         <source>Transaction</source>
-        <translation>Транзакция</translation>
+        <translation>Платёж</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -2248,12 +2419,12 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location filename="../forms/transactiondescdialog.ui" line="+14"/>
         <source>Transaction details</source>
-        <translation>Детали транзакции</translation>
+        <translation>Детали платежа</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>This pane shows a detailed description of the transaction</source>
-        <translation>Данный диалог показывает детализированную статистику по выбранной транзакции</translation>
+        <translation>Данный диалог показывает полную характеристику выбранного платежа</translation>
     </message>
 </context>
 <context>
@@ -2369,27 +2540,27 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+199"/>
         <source>Transaction status. Hover over this field to show number of confirmations.</source>
-        <translation>Статус транзакции. Подведите курсор к нужному полю для того, чтобы увидеть количество подтверждений.</translation>
+        <translation>Статус платежа. Подведите курсор к нужному полю для того, чтобы увидеть количество подтверждений.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Date and time that the transaction was received.</source>
-        <translation>Дата и время, когда транзакция была получена.</translation>
+        <translation>Дата и время, когда платёж был получен.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Type of transaction.</source>
-        <translation>Тип транзакции.</translation>
+        <translation>Тип платежа.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Destination address of transaction.</source>
-        <translation>Адрес назначения транзакции.</translation>
+        <translation>Адрес получателя платежа.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Amount removed from or added to balance.</source>
-        <translation>Сумма, добавленная, или снятая с баланса.</translation>
+        <translation>Сумма, принятая или списанная с баланса.</translation>
     </message>
 </context>
 <context>
@@ -2484,7 +2655,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+1"/>
         <source>Copy transaction ID</source>
-        <translation>Скопировать ID транзакции</translation>
+        <translation>Скопировать ID платежа</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2494,12 +2665,12 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+1"/>
         <source>Show transaction details</source>
-        <translation>Показать подробности транзакции</translation>
+        <translation>Показать подробности платежа</translation>
     </message>
     <message>
         <location line="+144"/>
         <source>Export Transaction Data</source>
-        <translation>Экспортировать данные транзакций</translation>
+        <translation>Экспортировать данные платежа</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2571,7 +2742,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
 </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>orb-core</name>
     <message>
         <location filename="../bitcoinstrings.cpp" line="+124"/>
         <source>Orbitcoin version</source>
@@ -2632,9 +2803,9 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Установить размер лога базы данных в мегабайтах (по умолчанию: 100)</translation>
     </message>
     <message>
-        <location line="-28"/>
-        <source>Listen for connections on &lt;port&gt; (default: 7777 or testnet: 17777)</source>
-        <translation>Принимать входящие подключения на &lt;port&gt; (по умолчанию: 7777 или 17777 в тестовой сети)</translation>
+        <location line=""/>
+        <source>Listen for connections on &lt;port&gt; (default: 15298 or testnet: 25298)</source>
+        <translation>Принимать входящие подключения на &lt;port&gt; (по умолчанию: 15298 или в тестовой сети: 25298)</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -2687,14 +2858,14 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Ошибка инициализации окружения БД %s! Для восстановления СДЕЛАЙТЕ РЕЗЕРВНУЮ КОПИЮ этой директории, затем удалите из нее все, кроме wallet.dat.</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>Error: Wallet unlocked for block minting only, unable to create transaction.</source>
-        <translation type="unfinished"></translation>
+        <location line=""/>
+        <source>Error: Wallet unlocked for staking only. Unable to create a payment.</source>
+        <translation>Ошибка: Кошелёк разблокирован только для стэйкинга. Невозможно создать платёж.</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 8344 or testnet: 18344)</source>
-        <translation>Прослушивать подключения JSON-RPC на &lt;порту&gt; (по умолчанию: 8344 или для testnet: 18344)</translation>
+        <location line=""/>
+        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 15299 or testnet: 25299)</source>
+        <translation>Прослушивать подключения JSON-RPC на &lt;порту&gt; (по умолчанию: 15299 или для testnet: 25299)</translation>
     </message>
     <message>
         <location line="+16"/>
@@ -2717,9 +2888,9 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Попытка восстановления ключей из поврежденного wallet.dat</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line=""/>
         <source>Find peers using DNS lookup (default: 0)</source>
-        <translation type="unfinished">Искать узлы с помощью DNS (по умолчанию: 1) {0)?}</translation>
+        <translation>Искать узлы с помощью DNS (по умолчанию: 0)</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -2747,14 +2918,14 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Принимать подключения извне (по умолчанию: 1, если не используется -proxy или -connect)</translation>
     </message>
     <message>
-        <location line="-41"/>
-        <source>Error: The transaction was rejected.  This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation>Ошибка: В транзакции отказано.  Такое может произойти, если некоторые монеты уже были потрачены, например, если Вы используете одну копию файла wallet.dat, а монеты были потрачены из другой копии, но не были отмечены как потраченные в этой.</translation>
+        <location line=""/>
+        <source>Error: The payment was rejected. This may happen if some of the coins were spent already, i.e. if you have used a wallet clone and and the coins been spent there, but not labelled as spent here.</source>
+        <translation>Ошибка: Платёж отклонён. Это может произойти, если некоторые монеты уже были потрачены, например, через клон вашего кошелька, но не были помечены как недоступные здесь.</translation>
     </message>
     <message>
-        <location line="+4"/>
-        <source>Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds  </source>
-        <translation>Ошибка: эта транзакция требует комиссию в размере как минимум %s из-за её объёма, сложности или использования недавно полученных средств  </translation>
+        <location line=""/>
+        <source>Error: This payment requires a transaction fee of at least %s because of its amount, complexity or use of funds received recently.</source>
+        <translation>Ошибка: Этот платёж требует комиссию в размере как минимум %s из-за его размера, сложности или использования недавно полученных средств.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -2798,7 +2969,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+1"/>
         <source>Error: Wallet locked, unable to create transaction  </source>
-        <translation>Ошибка: бумажник заблокирован, невозможно создать транзакцию  </translation>
+        <translation>Ошибка: кошелёк заблокирован, невозможно создать транзакцию  </translation>
     </message>
     <message>
         <location line="+2"/>
@@ -2972,7 +3143,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+119"/>
         <source>Upgrade wallet to latest format</source>
-        <translation>Обновить бумажник до последнего формата</translation>
+        <translation>Обновить кошелёк до последнего формата</translation>
     </message>
     <message>
         <location line="-16"/>
@@ -2982,7 +3153,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="-14"/>
         <source>Rescan the block chain for missing wallet transactions</source>
-        <translation>Перепроверить цепь блоков на предмет отсутствующих в бумажнике транзакций</translation>
+        <translation>Перепроверить цепь блоков на предмет отсутствующих в кошельке операций</translation>
     </message>
     <message>
         <location line="-27"/>
@@ -3031,7 +3202,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="-129"/>
         <source>Cannot obtain a lock on data directory %s.  Orbitcoin is probably already running.</source>
-        <translation>Невозможно установить блокировку на рабочую директорию %s.  Возможно, бумажник уже запущен.</translation>
+        <translation>Невозможно установить блокировку на рабочую директорию %s.  Возможно, кошелёк уже запущен.</translation>
     </message>
     <message>
         <location line="+99"/>
@@ -3066,17 +3237,17 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+2"/>
         <source>Error loading wallet.dat: Wallet corrupted</source>
-        <translation>Ошибка загрузки wallet.dat: Бумажник поврежден</translation>
+        <translation>Ошибка загрузки wallet.dat: Кошелёк поврежден</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Error loading wallet.dat: Wallet requires newer version of Orbitcoin</source>
-        <translation>Ошибка загрузки wallet.dat: бумажник требует более новую версию Orbitcoin</translation>
+        <translation>Ошибка загрузки wallet.dat: кошелёк требует более новую версию Orbitcoin</translation>
     </message>
     <message>
         <location line="+76"/>
         <source>Wallet needed to be rewritten: restart Orbitcoin to complete</source>
-        <translation>Необходимо перезаписать бумажник, перезапустите Orbitcoin для завершения операции.</translation>
+        <translation>Необходимо перезаписать кошелёк, перезапустите Orbitcoin для завершения операции.</translation>
     </message>
     <message>
         <location line="-78"/>
@@ -3161,12 +3332,12 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+19"/>
         <source>Loading wallet...</source>
-        <translation>Загрузка бумажника...</translation>
+        <translation>Загрузка кошелька...</translation>
     </message>
     <message>
         <location line="-38"/>
         <source>Cannot downgrade wallet</source>
-        <translation>Не удаётся понизить версию бумажника</translation>
+        <translation>Не удаётся понизить версию кошелька</translation>
     </message>
     <message>
         <location line="+1"/>

@@ -41,7 +41,7 @@
         <bool>true</bool>
        </property>
        <property name="toolTip">
-        <string>Enter a transaction comment up to 140 characters (NOTE: this information is public)</string>
+        <string>Enter a transaction comment up to 140 characters (ATTENTION: this information is public)</string>
        </property>
       </widget>
      </item>

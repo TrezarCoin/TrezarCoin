@@ -104,10 +104,6 @@ bool CWallet::AddCScript(const CScript& redeemScript)
     return CWalletDB(strWalletFile).WriteCScript(Hash160(redeemScript), redeemScript);
 }
 
-// ppcoin: optional setting to unlock wallet for block minting only;
-//         serves to disable the trivial sendmoney when OS account compromised
-bool fWalletUnlockMintOnly = false;
-
 bool CWallet::Unlock(const SecureString& strWalletPassphrase)
 {
     if (!IsLocked())
@@ -1802,12 +1798,14 @@ string CWallet::SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew,
         printf("SendMoney() : %s", strError.c_str());
         return strError;
     }
-    if (fWalletUnlockMintOnly)
-    {
-        string strError = _("Error: Wallet unlocked for block minting only, unable to create transaction.");
+
+    /* A very simple protection against coin theft */
+    if(fStakingOnly) {
+        string strError = _("Error: Wallet unlocked for staking only, unable to create a transaction.");
         printf("SendMoney() : %s", strError.c_str());
-        return strError;
+        return(strError);
     }
+
     if (!CreateTransaction(scriptPubKey, nValue, wtxNew, reservekey, nFeeRequired, strTxComment))
     {
         string strError;
@@ -2232,10 +2230,11 @@ set< set<CTxDestination> > CWallet::GetAddressGroupings()
 // 1. check 'spent' consistency between wallet and coins database
 // 2. fix wallet spent state according to coins database
 // 3. remove orphaned coinstakes and coinbases from wallet
-void CWallet::FixSpentCoins(int& nMismatchFound, int64& nBalanceInQuestion, bool fCheckOnly)
+void CWallet::FixSpentCoins(int& nMismatchFound, int& nOrphansFound, int64& nBalanceInQuestion, bool fCheckOnly)
 {
     nMismatchFound = 0;
     nBalanceInQuestion = 0;
+    nOrphansFound = 0;
 
     LOCK(cs_wallet);
     vector<CWalletTx*> vCoins;
@@ -2290,8 +2289,9 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64& nBalanceInQuestion, bool
             }
         }
 
-        if((pcoin->IsCoinBase() || pcoin->IsCoinStake()) && pcoin->GetDepthInMainChain() == 0)
-        {
+        if((pcoin->IsCoinBase() || pcoin->IsCoinStake()) && (pcoin->GetDepthInMainChain() < 0)) {
+            nOrphansFound++;
+
             if (!fCheckOnly)
             {
                 EraseFromWallet(hash);

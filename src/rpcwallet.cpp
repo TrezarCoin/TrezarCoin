@@ -28,8 +28,9 @@ void EnsureWalletIsUnlocked()
 {
     if (pwalletMain->IsLocked())
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
-    if (fWalletUnlockMintOnly)
-        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Wallet unlocked for block minting only.");
+
+    if(fStakingOnly)
+      throw(JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Wallet unlocked for staking only."));
 }
 
 void WalletTxToJSON(const CWalletTx& wtx, Object& entry)
@@ -1481,11 +1482,11 @@ Value walletpassphrase(const Array& params, bool fHelp)
     int64* pnSleepTime = new int64(params[1].get_int64());
     NewThread(ThreadCleanWalletPassphrase, pnSleepTime);
 
-    // ppcoin: if user OS account compromised prevent trivial sendmoney commands
-    if (params.size() > 2)
-        fWalletUnlockMintOnly = params[2].get_bool();
+    /* Disables some wallet functionality if unlocked for staking only */
+    if(params.size() > 2)
+      fStakingOnly = params[2].get_bool();
     else
-        fWalletUnlockMintOnly = false;
+      fStakingOnly = false;
 
     return Value::null;
 }
@@ -1732,8 +1733,9 @@ Value checkwallet(const Array& params, bool fHelp)
             "Check wallet for integrity.\n");
 
     int nMismatchSpent;
+    int nOrphansFound;
     int64 nBalanceInQuestion;
-    pwalletMain->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, true);
+    pwalletMain->FixSpentCoins(nMismatchSpent, nOrphansFound, nBalanceInQuestion, true);
     Object result;
     if (nMismatchSpent == 0)
         result.push_back(Pair("wallet check passed", true));
@@ -1741,6 +1743,8 @@ Value checkwallet(const Array& params, bool fHelp)
     {
         result.push_back(Pair("mismatched spent coins", nMismatchSpent));
         result.push_back(Pair("amount in question", ValueFromAmount(nBalanceInQuestion)));
+        if(!nOrphansFound)
+          result.push_back(Pair("orphans found", nOrphansFound));
     }
     return result;
 }
@@ -1755,8 +1759,9 @@ Value repairwallet(const Array& params, bool fHelp)
             "Repair wallet if checkwallet reports any problem.\n");
 
     int nMismatchSpent;
+    int nOrphansFound;
     int64 nBalanceInQuestion;
-    pwalletMain->FixSpentCoins(nMismatchSpent, nBalanceInQuestion);
+    pwalletMain->FixSpentCoins(nMismatchSpent, nOrphansFound, nBalanceInQuestion, false);
     Object result;
     if (nMismatchSpent == 0)
         result.push_back(Pair("wallet check passed", true));
@@ -1764,6 +1769,8 @@ Value repairwallet(const Array& params, bool fHelp)
     {
         result.push_back(Pair("mismatched spent coins", nMismatchSpent));
         result.push_back(Pair("amount affected by repair", ValueFromAmount(nBalanceInQuestion)));
+        if(!nOrphansFound)
+          result.push_back(Pair("orphans removed", nOrphansFound));
     }
     return result;
 }

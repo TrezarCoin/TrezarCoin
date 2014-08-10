@@ -140,15 +140,19 @@ void OverviewPage::setBalance(qint64 balance, qint64 stake, qint64 unconfirmed, 
     ui->labelImmature->setText(BitcoinUnits::formatWithUnit(unit, immature));
     ui->labelConsolidated->setText(BitcoinUnits::formatWithUnit(unit, (balance + stake + unconfirmed + immature)));
 
-    /* Do not show unconfirmed or immature balance if zero */
+    /* Do not show a non-existing balance if zero, but show the text to avoid an empty row */
+
+    bool showStake = (stake != 0);
+    ui->labelStake->setVisible(showStake);
+/*    ui->labelStakeText->setVisible(showStake); */
 
     bool showUnconfirmed = (unconfirmed != 0);
     ui->labelUnconfirmed->setVisible(showUnconfirmed);
-    ui->labelUnconfirmedText->setVisible(showUnconfirmed);
+/*    ui->labelUnconfirmedText->setVisible(showUnconfirmed); */
 
     bool showImmature = (immature != 0);
     ui->labelImmature->setVisible(showImmature);
-    ui->labelImmatureText->setVisible(showImmature);
+/*    ui->labelImmatureText->setVisible(showImmature); */
 }
 
 void OverviewPage::setNumTransactions(int count)
@@ -169,7 +173,7 @@ void OverviewPage::setModel(WalletModel *model)
         filter->setSortRole(Qt::EditRole);
         filter->setSortRole(TransactionTableModel::DateRole);
         filter->setShowFailed(false);
-        filter->sort(TransactionTableModel::Status, Qt::DescendingOrder);
+        filter->sort(TransactionTableModel::Date, Qt::DescendingOrder);
 
         ui->listTransactions->setModel(filter);
         ui->listTransactions->setModelColumn(TransactionTableModel::ToAddress);

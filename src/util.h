@@ -158,6 +158,7 @@ extern bool fNoListen;
 extern bool fLogTimestamps;
 extern bool fReopenDebugLog;
 extern bool fStakeGen;
+extern bool fStakingOnly;
 
 extern long long nLastWalletStakeTime;
 extern unsigned long long nMinWeightInputs;

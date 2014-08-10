@@ -6,7 +6,7 @@
 
 #include "ui_interface.h"
 #include "wallet.h"
-#include "walletdb.h" // for BackupWallet
+#include "walletdb.h" // for cloneWallet
 #include "base58.h"
 
 #include <QSet>
@@ -252,20 +252,18 @@ TransactionTableModel *WalletModel::getTransactionTableModel()
     return transactionTableModel;
 }
 
-WalletModel::EncryptionStatus WalletModel::getEncryptionStatus() const
-{
+WalletModel::EncryptionStatus WalletModel::getEncryptionStatus() const {
+
     if(!wallet->IsCrypted())
-    {
-        return Unencrypted;
-    }
-    else if(wallet->IsLocked())
-    {
-        return Locked;
-    }
+      return(Unencrypted);
+
+    if(wallet->IsLocked())
+      return(Locked);
+
+    if(fStakingOnly)
+      return(UnlockedStaking);
     else
-    {
-        return Unlocked;
-    }
+      return(Unlocked);
 }
 
 bool WalletModel::setWalletEncrypted(bool encrypted, const SecureString &passphrase)
@@ -307,9 +305,16 @@ bool WalletModel::changePassphrase(const SecureString &oldPass, const SecureStri
     return retval;
 }
 
-bool WalletModel::backupWallet(const QString &filename)
-{
-    return BackupWallet(*wallet, filename.toLocal8Bit().data());
+bool WalletModel::cloneWallet(const QString &filename) {
+    return(BackupWallet(*wallet, filename.toLocal8Bit().data()));
+}
+
+bool WalletModel::exportWallet(const QString &filename) {
+    return(ExportWallet(wallet, filename.toLocal8Bit().data()));
+}
+
+bool WalletModel::importWallet(const QString &filename) {
+    return(ImportWallet(wallet, filename.toLocal8Bit().data()));
 }
 
 void WalletModel::getStakeWeightQuick(const int64& nTime, const int64& nValue, uint64& nWeight) {
@@ -318,6 +323,10 @@ void WalletModel::getStakeWeightQuick(const int64& nTime, const int64& nValue, u
 
 void WalletModel::getStakeWeight(uint64& nMinWeightInputs, uint64& nAvgWeightInputs, uint64& nMaxWeightInputs, uint64& nTotalStakeWeight) {
    wallet->GetStakeWeight(*wallet, nMinWeightInputs, nAvgWeightInputs, nMaxWeightInputs, nTotalStakeWeight);
+}
+
+void WalletModel::repairWallet(int& nMismatchSpent, int& nOrphansFound, int64& nBalanceInQuestion, bool fCheckOnly) {
+    wallet->FixSpentCoins(nMismatchSpent, nOrphansFound, nBalanceInQuestion, fCheckOnly);
 }
 
 // Handlers for core signals
@@ -366,12 +375,11 @@ WalletModel::UnlockContext WalletModel::requestUnlock()
 {
     bool was_locked = getEncryptionStatus() == Locked;
 
-    if ((!was_locked) && fWalletUnlockMintOnly)
-    {
+    if((!was_locked) && fStakingOnly) {
        setWalletLocked(true);
        was_locked = getEncryptionStatus() == Locked;
-
     }
+
     if(was_locked)
     {
         // Request UI to unlock wallet
@@ -380,7 +388,7 @@ WalletModel::UnlockContext WalletModel::requestUnlock()
     // If wallet is still locked, unlock was failed or cancelled, mark context as invalid
     bool valid = getEncryptionStatus() != Locked;
 
-    return UnlockContext(this, valid, was_locked && !fWalletUnlockMintOnly);
+    return(UnlockContext(this, valid, was_locked && !fStakingOnly));
 }
 
 WalletModel::UnlockContext::UnlockContext(WalletModel *wallet, bool valid, bool relock):
