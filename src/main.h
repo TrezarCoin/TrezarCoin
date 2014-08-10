@@ -782,8 +782,8 @@ public:
     {
         // Open history file to append
         CAutoFile fileout = CAutoFile(OpenUndoFile(pos), SER_DISK, CLIENT_VERSION);
-        if (!fileout)
-            return error("CBlockUndo::WriteToDisk() : OpenUndoFile failed");
+        if(!fileout)
+          return(error("CBlockUndo::WriteToDisk() : OpenUndoFile() failed"));
 
         // Write index header
         unsigned int nSize = fileout.GetSerializeSize(*this);
@@ -791,17 +791,19 @@ public:
 
         // Write undo data
         long fileOutPos = ftell(fileout);
-        if (fileOutPos < 0)
-            return error("CBlockUndo::WriteToDisk() : ftell failed");
+        if(fileOutPos < 0)
+          return(error("CBlockUndo::WriteToDisk() : ftell() failed"));
         pos.nPos = (unsigned int)fileOutPos;
         fileout << *this;
 
         // Flush stdio buffers and commit to disk before returning
         fflush(fileout);
-        if (!IsInitialBlockDownload())
-            FileCommit(fileout);
+        if(!IsInitialBlockDownload()) {
+            if(FileCommit(fileout))
+              return(error("CBlockUndo::WriteToDisk() : FileCommit() failed"));
+        }
 
-        return true;
+        return(true);
     }
 
 };
@@ -1406,8 +1408,8 @@ public:
     {
         // Open history file to append
         CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
-        if (!fileout)
-            return error("CBlock::WriteToDisk() : OpenBlockFile failed");
+        if(!fileout)
+          return(error("CBlock::WriteToDisk() : OpenBlockFile() failed"));
 
         // Write index header
         unsigned int nSize = fileout.GetSerializeSize(*this);
@@ -1415,17 +1417,19 @@ public:
 
         // Write block
         long fileOutPos = ftell(fileout);
-        if (fileOutPos < 0)
-            return error("CBlock::WriteToDisk() : ftell failed");
+        if(fileOutPos < 0)
+          return(error("CBlock::WriteToDisk() : ftell() failed"));
         pos.nPos = (unsigned int)fileOutPos;
         fileout << *this;
 
         // Flush stdio buffers and commit to disk before returning
         fflush(fileout);
-        if (!IsInitialBlockDownload())
-            FileCommit(fileout);
+        if(!IsInitialBlockDownload() || !((nBestHeight + 1) % 100)) {
+            if(FileCommit(fileout))
+              return(error("CBlock::WriteToDisk() : FileCommit() failed"));
+        }
 
-        return true;
+        return(true);
     }
 
     bool ReadFromDisk(const CDiskBlockPos &pos, bool fReadTransactions = true)
@@ -1434,24 +1438,20 @@ public:
 
         // Open history file to read
         CAutoFile filein = CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
-        if (!filein)
-            return error("CBlock::ReadFromDisk() : OpenBlockFile failed");
-        if (!fReadTransactions)
-            filein.nType |= SER_BLOCKHEADERONLY;
+        if(!filein)
+          return(error("CBlock::ReadFromDisk() : OpenBlockFile() failed"));
+        if(!fReadTransactions)
+          filein.nType |= SER_BLOCKHEADERONLY;
 
         // Read block
         try {
             filein >> *this;
         }
-        catch (std::exception &e) {
-            return error("%s() : deserialize or I/O error", __PRETTY_FUNCTION__);
+        catch(std::exception &e) {
+            return(error("CBlock::ReadFromDisk() : I/O error"));
         }
 
-        // Check the header
-        if (fReadTransactions && IsProofOfWork() && !CheckProofOfWork(GetHash(), nBits))
-            return error("CBlock::ReadFromDisk() : errors in block header");
-
-        return true;
+        return(true);
     }
 
     void print() const

@@ -508,24 +508,26 @@ bool CAddrDB::Write(const CAddrMan& addr)
     boost::filesystem::path pathTmp = GetDataDir() / tmpfn;
     FILE *file = fopen(pathTmp.string().c_str(), "wb");
     CAutoFile fileout = CAutoFile(file, SER_DISK, CLIENT_VERSION);
-    if (!fileout)
-        return error("CAddrman::Write() : open failed");
+    if(!fileout)
+      return(error("CAddrDB::Write() : fopen(%s) failed", pathTmp.string().c_str()));
 
     // Write and commit header, data
     try {
         fileout << ssPeers;
     }
-    catch (std::exception &e) {
-        return error("CAddrman::Write() : I/O error");
+    catch(std::exception &e) {
+        return(error("CAddrDB::Write() : I/O error"));
     }
-    FileCommit(fileout);
+    fflush(fileout);
+    if(FileCommit(fileout))
+      return(error("CAddrDB::Write() : FileCommit() failed"));
     fileout.fclose();
 
     // replace existing peers.dat, if any, with new peers.dat.XXXX
-    if (!RenameOver(pathTmp, pathAddr))
-        return error("CAddrman::Write() : Rename-into-place failed");
+    if(!RenameOver(pathTmp, pathAddr))
+      return(error("CAddrDB::Write() : RenameOver() failed"));
 
-    return true;
+    return(true);
 }
 
 bool CAddrDB::Read(CAddrMan& addr)
@@ -533,8 +535,8 @@ bool CAddrDB::Read(CAddrMan& addr)
     // open input file, and associate with CAutoFile
     FILE *file = fopen(pathAddr.string().c_str(), "rb");
     CAutoFile filein = CAutoFile(file, SER_DISK, CLIENT_VERSION);
-    if (!filein)
-        return error("CAddrman::Read() : open failed");
+    if(!filein)
+      return(error("CAddrDB::Read() : fopen(%s) failed", pathAddr.string().c_str()));
 
     // use file size to size memory buffer
     int fileSize = GetFilesize(filein);
@@ -548,8 +550,8 @@ bool CAddrDB::Read(CAddrMan& addr)
         filein.read((char *)&vchData[0], dataSize);
         filein >> hashIn;
     }
-    catch (std::exception &e) {
-        return error("CAddrman::Read() 2 : I/O error or stream data corrupted");
+    catch(std::exception &e) {
+        return(error("CAddrDB::Read() : I/O error"));
     }
     filein.fclose();
 
@@ -557,8 +559,8 @@ bool CAddrDB::Read(CAddrMan& addr)
 
     // verify stored checksum matches input data
     uint256 hashTmp = Hash(ssPeers.begin(), ssPeers.end());
-    if (hashIn != hashTmp)
-        return error("CAddrman::Read() : checksum mismatch; data corrupted");
+    if(hashIn != hashTmp)
+      return(error("CAddrDB::Read() : checksum mismatch"));
 
     // de-serialize address data
     unsigned char pchMsgTmp[4];
@@ -566,14 +568,14 @@ bool CAddrDB::Read(CAddrMan& addr)
         ssPeers >> FLATDATA(pchMsgTmp);
         ssPeers >> addr;
     }
-    catch (std::exception &e) {
-        return error("CAddrman::Read() : I/O error or stream data corrupted");
+    catch(std::exception &e) {
+        return(error("CAddrDB::Read() #2 : I/O error"));
     }
 
     // finally, verify the network matches ours
-    if (memcmp(pchMsgTmp, pchMessageStart, sizeof(pchMsgTmp)))
-        return error("CAddrman::Read() : invalid network magic number");
+    if(memcmp(pchMsgTmp, pchMessageStart, sizeof(pchMsgTmp)))
+      return(error("CAddrDB::Read() : invalid network magic number"));
 
-    return true;
+    return(true);
 }
 

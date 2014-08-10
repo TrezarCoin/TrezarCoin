@@ -52,7 +52,7 @@ namespace boost {
 #include <io.h> /* for _commit */
 #include "shlobj.h"
 #elif defined(__linux__)
-# include <sys/prctl.h>
+#include <sys/prctl.h>
 #endif
 
 #ifndef WIN32
@@ -1141,14 +1141,30 @@ bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest)
 #endif /* WIN32 */
 }
 
-void FileCommit(FILE *fileout)
-{
-    fflush(fileout);                // harmless if redundantly called
-#ifdef WIN32
-    _commit(_fileno(fileout));
+/* Returns zero on success and -1 on failure */
+int FileCommit(FILE *fileout) {
+    int ret, fd;
+
+    /* fflush() is a caller's responsibility */
+
+    /* Get a file descriptor and perform the synchronisation */
+#if (WIN32)
+    fd = _fileno(fileout);
+    ret = _commit(fd);
 #else
-    fsync(fileno(fileout));
+    fd = fileno(fileout);
+#if (__linux__)
+    ret = fdatasync(fd);
+#elif (__APPLE__) && (F_FULLFSYNC)
+    /* F_FULLFSYNC means fsync with device flush to medium;
+     * works with HFS only as of 10.4, so fail over to fsync */
+    ret = fcntl(fd, F_FULLFSYNC, 0);
+    if(!ret) ret = fsync(fd);
+#else
+    ret = fsync(fd);
 #endif
+#endif /* WIN32 */
+    return(ret);
 }
 
 int GetFilesize(FILE* file)
