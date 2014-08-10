@@ -351,31 +351,57 @@ bool GetMyExternalIP2(const CService& addrConnect, const char* pszGet, const cha
     return error("GetMyExternalIP() : connection closed");
 }
 
-// We now get our external IP from the IRC server first and only use this as a backup
-bool GetMyExternalIP(CNetAddr& ipRet)
-{
+/* External IP finder called if no luck with an IRC server */
+bool GetMyExternalIP(CNetAddr& ipRet) {
     CService addrConnect;
-    const char* pszGet;
-    const char* pszKeyword;
+    bool addrConnectValid, pszGetMode;
+    const char* pszGet = NULL;
+    const char* pszKeyword = NULL;
 
-    for (int nLookup = 0; nLookup <= 1; nLookup++)
-    for (int nHost = 1; nHost <= 2; nHost++)
-    {
-        // We should be phasing out our use of sites like these.  If we need
-        // replacements, we should ask for volunteers to put this simple
-        // php file on their web server that prints the client IP:
-        //  <?php echo $_SERVER["REMOTE_ADDR"]; ?>
-        if (nHost == 1)
-        {
-            addrConnect = CService("91.198.22.70",80); // checkip.dyndns.org
+    for(uint nLookup = 0; nLookup < 4; nLookup++) {
 
-            if (nLookup == 1)
-            {
-                CService addrIP("checkip.dyndns.org", 80, true);
-                if (addrIP.IsValid())
-                    addrConnect = addrIP;
-            }
+        /* Public IP detectors with their IPs in case DNS isn't available;
+         * DynDNS CheckIP: nLookup 1 to 2, Google AppSpot: nLookup 3 */
 
+        switch(nLookup) {
+
+            case(0):
+                addrConnect = CService("91.198.22.70", 80);
+                addrConnectValid = true;
+                pszGetMode = true;
+                break;
+
+            case(1):
+                addrConnect = CService("216.146.38.70", 80);
+                addrConnectValid = true;
+                pszGetMode = true;
+                break;
+
+            case(2):
+                addrConnect = CService("checkip.dyndns.org", 80, true);
+                if(addrConnect.IsValid())
+                  addrConnectValid = true;
+                else
+                  addrConnectValid = false;
+                pszGetMode = true;
+                break;
+
+            case(3):
+                addrConnect = CService("ip.appspot.com", 80, true);
+                if(addrConnect.IsValid())
+                  addrConnectValid = true;
+                else
+                  addrConnectValid = false;
+                pszGetMode = false;
+                break;
+
+            default:
+                return(false);
+
+        }
+
+        if(pszGetMode) {
+            
             pszGet = "GET / HTTP/1.1\r\n"
                      "Host: checkip.dyndns.org\r\n"
                      "User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)\r\n"
@@ -383,32 +409,25 @@ bool GetMyExternalIP(CNetAddr& ipRet)
                      "\r\n";
 
             pszKeyword = "Address:";
-        }
-        else if (nHost == 2)
-        {
-            addrConnect = CService("74.208.43.192", 80); // www.showmyip.com
 
-            if (nLookup == 1)
-            {
-                CService addrIP("www.showmyip.com", 80, true);
-                if (addrIP.IsValid())
-                    addrConnect = addrIP;
-            }
+        } else {
 
-            pszGet = "GET /simple/ HTTP/1.1\r\n"
-                     "Host: www.showmyip.com\r\n"
+            pszGet = "GET / HTTP/1.1\r\n"
+                     "Host: ip.appspot.com\r\n"
                      "User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)\r\n"
                      "Connection: close\r\n"
                      "\r\n";
 
-            pszKeyword = NULL; // Returns just IP address
+            pszKeyword = NULL;
+
         }
 
-        if (GetMyExternalIP2(addrConnect, pszGet, pszKeyword, ipRet))
-            return true;
+        if(addrConnectValid)
+          if(GetMyExternalIP2(addrConnect, pszGet, pszKeyword, ipRet))
+            return(true);
     }
 
-    return false;
+    return(false);
 }
 
 void ThreadGetMyExternalIP(void* parg)
