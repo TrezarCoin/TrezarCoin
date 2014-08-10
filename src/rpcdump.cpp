@@ -33,12 +33,13 @@ public:
     }
 };
 
-Value importprivkey(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
-            "importprivkey <orbitcoin_privkey> [label]\n"
-            "Adds a private key (as returned by dumpprivkey) to your wallet.");
+Value importprivkey(const Array& params, bool fHelp) {
+
+    if(fHelp || (params.size() < 1) || (params.size() > 3))
+      throw(runtime_error(
+        "importprivkey <orbitcoin_privkey> [label] [rescan]\n"
+        "Adds a private key (as returned by dumpprivkey) to your wallet.\n"
+        "Block chain re-scanning is on (true) by default."));
 
     EnsureWalletIsUnlocked();
 
@@ -46,6 +47,11 @@ Value importprivkey(const Array& params, bool fHelp)
     string strLabel = "";
     if (params.size() > 1)
         strLabel = params[1].get_str();
+
+    bool fRescan = true;
+    if(params.size() > 2)
+      fRescan = params[2].get_bool();
+
     CBitcoinSecret vchSecret;
     bool fGood = vchSecret.SetString(strSecret);
 
@@ -65,8 +71,10 @@ Value importprivkey(const Array& params, bool fHelp)
         if (!pwalletMain->AddKey(key))
             throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
 
-        pwalletMain->ScanForWalletTransactions(pindexGenesisBlock, true);
-        pwalletMain->ReacceptWalletTransactions();
+        if(fRescan) {
+            pwalletMain->ScanForWalletTransactions(pindexGenesisBlock, true);
+            pwalletMain->ReacceptWalletTransactions();
+        }
     }
 
     return Value::null;
