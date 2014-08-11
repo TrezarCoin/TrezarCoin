@@ -1,10 +1,9 @@
 <RCC>
     <qresource prefix="/icons">
-        <file alias="bitcoin">res/icons/orbitcoin-128.png</file>
+        <file alias="orbitcoin">res/icons/orbitcoin.png</file>
         <file alias="toolbar">res/icons/toolbar.png</file>
-        <file alias="bitcoin_testnet">res/icons/orbitcoin-128_testnet.png</file>
+        <file alias="orbitcoin_testnet">res/icons/orbitcoin_testnet.png</file>
         <file alias="toolbar_testnet">res/icons/toolbar_testnet.png</file>
-        <file alias="backg">res/icons/orbitcoin.png</file>
         <file alias="address-book">res/icons/address-book.png</file>
         <file alias="quit">res/icons/quit.png</file>
         <file alias="send">res/icons/send.png</file>

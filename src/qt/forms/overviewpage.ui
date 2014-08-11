@@ -228,7 +228,7 @@
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap resource="../bitcoin.qrc">:/icons/backg</pixmap>
+        <pixmap resource="../bitcoin.qrc">:/icons/orbitcoin</pixmap>
        </property>
        <property name="scaledContents">
         <bool>false</bool>

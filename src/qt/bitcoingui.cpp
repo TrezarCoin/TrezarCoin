@@ -75,8 +75,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     resize(850, 550);
     setWindowTitle(tr("Orbitcoin") + " - " + tr("Wallet"));
 #ifndef Q_OS_MAC
-    qApp->setWindowIcon(QIcon(":icons/bitcoin"));
-    setWindowIcon(QIcon(":icons/bitcoin"));
+    qApp->setWindowIcon(QIcon(":icons/orbitcoin"));
+    setWindowIcon(QIcon(":icons/orbitcoin"));
 #else
     setUnifiedTitleAndToolBarOnMac(true);
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
@@ -237,7 +237,7 @@ void BitcoinGUI::createActions() {
     tabGroup->addAction(consoleAction);
     /* RPC console action connected already */
 
-    toggleHideAction = new QAction(QIcon(":/icons/bitcoin"), tr("&Show / Hide"), this);
+    toggleHideAction = new QAction(QIcon(":/icons/orbitcoin"), tr("&Show / Hide"), this);
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
 
     cloneWalletAction = new QAction(QIcon(":/icons/filesave"), tr("&Clone"), this);
@@ -288,7 +288,7 @@ void BitcoinGUI::createActions() {
     exportAction->setToolTip(tr("Export the data in the current tab to a file"));
     /* Connected / disconnected on respective tab pages */
 
-    aboutAction = new QAction(QIcon(":/icons/bitcoin"), tr("&About Orbitcoin"), this);
+    aboutAction = new QAction(QIcon(":/icons/orbitcoin"), tr("&About Orbitcoin"), this);
     aboutAction->setMenuRole(QAction::AboutRole);
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
 
@@ -365,10 +365,10 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
         {
             setWindowTitle(windowTitle() + QString(" ") + tr("[testnet]"));
 #ifndef Q_OS_MAC
-            qApp->setWindowIcon(QIcon(":icons/bitcoin_testnet"));
-            setWindowIcon(QIcon(":icons/bitcoin_testnet"));
+            qApp->setWindowIcon(QIcon(":icons/orbitcoin_testnet"));
+            setWindowIcon(QIcon(":icons/orbitcoin_testnet"));
 #else
-            MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin_testnet"));
+            MacDockIconHandler::instance()->setIcon(QIcon(":icons/orbitcoin_testnet"));
 #endif
             if(trayIcon)
             {
