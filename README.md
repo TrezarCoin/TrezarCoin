@@ -4,8 +4,8 @@ Orbitcoin
 Orbitcoin (ORB) is a decentralised open source digital currency.
 
  - advanced hybrid Scrypt proof-of-work (PoW) and proof-of-stake (PoS)
- - ~3.5 million coins to be produced
- - 40 seconds combined block target (1 minute for PoW, 2 minutes for PoS)
+ - 3.77 million coins to be produced
+ - 1 minute combined block target (3 minutes for PoW, 1.5 minutes for PoS)
  - retargets every block using Orbitcoin Super Shield (OSS)
  - time warp and instamining protection
  - advanced checkpointing against 51% attacks

@@ -1015,25 +1015,28 @@ void PrintExceptionContinue(std::exception* pex, const char* pszThread)
     strMiscWarning = message;
 }
 
-boost::filesystem::path GetDefaultDataDir()
-{
+boost::filesystem::path GetDefaultDataDir() {
     namespace fs = boost::filesystem;
-#ifdef WIN32
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Orbitcoin
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Orbitcoin
-//    return GetSpecialFolderPath(CSIDL_APPDATA) / "Orbitcoin";
-    // Windows: current directory \ data for livenet
-    return boost::filesystem::current_path() / "data";
+    fs::path path;
+
+#if (WIN32)
+    /* Windows: current directory \ data for livenet */
+    path = boost::filesystem::current_path() / "data";
 #else
-    fs::path pathRet;
+    /* Linux, Mac OS X, *BSD and so on: ~/.orbitcoin */
     char* pszHome = getenv("HOME");
-    if (pszHome == NULL || strlen(pszHome) == 0)
-        pathRet = fs::path("/");
-    else
-        pathRet = fs::path(pszHome);
-    // Linux, Mac OS X, *BSD and so on: ~/.orbitcoin
-    return pathRet / ".orbitcoin";
+    if(!pszHome || !strlen(pszHome))
+      /* Must be root if no $HOME set */
+#if (__APPLE__)
+      path = fs::path("/private/var/root/.orbitcoin");
+#else
+      path = fs::path("/root/.orbitcoin");
 #endif
+    else
+      path = fs::path(pszHome) / ".orbitcoin";
+#endif
+
+    return(path);
 }
 
 const boost::filesystem::path &GetDataDir(bool fNetSpecific)
