@@ -622,7 +622,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line=""/>
         <source>The current PoS difficulty is %1</source>
-        <translation>The current PoW difficulty is %1</translation>
+        <translation>The current PoS difficulty is %1</translation>
     </message>
     <message>
         <location line="+6"/>
