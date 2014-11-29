@@ -82,6 +82,14 @@ bool fReopenDebugLog = false;
 bool fStakeGen = true;
 bool fStakingOnly = false;
 
+/* Performance counters */
+uint64 nBlockHashCacheHits = 0;
+uint64 nBlockHashCacheMisses = 0;
+uint64 nModifierCacheHits = 0;
+uint64 nModifierCacheMisses = 0;
+uint64 nInputCacheHits = 0;
+uint64 nInputCacheMisses = 0;
+
 /* Shared between getmininginfo and the Qt client */
 long long nLastWalletStakeTime = 0;
 unsigned long long nMinWeightInputs = 0;

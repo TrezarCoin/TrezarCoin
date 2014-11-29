@@ -246,7 +246,6 @@ std::string HelpMessage()
         "  -?                     " + _("This help message") + "\n" +
         "  -conf=<file>           " + _("Specify configuration file (default: orbitcoin.conf)") + "\n" +
         "  -pid=<file>            " + _("Specify pid file (default: orbitcoind.pid)") + "\n" +
-        "  -stakegen=<n>          " + _("Generate coin stakes (default: 1 = enabled)") + "\n" +
         "  -datadir=<dir>         " + _("Specify data directory") + "\n" +
         "  -wallet=<dir>          " + _("Specify wallet file (within data directory)") + "\n" +
         "  -dbcache=<n>           " + _("Set database cache size in megabytes (default: 25)") + "\n" +
@@ -322,7 +321,14 @@ std::string HelpMessage()
         "  -rpcssl                                  " + _("Use OpenSSL (https) for JSON-RPC connections") + "\n" +
         "  -rpcsslcertificatechainfile=<file.cert>  " + _("Server certificate file (default: server.cert)") + "\n" +
         "  -rpcsslprivatekeyfile=<file.pem>         " + _("Server private key (default: server.pem)") + "\n" +
-        "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)") + "\n";
+        "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)") + "\n" +
+
+        "\n" + _("Staking options:") + "\n" +
+        "  -stakegen=<n>          "   + _("Generate coin stakes (default: 1 = enabled)") + "\n" +
+        "  -stakemindepth=<n>     "   + _("Set the min. stake input depth value in confirmations (default: 10000 or testnet: 100)") + "\n" +
+        "  -minstakinginput=<n>   "   + _("Set the min. stake input amount in coins (default: 1.0)") + "\n" +
+        "  -stakecombine=<n>      "   + _("Try to combine inputs while staking up to this limit in coins (20 < n < 50; default: 20)") + "\n";
+        "  -stakesplit=<n>        "   + _("Don't split outputs while staking below this limit in coins (40 < n < 100; default: 40)") + "\n";
 
     return strUsage;
 }
@@ -493,6 +499,35 @@ bool AppInit2()
     {
         if (!ParseMoney(mapArgs["-mininput"], nMinimumInputValue))
             return InitError(strprintf(_("Invalid amount for -mininput=<amount>: '%s'"), mapArgs["-mininput"].c_str()));
+    }
+
+    /* Inputs below this limit in value don't participate in staking */
+    if(mapArgs.count("-minstakinginput")) {
+        if(!ParseMoney(mapArgs["-minstakinginput"], nMinStakingInputValue))
+          return(InitError(strprintf(_("Invalid amount for -minstakinginput=<amount>: '%s'"),
+            mapArgs["-minstakinginput"].c_str())));
+    }
+
+    /* Try to combine inputs while staking up to this limit */
+    if(mapArgs.count("-stakecombine")) {
+        if(!ParseMoney(mapArgs["-stakecombine"], nCombineThreshold))
+          return(InitError(strprintf(_("Invalid amount for -stakecombine=<amount>: '%s'"),
+            mapArgs["-stakecombine"].c_str())));
+        if(nCombineThreshold < MIN_STAKE_AMOUNT)
+          nCombineThreshold = MIN_STAKE_AMOUNT;
+        if(nCombineThreshold > 2.5 * MIN_STAKE_AMOUNT)
+          nCombineThreshold = 2.5 * MIN_STAKE_AMOUNT;
+    }
+
+    /* Don't split outputs while staking below this limit */
+    if(mapArgs.count("-stakesplit")) {
+        if(!ParseMoney(mapArgs["-stakesplit"], nSplitThreshold))
+          return(InitError(strprintf(_("Invalid amount for -stakesplit=<amount>: '%s'"),
+            mapArgs["-stakesplit"].c_str())));
+        if(nSplitThreshold < 2 * MIN_STAKE_AMOUNT)
+          nSplitThreshold = 2 * MIN_STAKE_AMOUNT;
+        if(nSplitThreshold > 5 * MIN_STAKE_AMOUNT)
+          nSplitThreshold = 5 * MIN_STAKE_AMOUNT;
     }
 
     /* Controls proof-of-stake generation */

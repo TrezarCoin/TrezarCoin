@@ -68,8 +68,12 @@ public:
 class CWallet : public CCryptoKeyStore
 {
 private:
-    bool SelectCoinsSimple(int64 nTargetValue, unsigned int nSpendTime, int nMinConf, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64& nValueRet) const;
-    bool SelectCoins(int64 nTargetValue, unsigned int nSpendTime, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64& nValueRet, const CCoinControl *coinControl=NULL) const;
+    bool SelectCoins(int64 nTargetValue, uint nSpendTime,
+      std::set<std::pair<const CWalletTx*, uint> >& setCoinsRet, int64& nValueRet,
+      const CCoinControl *coinControl=NULL) const;
+    /* Quick cacheable selection of inputs for staking at the depth specified */
+    bool SelectCoinsStaking(int64 nTargetValue, int nStakeMinDepth,
+      std::set<std::pair<const CWalletTx*, uint> >& setCoinsRet, int64& nValueRet) const;
 
     CWalletDB *pwalletdbEncryption;
 
@@ -125,7 +129,6 @@ public:
     // check whether we are allowed to upgrade (or already support) to the named feature
     bool CanSupportFeature(enum WalletFeature wf) { return nWalletMaxVersion >= wf; }
 
-    void AvailableCoinsMinConf(std::vector<COutput>& vCoins, int nConf) const;
     void AvailableCoins(std::vector<COutput>& vCoins, bool fOnlyConfirmed=true, const CCoinControl *coinControl=NULL) const;
     bool SelectCoinsMinConf(int64 nTargetValue, unsigned int nSpendTime, int nConfMine, int nConfTheirs, std::vector<COutput> vCoins, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64& nValueRet) const;
     // keystore implementation
@@ -184,7 +187,8 @@ public:
 
     bool GetStakeWeightQuick(const int64& nTime, const int64& nValue, uint64& nWeight);
     bool GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeightInputs, uint64& nAvgWeightInputs, uint64& nMaxWeightInputs, uint64& nTotalStakeWeight);
-    bool CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew, CKey& key, int64 nStakeReward);
+    bool CreateCoinStake(const CKeyStore& keystore, uint nBits, int64 nSearchInterval,
+      CTransaction& txNew, CKey& key, int64 nStakeReward);
 
     std::string SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false, std::string strTxComment = "");
     std::string SendMoneyToDestination(const CTxDestination &address, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false, std::string strTxComment = "");

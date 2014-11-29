@@ -97,7 +97,6 @@ extern std::map<uint256, CBlockIndex*> mapBlockIndex;
 extern std::set<CBlockIndex*, CBlockIndexTrustComparator> setBlockIndexValid;
 extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
 extern CBlockIndex* pindexGenesisBlock;
-extern unsigned int nStakeMinAge;
 extern unsigned int nNodeLifespan;
 extern int nBestHeight;
 extern uint256 nBestChainTrust;
@@ -118,6 +117,12 @@ extern std::map<uint256, CBlock*> mapOrphanBlocks;
 // Settings
 extern int64 nTransactionFee;
 extern int64 nMinimumInputValue;
+extern int64 nMinStakingInputValue;
+extern int64 nCombineThreshold;
+extern int64 nSplitThreshold;
+extern uint nStakeMinAge;
+extern uint nStakeMaxAge;
+extern uint nBaseTargetSpacing;
 extern bool fUseFastIndex;
 extern unsigned int nDerivationMethodIndex;
 
@@ -1249,6 +1254,8 @@ public:
 
     // memory only
     mutable std::vector<uint256> vMerkleTree;
+    mutable uint256 hashCached;
+    mutable uint timeCached;
 
     // Denial-of-service detection:
     mutable int nDoS;
@@ -1294,6 +1301,7 @@ public:
         vchBlockSig.clear();
         vMerkleTree.clear();
         nDoS = 0;
+        timeCached = 0xFFFFFFFF;
     }
 
     bool IsNull() const
@@ -1301,9 +1309,16 @@ public:
         return (nBits == 0);
     }
 
-    uint256 GetHash() const
-    {
-        return scrypt_blockhash(CVOIDBEGIN(nVersion));
+    uint256 GetHash() const {
+        if(timeCached != nTime) {
+            hashCached = scrypt_blockhash(CVOIDBEGIN(nVersion));
+            timeCached = nTime;
+            nBlockHashCacheMisses++;
+        } else {
+            nBlockHashCacheHits++;
+        }
+
+        return(hashCached);
     }
 
     int64 GetBlockTime() const

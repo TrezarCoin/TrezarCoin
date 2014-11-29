@@ -312,6 +312,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getnetworkhashps",       &getnetworkhashps,       true,   false },
     { "getstakegen",            &getstakegen,            true,   false },
     { "setstakegen",            &setstakegen,            true,   false },
+    { "getcounters",            &getcounters,            true,   true  },
 };
 
 CRPCTable::CRPCTable()

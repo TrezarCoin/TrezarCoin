@@ -10,6 +10,9 @@
 extern uint nModifierInterval;
 extern uint nModifierIntervalNew;
 
+/* Stake modifier cache size limit */
+static const uint MODIFIER_CACHE_LIMIT = 16384;
+
 // MODIFIER_INTERVAL_RATIO:
 // ratio of group interval length between the last group and the first group
 static const int MODIFIER_INTERVAL_RATIO = 3;
@@ -19,7 +22,15 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64& nStakeModif
 
 // Check whether stake kernel meets hash target
 // Sets hashProofOfStake and targetProofOfStake on success return
-bool CheckStakeKernelHash(unsigned int nBits, const CBlock& blockFrom, unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, uint256& hashProofOfStake, uint256& targetProofOfStake, bool& fCritical, bool fMiner=false, bool fPrintProofOfStake=false);
+bool CheckStakeKernelHash(uint nBits, const CBlock& blockFrom, uint nTxPrevOffset,
+  const CTransaction& txPrev, const COutPoint& prevout, uint nTimeTx,
+  uint256& hashProofOfStake, uint256& targetProofOfStake, bool& fCritical,
+  bool fMiner = false, bool fPrintProofOfStake = false);
+
+/* The stake modifier used to hash for a stake kernel is chosen as the stake
+ * modifier about a selection interval later than the coin generating the kernel */
+bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64& nStakeModifier,
+  int64& nStakeModifierTime, int& nStakeModifierHeight, bool fPrintProofOfStake = false);
 
 // Check kernel hash target and coinstake signature
 // Sets hashProofOfStake and targetProofOfStake on success return

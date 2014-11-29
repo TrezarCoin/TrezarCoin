@@ -47,6 +47,9 @@ uint nBaseTargetSpacing = 30;             /* Orbitcoin: base spacing of 30 secon
 uint nModifierInterval = 6 * 60 * 60;     /* Orbitcoin: old interval of 6 hours between stake modifiers */
 uint nModifierIntervalNew = 3 * 60 * 60;  /* Orbitcoin: new interval of 3 hours between stake modifiers */
 
+int64 nCombineThreshold = MIN_STAKE_AMOUNT;    /* Try to combine inputs while staking up to this limit */
+int64 nSplitThreshold = 2 * MIN_STAKE_AMOUNT;  /* Don't split outputs while staking below this limit */
+
 int nBaseMaturity = BASE_MATURITY;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -77,6 +80,7 @@ const string strMessageMagic = "Orbitcoin Signed Message:\n";
 // Settings
 int64 nTransactionFee = MIN_TX_FEE;
 int64 nMinimumInputValue = TX_DUST;
+int64 nMinStakingInputValue = 1 * COIN;
 
 extern enum Checkpoints::CPMode CheckpointsMode;
 
@@ -2751,7 +2755,7 @@ bool CBlock::CheckStakeSignature(uint256& hashProofOfStake, bool& fCritical) con
       return(false);
 
     /* Verify hash target and coin stake signature */
-    if(!CheckProofOfStake(vtx[1], nBits, hashProofOfStake, hashTarget, fCritical))
+    if(!CheckProofOfStake(vtx[1], nBits, hashProofOfStake, hashTarget, fCritical, false))
       return(false);
 
     return(true);

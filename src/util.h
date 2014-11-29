@@ -160,6 +160,14 @@ extern bool fReopenDebugLog;
 extern bool fStakeGen;
 extern bool fStakingOnly;
 
+extern uint64 nBlockHashCacheHits;
+extern uint64 nBlockHashCacheMisses;
+extern uint64 nModifierCacheHits;
+extern uint64 nModifierCacheMisses;
+extern uint64 nInputCacheHits;
+extern uint64 nInputCacheMisses;
+
+extern uint nStakeMinDepth;
 extern long long nLastWalletStakeTime;
 extern unsigned long long nMinWeightInputs;
 extern unsigned long long nAvgWeightInputs;

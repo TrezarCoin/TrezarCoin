@@ -9,8 +9,8 @@
 
 using namespace std;
 
-extern int nStakeMaxAge;
-extern int nBaseTargetSpacing;
+/* Cache of stake modifiers */
+static std::map<uint, uint64> mapModifiers;
 
 typedef std::map<int, unsigned int> MapModifierCheckpoints;
 
@@ -232,14 +232,14 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64& nStakeModif
 
 // The stake modifier used to hash for a stake kernel is chosen as the stake
 // modifier about a selection interval later than the coin generating the kernel
-static bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64& nStakeModifier, int& nStakeModifierHeight, int64& nStakeModifierTime, bool fPrintProofOfStake)
-{
+bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64& nStakeModifier,
+  int64& nStakeModifierTime, int& nStakeModifierHeight, bool fPrintProofOfStake) {
     nStakeModifier = 0;
     if (!mapBlockIndex.count(hashBlockFrom))
         return error("GetKernelStakeModifier() : block not indexed");
     const CBlockIndex* pindexFrom = mapBlockIndex[hashBlockFrom];
+    nStakeModifierTime   = pindexFrom->GetBlockTime();
     nStakeModifierHeight = pindexFrom->nHeight;
-    nStakeModifierTime = pindexFrom->GetBlockTime();
 
     uint nActualModifierInterval;
     if((fTestNet && (pindexFrom->nHeight > TESTNET_HFORK5_HEIGHT)) ||
@@ -262,10 +262,9 @@ static bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64& nStakeModifier
                 return false;
         }
         pindex = pindex->pnext;
-        if (pindex->GeneratedStakeModifier())
-        {
+        if(pindex->GeneratedStakeModifier()) {
+            nStakeModifierTime   = pindex->GetBlockTime();
             nStakeModifierHeight = pindex->nHeight;
-            nStakeModifierTime = pindex->GetBlockTime();
         }
     }
     nStakeModifier = pindex->nStakeModifier;
@@ -293,9 +292,10 @@ static bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64& nStakeModifier
 //   quantities so as to generate blocks faster, degrading the system back into
 //   a proof-of-work situation.
 //
-bool CheckStakeKernelHash(unsigned int nBits, const CBlock& blockFrom, unsigned int nTxPrevOffset,
-  const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, uint256& hashProofOfStake,
-  uint256& targetProofOfStake, bool& fCritical, bool fMiner, bool fPrintProofOfStake) {
+bool CheckStakeKernelHash(uint nBits, const CBlock& blockFrom, uint nTxPrevOffset,
+  const CTransaction& txPrev, const COutPoint& prevout, uint nTimeTx,
+  uint256& hashProofOfStake, uint256& targetProofOfStake, bool& fCritical,
+  bool fMiner, bool fPrintProofOfStake) {
 
     if(nTimeTx < txPrev.nTime)
       return(error("CheckStakeKernelHash() : time stamp violation"));
@@ -315,19 +315,32 @@ bool CheckStakeKernelHash(unsigned int nBits, const CBlock& blockFrom, unsigned 
 
     // Calculate hash
     CDataStream ss(SER_GETHASH, 0);
-    uint64 nStakeModifier = 0;
-    int nStakeModifierHeight = 0;
+    uint64 nStakeModifier;
     int64 nStakeModifierTime = 0;
+    int nStakeModifierHeight = 0;
 
-    if(!GetKernelStakeModifier(hashBlockFrom, nStakeModifier, nStakeModifierHeight, nStakeModifierTime,
-      fPrintProofOfStake)) {
-        fCritical = false;
-        return(false);
+    uint nSize = (uint)mapModifiers.size();
+    if(nSize >= MODIFIER_CACHE_LIMIT) {
+        printf("CheckStakeKernelHash() : cleared %u stake modifier cache records\n", nSize);
+        mapModifiers.clear();
     }
 
-    ss << nStakeModifier;
+    /* Stake modifiers for PoS mining are calculated repeatedly
+     * and can be cached to speed up the whole process */
+    if(mapModifiers.count(nTimeBlockFrom)) {
+        nStakeModifier = mapModifiers[nTimeBlockFrom];
+        nModifierCacheHits++;
+    } else {
+        if(!GetKernelStakeModifier(blockFrom.GetHash(), nStakeModifier,
+          nStakeModifierTime, nStakeModifierHeight, fPrintProofOfStake)) {
+            fCritical = false;
+            return(false);
+        }
+        mapModifiers.insert(make_pair(nTimeBlockFrom, nStakeModifier));
+        nModifierCacheMisses++;
+    }
 
-    ss << nTimeBlockFrom << nTxPrevOffset << txPrev.nTime << prevout.n << nTimeTx;
+    ss << nStakeModifier << nTimeBlockFrom << nTxPrevOffset << txPrev.nTime << prevout.n << nTimeTx;
     hashProofOfStake = Hash(ss.begin(), ss.end());
 
     if (fPrintProofOfStake)

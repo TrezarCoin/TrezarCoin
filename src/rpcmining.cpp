@@ -33,16 +33,36 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("posdifficulty", (float)GetDifficulty(GetLastBlockIndex(pindexBest, true))));
     obj.push_back(Pair("powreward",     (float)(GetProofOfWorkReward(GetLastBlockIndex(pindexBest, false)->nHeight, (int64)NULL))/COIN));
     obj.push_back(Pair("posreward",     (float)(GetProofOfStakeReward(GetLastBlockIndex(pindexBest, true)->nHeight, (int64)NULL))/COIN));
-    obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     obj.push_back(Pair("networkhashps", getnetworkhashps(params, false)));
     obj.push_back(Pair("stakeweight",   (uint64_t)nTotalStakeWeight));
     obj.push_back(Pair("minweightinputs", (uint64_t)nMinWeightInputs));
     obj.push_back(Pair("avgweightinputs", (uint64_t)nAvgWeightInputs));
     obj.push_back(Pair("maxweightinputs", (uint64_t)nMaxWeightInputs));
+    obj.push_back(Pair("stakemindepth", (int)nStakeMinDepth));
+    obj.push_back(Pair("minstakinginput", ValueFromAmount(nMinStakingInputValue)));
+    obj.push_back(Pair("stakecombine",  ValueFromAmount(nCombineThreshold)));
+    obj.push_back(Pair("stakesplit",    ValueFromAmount(nSplitThreshold)));
     obj.push_back(Pair("pooledtx",      (uint64_t)mempool.size()));
     obj.push_back(Pair("testnet",       fTestNet));
-    return obj;
 
+    return(obj);
+}
+
+Value getcounters(const Array& params, bool fHelp)
+{
+    if(fHelp || (params.size() != 0))
+      throw(runtime_error("getcounters\n"
+        "Returns an object containing performance counters."));
+
+    Object obj;
+    obj.push_back(Pair("block hash cache hits",       (uint64_t)nBlockHashCacheHits));
+    obj.push_back(Pair("block hash cache misses",     (uint64_t)nBlockHashCacheMisses));
+    obj.push_back(Pair("stake modifier cache hits",   (uint64_t)nModifierCacheHits));
+    obj.push_back(Pair("stake modifier cache misses", (uint64_t)nModifierCacheMisses));
+    obj.push_back(Pair("stake input cache hits",      (uint64_t)nInputCacheHits));
+    obj.push_back(Pair("stake input cache misses",    (uint64_t)nInputCacheMisses));
+
+    return(obj);
 }
 
 Value getworkex(const Array& params, bool fHelp)
