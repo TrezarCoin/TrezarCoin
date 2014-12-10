@@ -3,8 +3,11 @@ Orbitcoin
 
 Orbitcoin (ORB) is a decentralised open source digital currency.
 
- - advanced hybrid Scrypt proof-of-work (PoW) and proof-of-stake (PoS)
+ - advanced hybrid proof-of-work (PoW) and proof-of-stake (PoS)
  - 3.77 million coins to be produced
+ - block hashing is BLAKE2s
+ - PoW hashing is NeoScrypt
+ - PoS hashing is SHA-256d
  - 1 minute combined block target (3 minutes for PoW, 1.5 minutes for PoS)
  - retargets every block using Orbitcoin Super Shield (OSS)
  - time warp and instamining protection
@@ -23,5 +26,10 @@ Orbitcoin (ORB) is a decentralised open source digital currency.
 Download
 --------
 
-Please visit https://cryptocointalk.com/forum/325-orbitcoin-orb/ if you need pre-compiled binaries.
+Please visit http://orbitcoin.org if you need pre-compiled binaries.
 
+
+Support
+-------
+
+See https://cryptocointalk.com/forum/325-orbitcoin-orb/ if you need advice.
