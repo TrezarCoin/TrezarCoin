@@ -1,11 +1,12 @@
 TEMPLATE = app
 TARGET = orbitcoin-qt
-VERSION = 1.4.2.2
+VERSION = 1.5.0.0
 INCLUDEPATH += src src/json src/qt
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
 CONFIG += thread
 CONFIG += static
+QMAKE_CFLAGS += -DSHA256 -DASM
 
 # for boost 1.37, add -mt to the boost libraries
 # use: qmake BOOST_LIB_SUFFIX=-mt
@@ -34,6 +35,8 @@ contains(RELEASE, 1) {
     }
 }
 
+# strip symbols
+QMAKE_LFLAGS += -Wl,-s
 # for extra security on Windows: enable ASLR and DEP via GCC linker flags
 win32:QMAKE_LFLAGS *= -Wl,--dynamicbase -Wl,--nxcompat
 # on Windows: enable GCC large address aware linker flag
@@ -128,13 +131,6 @@ contains(USE_O3, 1) {
     QMAKE_CFLAGS += -O3 -fomit-frame-pointer -fno-stack-protector
 }
 
-*-g++-32 {
-    message("32 platform, adding -msse2 flag")
-
-    QMAKE_CXXFLAGS += -msse2
-    QMAKE_CFLAGS += -msse2
-}
-
 QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter
 
 # Input
@@ -162,6 +158,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/util.h \
     src/uint256.h \
     src/kernel.h \
+    src/neoscrypt.h \
     src/scrypt.h \
     src/pbkdf2.h \
     src/serialize.h \
@@ -285,6 +282,8 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/rpcconsole.cpp \
     src/noui.cpp \
     src/kernel.cpp \
+    src/neoscrypt.c \
+    src/neoscrypt_asm.S \
     src/scrypt-arm.S \
     src/scrypt-x86.S \
     src/scrypt-x86_64.S \

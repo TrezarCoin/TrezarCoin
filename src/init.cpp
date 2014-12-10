@@ -33,7 +33,6 @@ unsigned int nDerivationMethodIndex;
 unsigned int nMsgSleep;
 unsigned int nMinerSleep;
 unsigned int nStakeMinDepth;
-bool fUseFastIndex;
 bool fUseFastStakeMiner;
 enum Checkpoints::CPMode CheckpointsMode;
 
@@ -105,8 +104,8 @@ void Shutdown(void* parg)
         UnregisterWallet(pwalletMain);
         delete pwalletMain;
         NewThread(ExitTimeout, NULL);
-        Sleep(50);
         fExit = true;
+        Sleep(1000);
         printf("Shutdown() : completed\n\n");
 #ifndef QT_GUI
         // ensure non-UI client gets exited here, but let Bitcoin-Qt reach 'return 0;' in bitcoin.cpp
@@ -382,11 +381,16 @@ bool AppInit2()
 
     // ********************************************************* Step 2: parameter interactions
 
+    if(GetBoolArg("-sse2", false)) {
+        printf("SSE2 assembly optimisations enabled\n");
+        nNeoScryptOptions |= 0x1000;
+    }
+
     fTestNet = GetBoolArg("-testnet");
     if(fTestNet) SoftSetBoolArg("-irc", true);
 
     nNodeLifespan = GetArg("-addrlifespan", 7);
-    fUseFastIndex = GetBoolArg("-fastindex", true);
+
     /* Polling delay for message handling, in milliseconds */
     nMsgSleep = GetArg("-msgsleep", 20);
     /* Polling delay for stake mining, in milliseconds */

@@ -76,10 +76,11 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("protocolversion",(int)PROTOCOL_VERSION));
     obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
     obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance(0x3))));
-    obj.push_back(Pair("allpowmint",    ValueFromAmount(pwalletMain->GetMinted(0x1))));
-    obj.push_back(Pair("allposmint",    ValueFromAmount(pwalletMain->GetMinted(0x2))));
-    obj.push_back(Pair("newpowmint",    ValueFromAmount(pwalletMain->GetMinted(0x5))));
+    obj.push_back(Pair("stake",         ValueFromAmount(pwalletMain->GetMinted(0xE))));
     obj.push_back(Pair("newposmint",    ValueFromAmount(pwalletMain->GetMinted(0x6))));
+    obj.push_back(Pair("newpowmint",    ValueFromAmount(pwalletMain->GetMinted(0x5))));
+    obj.push_back(Pair("allposmint",    ValueFromAmount(pwalletMain->GetMinted(0x2))));
+    obj.push_back(Pair("allpowmint",    ValueFromAmount(pwalletMain->GetMinted(0x1))));
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("timeoffset",    (boost::int64_t)GetTimeOffset()));
     obj.push_back(Pair("moneysupply",   ValueFromAmount(pindexBest->nMoneySupply)));

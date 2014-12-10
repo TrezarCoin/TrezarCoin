@@ -9,7 +9,8 @@
 #include "sync.h"
 #include "net.h"
 #include "script.h"
-#include "scrypt.h"
+
+#include "neoscrypt.h"
 
 #include <list>
 
@@ -57,22 +58,25 @@ static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 static const int64 MIN_STAKE_AMOUNT = 20 * COIN;
 static const int64 MAX_STAKE_INPUTS = 10;
 
-static const int HFORK1_HEIGHT                  = 417000;
 
-static const uint CHAIN_SWITCH_TIME             = 1393848000;  /* 03 Mar 2014 12:00:00 GMT */
-static const uint TESTNET_CHAIN_SWITCH_TIME     = 1393473600;  /* 27 Feb 2014 04:00:00 GMT */
+/* Livenet hard forks */
+static const int nForkOne               = 417000;
+static const uint nForkTwoTime          = 1393848000;  /* 03 Mar 2014 12:00:00 GMT */
+static const int nForkThree             = 585000;
+static const int nForkFour              = 610000;
+static const int nForkFive              = 650000;
+static const int nBonanzaOne            = 660000;
+static const int nBonanzaTwo            = 760000;
+static const int nForkSix               = 1010000;
+static const uint nStakeMinAgeForkTime  = 1419076800;  /* 20 Dec 2014 12:00:00 GMT */
 
-static const int HFORK3_HEIGHT                  = 585000;
+/* Testnet hard forks */
+static const uint nTestnetForkOneTime   = 1393473600;  /* 27 Feb 2014 04:00:00 GMT */
+static const int nTestnetForkTwo        = 1850;
+static const int nTestnetForkThree      = 2000;
+static const int nTestnetForkFour       = 3400;
+static const int nTestnetForkFive       = 4000;
 
-static const int HFORK4_HEIGHT                  = 610000;
-static const int TESTNET_HFORK4A_HEIGHT         = 1850;
-static const int TESTNET_HFORK4B_HEIGHT         = 2000;
-
-static const int HFORK5_HEIGHT                  = 650000;
-static const int TESTNET_HFORK5_HEIGHT          = 3400;
-
-static const int BONANZA1_HEIGHT                = 660000;
-static const int BONANZA2_HEIGHT                = 760000;
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
@@ -86,7 +90,6 @@ static const int fHaveUPnP = false;
 
 static const uint256 hashGenesisBlock("0x683373dac7ec1b01a9e10d4f5ef3dda0bf4c31ddefe5cffa14550dc0c776e699");
 static const uint256 hashGenesisBlockTestNet("0x0000a6a079a91fe96443c0be34a0b140057d4259f51286c9d99d175238bf4b7f");
-static const uint256 hashBad("0xd35932546cfe616d9b88f0795da3e8f07093e86861880f8b62acf7acf7a27db4");
 
 inline int64 PastDrift(int64 nTime)   { return nTime - 15 * 60; } // max. 15 minutes from the past
 inline int64 FutureDrift(int64 nTime) { return nTime + 15 * 60; } // max. 15 minutes to the future
@@ -120,10 +123,10 @@ extern int64 nMinimumInputValue;
 extern int64 nMinStakingInputValue;
 extern int64 nCombineThreshold;
 extern int64 nSplitThreshold;
-extern uint nStakeMinAge;
+extern uint nStakeMinAgeOne;
+extern uint nStakeMinAgeTwo;
 extern uint nStakeMaxAge;
-extern uint nBaseTargetSpacing;
-extern bool fUseFastIndex;
+extern const uint nBaseTargetSpacing;
 extern unsigned int nDerivationMethodIndex;
 
 // Minimum disk space required - used in CheckDiskSpace()
@@ -152,7 +155,7 @@ bool ProcessMessages(CNode* pfrom);
 bool SendMessages(CNode* pto, bool fSendTrickle);
 bool LoadExternalBlockFile(FILE* fileIn);
 
-bool CheckProofOfWork(uint256 hash, unsigned int nBits);
+bool CheckProofOfWork(uint256 hashPoW, uint nBits);
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake, bool fPrettyPrint);
 int64 GetProofOfWorkReward(int nHeight, int64 nFees);
 int64 GetProofOfStakeReward(int nHeight, int64 nFees);
@@ -479,7 +482,7 @@ public:
         vout.clear();
         nLockTime = 0;
         nDoS = 0;  // Denial-of-service prevention
-	strTxComment.clear();
+        strTxComment.clear();
     }
 
     bool IsNull() const
@@ -1238,7 +1241,6 @@ class CBlock
 {
 public:
     // header
-    static const int CURRENT_VERSION=6;
     int nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
@@ -1289,9 +1291,8 @@ public:
         }
     )
 
-    void SetNull()
-    {
-        nVersion = CBlock::CURRENT_VERSION;
+    void SetNull() {
+        nVersion = 2;
         hashPrevBlock = 0;
         hashMerkleRoot = 0;
         nTime = 0;
@@ -1309,9 +1310,41 @@ public:
         return (nBits == 0);
     }
 
-    uint256 GetHash() const {
+    /* Block hashing */
+    uint256 GetHash(int nHeight = 0) const {
         if(timeCached != nTime) {
-            hashCached = scrypt_blockhash(CVOIDBEGIN(nVersion));
+            uint profile = 0x0;
+
+            /* Not fail safe, but better than nothing */
+            if(!nHeight)
+              nHeight = GetBlockHeight();
+
+            if(fTestNet) {
+                if(nHeight < nTestnetForkFive)
+                  profile = 0x3;
+            } else {
+                if(nHeight < nForkSix)
+                  profile = 0x3;
+            }
+
+            /* Scrypt of BLAKE2s */
+            if(profile & 0x1) {
+                /* Apply optimisation options if any */
+                profile |= nNeoScryptOptions;
+                /* Hash the block header */
+                neoscrypt((uchar *) &nVersion, (uchar *) &hashCached, profile);
+            } else {
+                /* 80 + 32 bytes, no padding */
+                uchar input[112];
+                /* Copy the block header */
+                neoscrypt_copy(&input[0], &nVersion, 80);
+                /* Copy the merkle root once again */
+                neoscrypt_copy(&input[80], &hashMerkleRoot, 32);
+                /* Hash the data;
+                 * key is higher and lower 10 bytes of merkle root
+                 * with nTime, nBits, nNonce in between */
+                neoscrypt_blake2s(&input[0], 112, &input[58], 32, &hashCached, 32);
+            }
             timeCached = nTime;
             nBlockHashCacheMisses++;
         } else {
@@ -1319,6 +1352,52 @@ public:
         }
 
         return(hashCached);
+    }
+
+    /* Proof-of-work hashing */
+    uint256 GetHashPoW() const {
+        uint256 hashPoW;
+        uint profile = 0x0;
+
+        /* All these blocks must be v2+ with valid nHeight */
+        int nHeight = GetBlockHeight();
+        if(fTestNet) {
+            if(nHeight < nTestnetForkFive)
+              profile = 0x3;
+        } else {
+            if(nHeight < nForkSix)
+              profile = 0x3;
+        }
+
+        profile |= nNeoScryptOptions;
+
+        neoscrypt((uchar *) &nVersion, (uchar *) &hashPoW, profile);
+
+        return(hashPoW);
+    }
+
+    /* Extracts block height from v2+ coin base;
+     * ignores nVersion because it's unreliable */
+    int GetBlockHeight() const {
+        /* Prevents a crash if called on a block header alone */
+        if(vtx.size()) {
+            /* Serialised CScript */
+            std::vector<uchar>::const_iterator scriptsig = vtx[0].vin[0].scriptSig.begin();
+            uchar i, scount = scriptsig[0];
+            /* Optimise: nTime is 4 bytes always,
+             * nHeight must be less for a long time;
+             * check against a threshold when the time comes */
+            if(scount < 4) {
+                int height = 0;
+                uchar *pheight = (uchar *) &height;
+                for(i = 0; i < scount; i++)
+                  pheight[i] = scriptsig[i + 1];
+                /* v2+ block with nHeight in coin base */
+                return(height);
+            }
+        }
+        /* Not found */
+        return(-1);
     }
 
     int64 GetBlockTime() const
@@ -1494,7 +1573,7 @@ public:
     bool DisconnectBlock(CBlockIndex *pindex, CCoinsViewCache &coins);
 
     // Apply the effects of this block (with given index) on the UTXO set represented by coins
-    bool ConnectBlock(CBlockIndex *pindex, CCoinsViewCache &coins, bool fJustCheck=false);
+    bool ConnectBlock(CBlockIndex *pindex, CCoinsViewCache &coins);
 
     // Read a block from disk
     bool ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions=true);
@@ -1503,7 +1582,7 @@ public:
     bool AddToBlockIndex(const CDiskBlockPos &pos);
 
     // Context-independent validity checks
-    bool CheckBlock(bool fCheckPOW=true, bool fCheckMerkleRoot=true) const;
+    bool CheckBlock() const;
 
     // Store block on disk
     bool AcceptBlock();
@@ -2009,10 +2088,10 @@ public:
         READWRITE(nNonce);
     )
 
-    uint256 GetBlockHash() const
-    {
-        if (fUseFastIndex && (nTime < GetAdjustedTime() - 24 * 60 * 60) && blockHash != 0)
-            return blockHash;
+    uint256 GetBlockHash() const {
+        /* Fast index: use stored hashes for blocks older than 1 hour */
+        if((blockHash != 0) && (nTime < (GetAdjustedTime() - 1 * 60 * 60)))
+          return(blockHash);
 
         CBlock block;
         block.nVersion        = nVersion;
@@ -2022,9 +2101,10 @@ public:
         block.nBits           = nBits;
         block.nNonce          = nNonce;
 
-        const_cast<CDiskBlockIndex*>(this)->blockHash = block.GetHash();
+        /* nHeight is known and should be used to avoid trouble */
+        const_cast<CDiskBlockIndex*>(this)->blockHash = block.GetHash(nHeight);
 
-        return blockHash;
+        return(blockHash);
     }
 
 

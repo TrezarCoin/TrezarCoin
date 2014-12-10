@@ -1239,7 +1239,7 @@ bool CWallet::SelectCoinsStaking(int64 nTargetValue, int nStakeMinDepth,
             const CWalletTx* pcoin = &(*it).second;
 
             /* Discard if the age requirement is unmet */
-            if(nCurrentTime < (pcoin->nTime + nStakeMinAge))
+            if(nCurrentTime < (pcoin->nTime + GetStakeMinAge(pcoin->nTime)))
               continue;
 
             /* May be negative (failed transactions) */
@@ -1402,8 +1402,8 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                 // Check that enough fee is included
                 int64 nMinFee, nPayFee = nTransactionFee * (1 + (int64)nBytes / 1000);
                 unsigned int time = GetAdjustedTime();
-                if((fTestNet && (time > TESTNET_CHAIN_SWITCH_TIME)) ||
-                  (!fTestNet && (time > CHAIN_SWITCH_TIME))) {
+                if((fTestNet && (time > nTestnetForkOneTime)) ||
+                  (!fTestNet && (time > nForkTwoTime))) {
                     bool fAllowFree = CTransaction::AllowFree(dPriority);
                     nMinFee = wtxNew.GetMinFee(nBytes, fAllowFree, GMF_SEND);
                 } else {
@@ -1440,7 +1440,8 @@ bool CWallet::GetStakeWeightQuick(const int64& nTime, const int64& nValue, uint6
     /* Stake weight reported is zero if time weight isn't positive */
     nTimeWeight = GetWeight(nTime, (int64)GetTime());
     if(nTimeWeight > 0)
-      bnCoinDayWeight = CBigNum(nValue) * nTimeWeight / (COIN * 24 * 60 * 60);
+      /* Two divides to avoid overflows on 32-bit systems */
+      bnCoinDayWeight = (CBigNum(nValue) * nTimeWeight) / COIN / (24 * 60 * 60);
     nWeight = bnCoinDayWeight.getuint64();
     return(true);
 }
@@ -1488,7 +1489,8 @@ bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeightInputs
         nTimeWeight = GetWeight((int64)pcoin.first->nTime, (int64)GetTime());
         if(nTimeWeight > 0) {
             /* Calculate stake weight */
-            bnCoinDayWeight = CBigNum(pcoin.first->vout[pcoin.second].nValue) * nTimeWeight / COIN / (24 * 60 * 60);
+            bnCoinDayWeight =
+              (CBigNum(pcoin.first->vout[pcoin.second].nValue) * nTimeWeight) / COIN / (24 * 60 * 60);
             nTotalStakeWeight += bnCoinDayWeight.getuint64();
             /* Minimum weight reached */
             if(nTimeWeight < (nStakeMaxAge / 2)) nMinWeightInputs++;
@@ -1507,7 +1509,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, uint nBits, int64 nSear
   CTransaction& txNew, CKey& key, int64 nStakeReward) {
 
     /* Inputs exceeding this age limit are never split while staking */
-    const uint nStakeSplitAge = (nStakeMinAge + nStakeMaxAge);
+    const uint nStakeSplitAge = (nStakeMinAgeTwo + nStakeMaxAge);
     /* Time limit for searching a single input */
     const uint nMaxStakeSearchInterval = 60;
 
@@ -1566,12 +1568,12 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, uint nBits, int64 nSear
               continue;
 
             /* Discard if too young */
-            if((coins.nBlockTime + nStakeMinAge) > (txNew.nTime - nMaxStakeSearchInterval))
+            if((coins.nBlockTime + GetStakeMinAge(coins.nBlockTime)) > (txNew.nTime - nMaxStakeSearchInterval))
               continue;
 
             CBlockIndex *pindex = FindBlockByHeight(coins.nHeight);
 
-            /* Discard if the block cannot be located */ 
+            /* Discard if the block cannot be located */
             if(!block.ReadFromDisk(pindex))
               continue;
 
@@ -1694,7 +1696,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, uint nBits, int64 nSear
             if(pcoin.first->vout[pcoin.second].nValue >= nCombineThreshold)
               continue;
             /* Do not add any inputs under the min. age */
-            if(nTimeWeight < nStakeMinAge)
+            if(nTimeWeight < nStakeMinAgeTwo)
               continue;
 
             txNew.vin.push_back(CTxIn(pcoin.first->GetHash(), pcoin.second));

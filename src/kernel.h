@@ -1,14 +1,16 @@
 // Copyright (c) 2012-2013 The PPCoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef PPCOIN_KERNEL_H
-#define PPCOIN_KERNEL_H
+
+#ifndef KERNEL_H
+#define KERNEL_H
 
 #include "main.h"
 
 /* Time to elapse before a new stake modifier is computed */
-extern uint nModifierInterval;
-extern uint nModifierIntervalNew;
+extern uint nModifierIntervalOne;
+extern uint nModifierIntervalTwo;
+extern uint nModifierIntervalThree;
 
 /* Stake modifier cache size limit */
 static const uint MODIFIER_CACHE_LIMIT = 16384;
@@ -16,6 +18,9 @@ static const uint MODIFIER_CACHE_LIMIT = 16384;
 // MODIFIER_INTERVAL_RATIO:
 // ratio of group interval length between the last group and the first group
 static const int MODIFIER_INTERVAL_RATIO = 3;
+
+/* Selects the appropriate minimal stake age */
+uint GetStakeMinAge(uint nStakeTime);
 
 // Compute the hash modifier for proof-of-stake
 bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64& nStakeModifier, bool& fGeneratedStakeModifier);
@@ -48,4 +53,4 @@ bool CheckStakeModifierCheckpoints(int nHeight, unsigned int nStakeModifierCheck
 // Get time weight using supplied timestamps
 int64 GetWeight(int64 nIntervalBeginning, int64 nIntervalEnd);
 
-#endif // PPCOIN_KERNEL_H
+#endif /* KERNEL_H */

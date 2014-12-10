@@ -26,23 +26,38 @@ static std::map<int, unsigned int> mapStakeModifierCheckpointsTestNet =
         ( 0, 0x0e00670bu )
     ;
 
-// Get time weight
-int64 GetWeight(int64 nIntervalBegin, int64 nIntervalEnd) {
-    unsigned int nAdjTime = GetAdjustedTime();
 
-    // Kernel hash weight starts from 0 at the 5-day min age
-    // this change increases active coins participating the hash and helps
-    // to secure the network when proof-of-stake difficulty is low
-    //
-    // Maximum TimeWeight is 15 days.
+/* Selects the appropriate minimal stake age */
+uint GetStakeMinAge(uint nStakeTime) {
 
-    if((fTestNet && (nAdjTime > TESTNET_CHAIN_SWITCH_TIME)) ||
-      (!fTestNet && (nAdjTime > CHAIN_SWITCH_TIME)))
-      // New rule: maximum TimeWeight is 15 days
-      return min(nIntervalEnd - nIntervalBegin - nStakeMinAge, (int64)nStakeMaxAge);
+    if(nStakeTime > nStakeMinAgeForkTime)
+      return(nStakeMinAgeTwo);
     else
-      // Old rule: maximum TimeWeight is 10 days
-      return min(nIntervalEnd - nIntervalBegin, (int64)nStakeMaxAge) - nStakeMinAge;
+      return(nStakeMinAgeOne);
+}
+
+
+/* Calculates time weight */
+int64 GetWeight(int64 nIntervalBegin, int64 nIntervalEnd) {
+    uint nAdjTime = GetAdjustedTime();
+    uint nStakeMinAge = GetStakeMinAge(nIntervalEnd);
+    int64 nTimeWeight = 0;
+
+    if((fTestNet && (nAdjTime > nTestnetForkOneTime)) ||
+      (!fTestNet && (nAdjTime > nForkTwoTime))) {
+        /* New rule: nStakeMaxAge is the limit */
+        nTimeWeight = nIntervalEnd - nIntervalBegin - nStakeMinAge;
+        if(nTimeWeight > (int64)nStakeMaxAge)
+          nTimeWeight = (int64)nStakeMaxAge;
+    } else {
+        /* Old rule: (nStakeMaxAge - nStakeMinAge) is the limit */
+        nTimeWeight = nIntervalEnd - nIntervalBegin;
+        if(nTimeWeight > (int64)nStakeMaxAge)
+          nTimeWeight = (int64)nStakeMaxAge;
+        nTimeWeight -= nStakeMinAge;
+    }
+
+    return(nTimeWeight);
 }
 
 // Get the last stake modifier and its generation time from a given block
@@ -153,12 +168,17 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64& nStakeModif
         printf("ComputeNextStakeModifier: prev modifier=0x%016"PRI64x" time=%s\n", nStakeModifier, DateTimeStrFormat(nModifierTime).c_str());
     }
 
-    uint nActualModifierInterval;
-    if((fTestNet && (pindexPrev->nHeight > TESTNET_HFORK5_HEIGHT)) ||
-      (!fTestNet && (pindexPrev->nHeight > HFORK5_HEIGHT)))
-      nActualModifierInterval = nModifierIntervalNew;
-    else
-      nActualModifierInterval = nModifierInterval;
+    int nBlockHeight = pindexPrev->nHeight;
+    uint nActualModifierInterval = nModifierIntervalOne;
+    if(fTestNet) {
+        if(nBlockHeight > nTestnetForkFour)
+          nActualModifierInterval = nModifierIntervalTwo;
+    } else {
+        if(nBlockHeight > nForkFive)
+          nActualModifierInterval = nModifierIntervalTwo;
+        if(nBlockHeight > nForkSix)
+          nActualModifierInterval = nModifierIntervalThree;
+    }
 
     if((nModifierTime / nActualModifierInterval) >= (pindexPrev->GetBlockTime() / nActualModifierInterval))
       return(true);
@@ -241,25 +261,29 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64& nStakeModifier,
     nStakeModifierTime   = pindexFrom->GetBlockTime();
     nStakeModifierHeight = pindexFrom->nHeight;
 
-    uint nActualModifierInterval;
-    if((fTestNet && (pindexFrom->nHeight > TESTNET_HFORK5_HEIGHT)) ||
-      (!fTestNet && (pindexFrom->nHeight > HFORK5_HEIGHT)))
-      nActualModifierInterval = nModifierIntervalNew;
-    else
-      nActualModifierInterval = nModifierInterval;
+    uint nStakeMinAge = GetStakeMinAge(nStakeModifierTime);
+
+    uint nActualModifierInterval = nModifierIntervalOne;
+    if(fTestNet) {
+        if(nStakeModifierHeight > nTestnetForkFour)
+          nActualModifierInterval = nModifierIntervalTwo;
+    } else {
+        if(nStakeModifierHeight > nForkFive)
+          nActualModifierInterval = nModifierIntervalTwo;
+        if(nStakeModifierHeight > nForkSix)
+          nActualModifierInterval = nModifierIntervalThree;
+    }
 
     int64 nStakeModifierSelectionInterval = GetStakeModifierSelectionInterval(nActualModifierInterval);
     const CBlockIndex* pindex = pindexFrom;
-    // loop to find the stake modifier later by a selection interval
-    while (nStakeModifierTime < pindexFrom->GetBlockTime() + nStakeModifierSelectionInterval)
-    {
-        if (!pindex->pnext)
-        {   // reached best block; may happen if node is behind on block chain
-            if (fPrintProofOfStake || (pindex->GetBlockTime() + nStakeMinAge - nStakeModifierSelectionInterval > GetAdjustedTime()))
-                return error("GetKernelStakeModifier() : reached best block %s at height %d from block %s",
-                    pindex->GetBlockHash().ToString().c_str(), pindex->nHeight, hashBlockFrom.ToString().c_str());
-            else
-                return false;
+    while(nStakeModifierTime < (pindexFrom->GetBlockTime() + nStakeModifierSelectionInterval)) {
+        if(!pindex->pnext) {
+            if(fPrintProofOfStake ||
+              ((pindex->GetBlockTime() + nStakeMinAge - nStakeModifierSelectionInterval) > GetAdjustedTime())) {
+                  return(error("GetKernelStakeModifier() : failed attempt at the best block %s (height %d) from block %s (height %d)",
+                    pindex->GetBlockHash().ToString().c_str(), pindex->nHeight,
+                    hashBlockFrom.ToString().c_str(), nStakeModifierHeight));
+            } else return(false);
         }
         pindex = pindex->pnext;
         if(pindex->GeneratedStakeModifier()) {
@@ -268,7 +292,7 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64& nStakeModifier,
         }
     }
     nStakeModifier = pindex->nStakeModifier;
-    return true;
+    return(true);
 }
 
 // ppcoin kernel protocol
@@ -300,9 +324,10 @@ bool CheckStakeKernelHash(uint nBits, const CBlock& blockFrom, uint nTxPrevOffse
     if(nTimeTx < txPrev.nTime)
       return(error("CheckStakeKernelHash() : time stamp violation"));
 
-    unsigned int nTimeBlockFrom = blockFrom.GetBlockTime();
-    if(nTimeBlockFrom + nStakeMinAge > nTimeTx)
-      return(error("CheckStakeKernelHash() : min. age violation"));
+    uint nTimeBlockFrom = blockFrom.GetBlockTime();
+    uint nStakeMinAge = GetStakeMinAge(nTimeBlockFrom);
+    if((nTimeBlockFrom + nStakeMinAge) > nTimeTx)
+      return(error("CheckStakeKernelHash() : min. stake age violation"));
 
     CBigNum bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
@@ -454,7 +479,6 @@ bool CheckCoinStakeTimestamp(int64 nTimeBlock, int64 nTimeTx)
 // Get stake modifier checksum
 unsigned int GetStakeModifierChecksum(const CBlockIndex* pindex)
 {
-    assert (pindex->pprev || pindex->GetBlockHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
     // Hash previous checksum with flags, hashProofOfStake and nStakeModifier
     CDataStream ss(SER_GETHASH, 0);
     if (pindex->pprev)

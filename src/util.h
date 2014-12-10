@@ -160,6 +160,9 @@ extern bool fReopenDebugLog;
 extern bool fStakeGen;
 extern bool fStakingOnly;
 
+extern bool fNeoScrypt;
+extern uint nNeoScryptOptions;
+
 extern uint64 nBlockHashCacheHits;
 extern uint64 nBlockHashCacheMisses;
 extern uint64 nModifierCacheHits;

@@ -6,6 +6,9 @@
 # Mac OS X makefile for Orbitcoin
 # Originally by Laszlo Hanyecz (solar@heliacal.net)
 
+CC = gcc
+CFLAGS = -O2 -fomit-frame-pointer
+
 CXX = g++
 DEPSDIR = /usr/local
 
@@ -49,9 +52,9 @@ ifdef RELEASE
 # Compile for maximum compatibility and smallest size.
 # This requires that dependencies are compiled
 # the same way.
-CXXFLAGS = -mmacosx-version-min=10.5 -arch i386 -O2 -fomit-frame-pointer
+CXXFLAGS = $(CFLAGS) -mmacosx-version-min=10.5 -arch i386
 else
-CXXFLAGS = -O2 -fomit-frame-pointer
+CXXFLAGS = $(CFLAGS)
 endif
 
 # ppc doesn't work because we don't support big-endian
@@ -89,8 +92,10 @@ OBJS= \
     obj/wallet.o \
     obj/walletdb.o \
     obj/noui.o \
-    obj/pbkdf2.o \
     obj/kernel.o \
+    obj/neoscrypt.o \
+    obj/neoscrypt_asm.o \
+    obj/pbkdf2.o \
     obj/scrypt.o \
     obj/scrypt-x86.o \
     obj/scrypt-x86_64.o
@@ -135,11 +140,17 @@ obj/%.o: %.cpp
 	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
 	  rm -f $(@:%.o=%.d)
 
+obj/neoscrypt.o: neoscrypt.c
+	$(CC) $(CFLAGS) -DSHA256 -DASM -c -o $@ $^
+
+obj/neoscrypt_asm.o: neoscrypt_asm.S
+	$(CC) -c -DSHA256 -DASM -o $@ $^
+
 obj/scrypt-x86.o: scrypt-x86.S
-	$(CXX) -c -MMD -o $@ $<
+	$(CC) -c -MMD -o $@ $<
 
 obj/scrypt-x86_64.o: scrypt-x86_64.S
-	$(CXX) -c -MMD -o $@ $<
+	$(CC) -c -MMD -o $@ $<
 
 orbitcoind: $(OBJS:obj/%=obj/%)
 	$(CXX) $(CXXFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS)

@@ -82,6 +82,10 @@ bool fReopenDebugLog = false;
 bool fStakeGen = true;
 bool fStakingOnly = false;
 
+/* NeoScrypt related */
+bool fNeoScrypt = false;
+uint nNeoScryptOptions = 0;
+
 /* Performance counters */
 uint64 nBlockHashCacheHits = 0;
 uint64 nBlockHashCacheMisses = 0;
