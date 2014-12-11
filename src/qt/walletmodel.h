@@ -56,17 +56,19 @@ public:
     {
         Unencrypted,  // !wallet->IsCrypted()
         Locked,       // wallet->IsCrypted() && wallet->IsLocked()
-        Unlocked      // wallet->IsCrypted() && !wallet->IsLocked()
+        Unlocked,       /* wallet->IsCrypted() && !wallet->IsLocked() && !fStakingOnly */
+        UnlockedStaking /* wallet->IsCrypted() && !wallet->IsLocked() && fStakingOnly */
     };
 
     OptionsModel *getOptionsModel();
     AddressTableModel *getAddressTableModel();
     TransactionTableModel *getTransactionTableModel();
 
-    qint64 getBalance() const;
-    qint64 getStake() const;
-    qint64 getUnconfirmedBalance() const;
-    qint64 getImmatureBalance() const;
+    qint64 getBalance();
+    qint64 getUnconfirmed();
+    qint64 getStake();
+    qint64 getImmature();
+
     int getNumTransactions() const;
     EncryptionStatus getEncryptionStatus() const;
 
@@ -93,11 +95,16 @@ public:
     // Passphrase only needed when unlocking
     bool setWalletLocked(bool locked, const SecureString &passPhrase=SecureString());
     bool changePassphrase(const SecureString &oldPass, const SecureString &newPass);
-    // Wallet backup
-    bool backupWallet(const QString &filename);
+    /* Wallet cloning */
+    bool cloneWallet(const QString &filename);
+    /* Wallet keys export / import */
+    bool exportWallet(const QString &filename);
+    bool importWallet(const QString &filename);
     // Stake weight calculation
     void getStakeWeightQuick(const qint64& nTime, const qint64& nValue, quint64& nWeight);
     void getStakeWeight(quint64& nMinWeightInputs, quint64& nAvgWeightInputs, quint64& nMaxWeightInputs, quint64& nTotalStakeWeight);
+    /* Wallet check & repair */
+    void repairWallet(int& nMismatchSpent, int& nOrphansFound, qint64& nBalanceInQuestion, bool fCheckOnly);
 
     // RAI object for unlocking wallet, returned by requestUnlock()
     class UnlockContext
@@ -141,9 +148,9 @@ private:
 
     // Cache some values to be able to detect changes
     qint64 cachedBalance;
+    qint64 cachedUnconfirmed;
     qint64 cachedStake;
-    qint64 cachedUnconfirmedBalance;
-    qint64 cachedImmatureBalance;
+    qint64 cachedImmature;
     qint64 cachedNumTransactions;
     EncryptionStatus cachedEncryptionStatus;
     int cachedNumBlocks;
@@ -167,7 +174,7 @@ public slots:
 
 signals:
     // Signal that balance in wallet changed
-    void balanceChanged(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
+    void balanceChanged(qint64 balance, qint64 stake, qint64 unconfirmed, qint64 immature);
 
     // Number of transactions in wallet changed
     void numTransactionsChanged(int count);

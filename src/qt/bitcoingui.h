@@ -81,22 +81,28 @@ private:
 
     QMenuBar *appMenuBar;
     QAction *overviewAction;
-    QAction *historyAction;
-    QAction *quitAction;
     QAction *sendCoinsAction;
+    QAction *receiveCoinsAction;
+    QAction *historyAction;
     QAction *addressBookAction;
+    QAction *consoleAction;
+    QAction *toggleHideAction;
+    QAction *cloneWalletAction;
+    QAction *exportWalletAction;
+    QAction *importWalletAction;
+    QAction *optionsAction;
+    QAction *lockWalletToggleAction;
+    QAction *quitAction;
+    QAction *stakeMinerToggleAction;
+    QAction *encryptWalletAction;
+    QAction *changePassphraseAction;
+    QAction *inspectWalletAction;
+    QAction *repairWalletAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
-    QAction *aboutAction;
-    QAction *receiveCoinsAction;
-    QAction *optionsAction;
-    QAction *toggleHideAction;
     QAction *exportAction;
-    QAction *encryptWalletAction;
-    QAction *backupWalletAction;
-    QAction *changePassphraseAction;
+    QAction *aboutAction;
     QAction *aboutQtAction;
-    QAction *consoleAction;
 
     QSystemTrayIcon *trayIcon;
     Notificator *notificator;
@@ -174,12 +180,23 @@ private slots:
     void incomingTransaction(const QModelIndex & parent, int start, int end);
     /** Encrypt the wallet */
     void encryptWallet(bool status);
-    /** Backup the wallet */
-    void backupWallet();
+    /* Wallet cloning */
+    void cloneWallet();
+    /* Wallet keys export / import */
+    void exportWallet();
+    void importWallet();
     /** Change encrypted wallet passphrase */
     void changePassphrase();
     /** Ask for passphrase to unlock wallet temporarily */
     void unlockWallet();
+    /* Wallet lock/unlock toggle for staking */
+    void lockWalletToggle();
+    /* Enable/disable stake mining */
+    void stakeMinerToggle(bool fInitial = false);
+    /* Wallet check */
+    void inspectWallet();
+    /* Wallet repair */
+    void repairWallet();
 
     /** Show window if hidden, unminimize when minimized, rise when obscured or show if hidden and fToggleHidden is true */
     void showNormalIfMinimized(bool fToggleHidden = false);

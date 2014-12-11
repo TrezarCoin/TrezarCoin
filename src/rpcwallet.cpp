@@ -28,8 +28,9 @@ void EnsureWalletIsUnlocked()
 {
     if (pwalletMain->IsLocked())
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
-    if (fWalletUnlockMintOnly)
-        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Wallet unlocked for block minting only.");
+
+    if(fStakingOnly)
+      throw(JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Wallet unlocked for staking only."));
 }
 
 void WalletTxToJSON(const CWalletTx& wtx, Object& entry)
@@ -74,23 +75,25 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("version",       FormatFullVersion()));
     obj.push_back(Pair("protocolversion",(int)PROTOCOL_VERSION));
     obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
-    obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
-    obj.push_back(Pair("newmint",       ValueFromAmount(pwalletMain->GetNewMint())));
-    obj.push_back(Pair("stake",         ValueFromAmount(pwalletMain->GetStake())));
+    obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance(0x3))));
+    obj.push_back(Pair("stake",         ValueFromAmount(pwalletMain->GetMinted(0xE))));
+    obj.push_back(Pair("newposmint",    ValueFromAmount(pwalletMain->GetMinted(0x6))));
+    obj.push_back(Pair("newpowmint",    ValueFromAmount(pwalletMain->GetMinted(0x5))));
+    obj.push_back(Pair("allposmint",    ValueFromAmount(pwalletMain->GetMinted(0x2))));
+    obj.push_back(Pair("allpowmint",    ValueFromAmount(pwalletMain->GetMinted(0x1))));
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("timeoffset",    (boost::int64_t)GetTimeOffset()));
     obj.push_back(Pair("moneysupply",   ValueFromAmount(pindexBest->nMoneySupply)));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
     obj.push_back(Pair("ip",            addrSeenByPeer.ToStringIP()));
-    obj.push_back(Pair("difficulty",    (double)GetDifficulty()));
-    obj.push_back(Pair("testnet",       fTestNet));
     obj.push_back(Pair("keypoololdest", (boost::int64_t)pwalletMain->GetOldestKeyPoolTime()));
     obj.push_back(Pair("keypoolsize",   (int)pwalletMain->GetKeyPoolSize()));
     obj.push_back(Pair("paytxfee",      ValueFromAmount(nTransactionFee)));
     obj.push_back(Pair("mininput",      ValueFromAmount(nMinimumInputValue)));
     if (pwalletMain->IsCrypted())
         obj.push_back(Pair("unlocked_until", (boost::int64_t)nWalletUnlockTime / 1000));
+    obj.push_back(Pair("testnet",       fTestNet));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     return obj;
 }
@@ -553,12 +556,15 @@ Value getbalance(const Array& params, bool fHelp)
             "If [account] is not specified, returns the server's total available balance.\n"
             "If [account] is specified, returns the balance in the account.");
 
-    if (params.size() == 0)
-        return  ValueFromAmount(pwalletMain->GetBalance());
+    if(params.size() == 0)
+      /* Available + unconfirmed; the latter is also available technically */
+      return(ValueFromAmount(pwalletMain->GetBalance(0x3)));
 
     int nMinDepth = 1;
     if (params.size() > 1)
         nMinDepth = params[1].get_int();
+
+    /* Broken code below due to PoS, don't use */
 
     if (params[0].get_str() == "*") {
         // Calculate total balance a different way from GetBalance()
@@ -764,9 +770,9 @@ Value sendmany(const Array& params, bool fHelp)
     bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strTxComment);
     if (!fCreated)
     {
-        if (totalAmount + nFeeRequired > pwalletMain->GetBalance())
-            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
-        throw JSONRPCError(RPC_WALLET_ERROR, "Transaction creation failed");
+        if(totalAmount + nFeeRequired > pwalletMain->GetBalance(0x3))
+          throw(JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds"));
+        throw(JSONRPCError(RPC_WALLET_ERROR, "Transaction creation failed"));
     }
     if (!pwalletMain->CommitTransaction(wtx, keyChange))
         throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
@@ -1477,11 +1483,11 @@ Value walletpassphrase(const Array& params, bool fHelp)
     int64* pnSleepTime = new int64(params[1].get_int64());
     NewThread(ThreadCleanWalletPassphrase, pnSleepTime);
 
-    // ppcoin: if user OS account compromised prevent trivial sendmoney commands
-    if (params.size() > 2)
-        fWalletUnlockMintOnly = params[2].get_bool();
+    /* Disables some wallet functionality if unlocked for staking only */
+    if(params.size() > 2)
+      fStakingOnly = params[2].get_bool();
     else
-        fWalletUnlockMintOnly = false;
+      fStakingOnly = false;
 
     return Value::null;
 }
@@ -1728,8 +1734,9 @@ Value checkwallet(const Array& params, bool fHelp)
             "Check wallet for integrity.\n");
 
     int nMismatchSpent;
+    int nOrphansFound;
     int64 nBalanceInQuestion;
-    pwalletMain->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, true);
+    pwalletMain->FixSpentCoins(nMismatchSpent, nOrphansFound, nBalanceInQuestion, true);
     Object result;
     if (nMismatchSpent == 0)
         result.push_back(Pair("wallet check passed", true));
@@ -1737,6 +1744,8 @@ Value checkwallet(const Array& params, bool fHelp)
     {
         result.push_back(Pair("mismatched spent coins", nMismatchSpent));
         result.push_back(Pair("amount in question", ValueFromAmount(nBalanceInQuestion)));
+        if(!nOrphansFound)
+          result.push_back(Pair("orphans found", nOrphansFound));
     }
     return result;
 }
@@ -1751,8 +1760,9 @@ Value repairwallet(const Array& params, bool fHelp)
             "Repair wallet if checkwallet reports any problem.\n");
 
     int nMismatchSpent;
+    int nOrphansFound;
     int64 nBalanceInQuestion;
-    pwalletMain->FixSpentCoins(nMismatchSpent, nBalanceInQuestion);
+    pwalletMain->FixSpentCoins(nMismatchSpent, nOrphansFound, nBalanceInQuestion, false);
     Object result;
     if (nMismatchSpent == 0)
         result.push_back(Pair("wallet check passed", true));
@@ -1760,6 +1770,8 @@ Value repairwallet(const Array& params, bool fHelp)
     {
         result.push_back(Pair("mismatched spent coins", nMismatchSpent));
         result.push_back(Pair("amount affected by repair", ValueFromAmount(nBalanceInQuestion)));
+        if(!nOrphansFound)
+          result.push_back(Pair("orphans removed", nOrphansFound));
     }
     return result;
 }

@@ -158,7 +158,19 @@ extern bool fNoListen;
 extern bool fLogTimestamps;
 extern bool fReopenDebugLog;
 extern bool fStakeGen;
+extern bool fStakingOnly;
 
+extern bool fNeoScrypt;
+extern uint nNeoScryptOptions;
+
+extern uint64 nBlockHashCacheHits;
+extern uint64 nBlockHashCacheMisses;
+extern uint64 nModifierCacheHits;
+extern uint64 nModifierCacheMisses;
+extern uint64 nInputCacheHits;
+extern uint64 nInputCacheMisses;
+
+extern uint nStakeMinDepth;
 extern long long nLastWalletStakeTime;
 extern unsigned long long nMinWeightInputs;
 extern unsigned long long nAvgWeightInputs;
@@ -216,7 +228,7 @@ std::string EncodeBase32(const std::string& str);
 void ParseParameters(int argc, const char*const argv[]);
 bool WildcardMatch(const char* psz, const char* mask);
 bool WildcardMatch(const std::string& str, const std::string& mask);
-void FileCommit(FILE *fileout);
+int FileCommit(FILE *fileout);
 int GetFilesize(FILE* file);
 void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length);
 bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest);

@@ -33,159 +33,51 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("posdifficulty", (float)GetDifficulty(GetLastBlockIndex(pindexBest, true))));
     obj.push_back(Pair("powreward",     (float)(GetProofOfWorkReward(GetLastBlockIndex(pindexBest, false)->nHeight, (int64)NULL))/COIN));
     obj.push_back(Pair("posreward",     (float)(GetProofOfStakeReward(GetLastBlockIndex(pindexBest, true)->nHeight, (int64)NULL))/COIN));
-    obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     obj.push_back(Pair("networkhashps", getnetworkhashps(params, false)));
     obj.push_back(Pair("stakeweight",   (uint64_t)nTotalStakeWeight));
     obj.push_back(Pair("minweightinputs", (uint64_t)nMinWeightInputs));
     obj.push_back(Pair("avgweightinputs", (uint64_t)nAvgWeightInputs));
     obj.push_back(Pair("maxweightinputs", (uint64_t)nMaxWeightInputs));
+    obj.push_back(Pair("stakemindepth", (int)nStakeMinDepth));
+    obj.push_back(Pair("minstakinginput", ValueFromAmount(nMinStakingInputValue)));
+    obj.push_back(Pair("stakecombine",  ValueFromAmount(nCombineThreshold)));
+    obj.push_back(Pair("stakesplit",    ValueFromAmount(nSplitThreshold)));
     obj.push_back(Pair("pooledtx",      (uint64_t)mempool.size()));
     obj.push_back(Pair("testnet",       fTestNet));
-    return obj;
 
+    return(obj);
 }
 
-Value getworkex(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() > 2)
-        throw runtime_error(
-            "getworkex [data, coinbase]\n"
-            "If [data, coinbase] is not specified, returns extended work data.\n"
-        );
+Value getcounters(const Array& params, bool fHelp) {
 
-    if (vNodes.empty())
-        throw JSONRPCError(-9, "Orbitcoin is not connected!");
+    if(fHelp || (params.size() != 0))
+      throw(runtime_error("getcounters\n"
+        "Returns an object containing performance counters."));
 
-    if (IsInitialBlockDownload())
-        throw JSONRPCError(-10, "Orbitcoin is downloading blocks...");
+    Object obj;
+    obj.push_back(Pair("block hash cache hits",       (uint64_t)nBlockHashCacheHits));
+    obj.push_back(Pair("block hash cache misses",     (uint64_t)nBlockHashCacheMisses));
+    obj.push_back(Pair("stake modifier cache hits",   (uint64_t)nModifierCacheHits));
+    obj.push_back(Pair("stake modifier cache misses", (uint64_t)nModifierCacheMisses));
+    obj.push_back(Pair("stake input cache hits",      (uint64_t)nInputCacheHits));
+    obj.push_back(Pair("stake input cache misses",    (uint64_t)nInputCacheMisses));
 
-    typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
-    static mapNewBlock_t mapNewBlock;
-    static vector<CBlock*> vNewBlock;
-    static CReserveKey reservekey(pwalletMain);
-
-    if (params.size() == 0)
-    {
-        // Update block
-        static unsigned int nTransactionsUpdatedLast;
-        static CBlockIndex* pindexPrev;
-        static int64 nStart;
-        static CBlock* pblock;
-        if (pindexPrev != pindexBest ||
-            (nTransactionsUpdated != nTransactionsUpdatedLast && GetTime() - nStart > 60))
-        {
-            if (pindexPrev != pindexBest)
-            {
-                // Deallocate old blocks since they're obsolete now
-                mapNewBlock.clear();
-                BOOST_FOREACH(CBlock* pblock, vNewBlock)
-                    delete pblock;
-                vNewBlock.clear();
-            }
-            nTransactionsUpdatedLast = nTransactionsUpdated;
-            pindexPrev = pindexBest;
-            nStart = GetTime();
-
-            // Create new block
-            pblock = CreateNewBlock(pwalletMain, false);
-            if (!pblock)
-                throw JSONRPCError(-7, "Out of memory");
-            vNewBlock.push_back(pblock);
-        }
-
-        // Update nTime
-        pblock->nTime = max((pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1), GetAdjustedTime());
-        pblock->nNonce = 0;
-
-        // Update nExtraNonce
-        static unsigned int nExtraNonce = 0;
-        IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
-
-        // Save
-        mapNewBlock[pblock->hashMerkleRoot] = make_pair(pblock, pblock->vtx[0].vin[0].scriptSig);
-
-        // Prebuild hash buffers
-        char pmidstate[32];
-        char pdata[128];
-        char phash1[64];
-        FormatHashBuffers(pblock, pmidstate, pdata, phash1);
-
-        uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
-
-        CTransaction coinbaseTx = pblock->vtx[0];
-        std::vector<uint256> merkle = pblock->GetMerkleBranch(0);
-
-        Object result;
-        result.push_back(Pair("data",     HexStr(BEGIN(pdata), END(pdata))));
-        result.push_back(Pair("target",   HexStr(BEGIN(hashTarget), END(hashTarget))));
-
-        CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
-        ssTx << coinbaseTx;
-        result.push_back(Pair("coinbase", HexStr(ssTx.begin(), ssTx.end())));
-
-        Array merkle_arr;
-
-        BOOST_FOREACH(uint256 merkleh, merkle) {
-            merkle_arr.push_back(HexStr(BEGIN(merkleh), END(merkleh)));
-        }
-
-        result.push_back(Pair("merkle", merkle_arr));
-
-
-        return result;
-    }
-    else
-    {
-        // Parse parameters
-        vector<unsigned char> vchData = ParseHex(params[0].get_str());
-        vector<unsigned char> coinbase;
-
-        if(params.size() == 2)
-            coinbase = ParseHex(params[1].get_str());
-
-        if (vchData.size() != 128)
-            throw JSONRPCError(-8, "Invalid parameter");
-
-        CBlock* pdata = (CBlock*)&vchData[0];
-
-        // Byte reverse
-        for (int i = 0; i < 128/4; i++)
-            ((unsigned int*)pdata)[i] = ByteReverse(((unsigned int*)pdata)[i]);
-
-        // Get saved block
-        if (!mapNewBlock.count(pdata->hashMerkleRoot))
-            return false;
-        CBlock* pblock = mapNewBlock[pdata->hashMerkleRoot].first;
-
-        pblock->nTime = pdata->nTime;
-        pblock->nNonce = pdata->nNonce;
-
-        if(coinbase.size() == 0)
-            pblock->vtx[0].vin[0].scriptSig = mapNewBlock[pdata->hashMerkleRoot].second;
-        else
-            CDataStream(coinbase, SER_NETWORK, PROTOCOL_VERSION) >> pblock->vtx[0]; // FIXME - HACK!
-
-        pblock->hashMerkleRoot = pblock->BuildMerkleTree();
-
-        if(!pblock->SignWorkBlock(*pwalletMain))
-          throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
-
-        return CheckWork(pblock, *pwalletMain, reservekey);
-    }
+    return(obj);
 }
 
 
-Value getwork(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() > 1)
-        throw runtime_error(
-            "getwork [data]\n"
-            "If [data] is not specified, returns formatted hash data to work on:\n"
-            "  \"midstate\" : precomputed hash state after hashing the first half of the data (DEPRECATED)\n" // deprecated
-            "  \"data\" : block data\n"
-            "  \"hash1\" : formatted hash buffer for second hash (DEPRECATED)\n" // deprecated
-            "  \"target\" : little endian hash target\n"
-            "If [data] is specified, tries to solve the block and returns true if it was successful.");
+/* RPC getwork provides a miner with the current best block header to solve
+ * and receives the result if available */
+Value getwork(const Array& params, bool fHelp) {
+
+    if(fHelp || (params.size() > 1))
+      throw(runtime_error(
+        "getwork [data]\n"
+        "If [data] is not specified, returns formatted data to work on:\n"
+        "  \"data\" : block header\n"
+        "  \"target\" : hash target\n"
+        "  \"algorithm\" : hashing algorithm expected (optional)\n"
+        "If [data] is specified, verifies the PoW hash against target and returns true if successful."));
 
     if (vNodes.empty())
         throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Orbitcoin is not connected!");
@@ -243,52 +135,70 @@ Value getwork(const Array& params, bool fHelp)
         static unsigned int nExtraNonce = 0;
         IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
-        // Save
+        /* Save this block for the future use */
         mapNewBlock[pblock->hashMerkleRoot] = make_pair(pblock, pblock->vtx[0].vin[0].scriptSig);
 
-        // Pre-build hash buffers
-        char pmidstate[32];
-        char pdata[128];
-        char phash1[64];
-        FormatHashBuffers(pblock, pmidstate, pdata, phash1);
+        /* Prepare the block header for transmission */
+        uint pdata[32];
+        FormatDataBuffer(pblock, pdata);
 
+        /* Get the current decompressed block target */
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
         Object result;
-        result.push_back(Pair("midstate", HexStr(BEGIN(pmidstate), END(pmidstate)))); // deprecated
-        result.push_back(Pair("data",     HexStr(BEGIN(pdata), END(pdata))));
-        result.push_back(Pair("hash1",    HexStr(BEGIN(phash1), END(phash1)))); // deprecated
-        result.push_back(Pair("target",   HexStr(BEGIN(hashTarget), END(hashTarget))));
-        return result;
-    }
-    else
-    {
-        // Parse parameters
+        result.push_back(Pair("data",   HexStr(BEGIN(pdata), fNeoScrypt ? (char *) &pdata[20] : END(pdata))));
+        result.push_back(Pair("target", HexStr(BEGIN(hashTarget), END(hashTarget))));
+        /* Optional */
+        if(fNeoScrypt)
+          result.push_back(Pair("algorithm", "neoscrypt"));
+        else
+          result.push_back(Pair("algorithm", "scrypt:1024,1,1"));
+
+        return(result);
+
+    } else {
+
+        /* Data received */
         vector<unsigned char> vchData = ParseHex(params[0].get_str());
-        if (vchData.size() != 128)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter");
-        CBlock* pdata = (CBlock*)&vchData[0];
 
-        // Byte reverse
-        for (int i = 0; i < 128/4; i++)
-            ((unsigned int*)pdata)[i] = ByteReverse(((unsigned int*)pdata)[i]);
+        /* Must be no less actual data than sent previously */
+        if(vchData.size() < 80)
+          throw(JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter"));
+        CBlock* pdata = (CBlock*) &vchData[0];
 
-        // Get saved block
-        if (!mapNewBlock.count(pdata->hashMerkleRoot))
-            return false;
+        if(!fNeoScrypt) {
+            uint i;
+            /* nVersion and hashPrevBlock aren't needed */
+            for(i = 9; i < 20; i++)
+              /* Convert BE to LE */
+              ((uint *) pdata)[i] = ByteReverse(((uint *) pdata)[i]);
+        }
+
+        /* Pick up the block contents saved previously */
+        if(!mapNewBlock.count(pdata->hashMerkleRoot))
+          return(false);
         CBlock* pblock = mapNewBlock[pdata->hashMerkleRoot].first;
 
+        /* Replace with the data received */
         pblock->nTime = pdata->nTime;
         pblock->nNonce = pdata->nNonce;
         pblock->vtx[0].vin[0].scriptSig = mapNewBlock[pdata->hashMerkleRoot].second;
+
+        /* Rebuild the merkle root */
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 
-        if(!pblock->SignWorkBlock(*pwalletMain))
-          throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
+        /* Legacy proof-of-work block signing;
+         * signature must be empty for all NeoScrypt blocks */
+        if(!fNeoScrypt) {
+            if(!pblock->SignWorkBlock(*pwalletMain))
+              throw(JSONRPCError(-100, "Failed to sign this proof-of-work block!"));
+        }
 
-        return CheckWork(pblock, *pwalletMain, reservekey);
+        /* Verify the resulting hash against target */
+        return(CheckWork(pblock, *pwalletMain, reservekey));
     }
 }
+
 
 Value getblocktemplate(const Array& params, bool fHelp)
 {
@@ -462,8 +372,10 @@ Value submitblock(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
     }
 
-    if(!block.SignWorkBlock(*pwalletMain))
-      throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
+    if(!fNeoScrypt) {
+        if(!block.SignWorkBlock(*pwalletMain))
+          throw(JSONRPCError(-100, "Failed to sign this proof-of-work block!"));
+    }
 
     bool fAccepted = ProcessBlock(NULL, &block);
     if (!fAccepted)
@@ -474,28 +386,38 @@ Value submitblock(const Array& params, bool fHelp)
 
 Value getnetworkhashps(const Array& params, bool fHelp) {
 
-    if(fHelp || params.size() > 1) throw runtime_error(
-      "getnetworkhashps [blocks]\n"
-      "Calculates estimated network hashes per second based on the last 50 blocks.\n"
-      "Pass in [blocks] to override the default value.");
+    if(fHelp || (params.size() > 1))
+      throw(runtime_error(
+        "getnetworkhashps [blocks]\n"
+        "Calculates estimated network hashes per second based on the last 50 PoW blocks.\n"
+        "Pass in [blocks] to override the default value."));
 
-    int lookup = params.size() > 0 ? params[0].get_int() : 50;
+    int lookup = (params.size() > 0) ? params[0].get_int() : 50;
 
-    if(pindexBest == NULL) return 0;
+    /* The genesis block only */
+    if(!pindexBest) return(0);
 
-    // If look-up is zero or negative value, then use the default value
+    /* Range limit */
     if(lookup <= 0) lookup = 50;
 
-    // If look-up is larger than block chain, then set it to the maximum allowed
-    if(lookup > pindexBest->nHeight) lookup = pindexBest->nHeight;
-
+    int i;
     CBlockIndex* pindexPrev = pindexBest;
-    for(int i = 0; i < lookup; i++) pindexPrev = pindexPrev->pprev;
+    for(i = 0; (i < lookup); i++) {
+        /* Hit the genesis block */
+        if(!pindexPrev->pprev) {
+            lookup = i + 1;
+            break;
+        }
+        /* Move one block back */
+        pindexPrev = pindexPrev->pprev;
+        /* Don't count PoS blocks */
+        if(pindexPrev->IsProofOfStake()) i--;
+    }
 
     double timeDiff = pindexBest->GetBlockTime() - pindexPrev->GetBlockTime();
     double timePerBlock = timeDiff / lookup;
 
-    return (boost::int64_t)(((double)GetDifficulty() * pow(2.0, 32)) / timePerBlock);
+    return((boost::int64_t)(((double)GetDifficulty() * pow(2.0, 32)) / timePerBlock));
 }
 
 Value getstakegen(const Array& params, bool fHelp) {

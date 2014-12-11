@@ -62,6 +62,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     QMainWindow(parent),
     clientModel(0),
     walletModel(0),
+    lockWalletToggleAction(0),
     encryptWalletAction(0),
     changePassphraseAction(0),
     aboutQtAction(0),
@@ -74,8 +75,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     resize(850, 550);
     setWindowTitle(tr("Orbitcoin") + " - " + tr("Wallet"));
 #ifndef Q_OS_MAC
-    qApp->setWindowIcon(QIcon(":icons/bitcoin"));
-    setWindowIcon(QIcon(":icons/bitcoin"));
+    qApp->setWindowIcon(QIcon(":icons/orbitcoin"));
+    setWindowIcon(QIcon(":icons/orbitcoin"));
 #else
     setUnifiedTitleAndToolBarOnMac(true);
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
@@ -187,8 +188,7 @@ BitcoinGUI::~BitcoinGUI()
 #endif
 }
 
-void BitcoinGUI::createActions()
-{
+void BitcoinGUI::createActions() {
     QActionGroup *tabGroup = new QActionGroup(this);
 
     overviewAction = new QAction(QIcon(":/icons/overview"), tr("&Overview"), this);
@@ -196,86 +196,105 @@ void BitcoinGUI::createActions()
     overviewAction->setCheckable(true);
     overviewAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_1));
     tabGroup->addAction(overviewAction);
+    connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
 
     sendCoinsAction = new QAction(QIcon(":/icons/send"), tr("&Send"), this);
-    sendCoinsAction->setToolTip(tr("Send coins to a Orbitcoin address"));
+    sendCoinsAction->setToolTip(tr("Send coins to an Orbitcoin address"));
     sendCoinsAction->setCheckable(true);
     sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_2));
     tabGroup->addAction(sendCoinsAction);
+    connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(gotoSendCoinsPage()));
 
     receiveCoinsAction = new QAction(QIcon(":/icons/receiving_addresses"), tr("&Receive"), this);
     receiveCoinsAction->setToolTip(tr("Show the list of addresses for receiving payments"));
     receiveCoinsAction->setCheckable(true);
     receiveCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_3));
     tabGroup->addAction(receiveCoinsAction);
+    connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(gotoReceiveCoinsPage()));
 
-    historyAction = new QAction(QIcon(":/icons/history"), tr("&Transactions"), this);
-    historyAction->setToolTip(tr("Browse transaction history"));
+    historyAction = new QAction(QIcon(":/icons/history"), tr("&Payments"), this);
+    historyAction->setToolTip(tr("Browse your payment history"));
     historyAction->setCheckable(true);
     historyAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4));
     tabGroup->addAction(historyAction);
+    connect(historyAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
 
     addressBookAction = new QAction(QIcon(":/icons/address-book"), tr("&Addresses"), this);
     addressBookAction->setToolTip(tr("Edit the list of stored addresses and labels"));
     addressBookAction->setCheckable(true);
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
-
-    consoleAction = new QAction(QIcon(":/icons/debugwindow"), tr("&Console"), this);
-    consoleAction->setToolTip(tr("Open the RPC console"));
-    consoleAction->setCheckable(true);
-    tabGroup->addAction(consoleAction);
-
-    connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
-    connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(gotoSendCoinsPage()));
-    connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(gotoReceiveCoinsPage()));
-    connect(historyAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
 
-    quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
-    quitAction->setToolTip(tr("Quit application"));
-    quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
-    quitAction->setMenuRole(QAction::QuitRole);
-    aboutAction = new QAction(QIcon(":/icons/bitcoin"), tr("&About Orbitcoin"), this);
-    aboutAction->setToolTip(tr("Show information about Orbitcoin"));
-    aboutAction->setMenuRole(QAction::AboutRole);
-    aboutQtAction = new QAction(QIcon(":/trolltech/qmessagebox/images/qtlogo-64.png"), tr("About &Qt"), this);
-    aboutQtAction->setToolTip(tr("Show information about Qt"));
-    aboutQtAction->setMenuRole(QAction::AboutQtRole);
-    optionsAction = new QAction(QIcon(":/icons/options"), tr("&Options..."), this);
-    optionsAction->setToolTip(tr("Modify configuration options for Orbitcoin"));
-    optionsAction->setMenuRole(QAction::PreferencesRole);
-    toggleHideAction = new QAction(QIcon(":/icons/bitcoin"), tr("&Show / Hide"), this);
-    encryptWalletAction = new QAction(QIcon(":/icons/lock_closed"), tr("&Encrypt Wallet..."), this);
-    encryptWalletAction->setToolTip(tr("Encrypt or decrypt wallet"));
-    encryptWalletAction->setCheckable(true);
-    backupWalletAction = new QAction(QIcon(":/icons/filesave"), tr("&Backup Wallet..."), this);
-    backupWalletAction->setToolTip(tr("Backup wallet to another location"));
-    changePassphraseAction = new QAction(QIcon(":/icons/key"), tr("&Change Passphrase..."), this);
-    changePassphraseAction->setToolTip(tr("Change the passphrase used for wallet encryption"));
-    signMessageAction = new QAction(QIcon(":/icons/edit"), tr("Sign &message..."), this);
-    verifyMessageAction = new QAction(QIcon(":/icons/transaction_0"), tr("&Verify message..."), this);
-
-    exportAction = new QAction(QIcon(":/icons/export"), tr("&Export..."), this);
-    exportAction->setToolTip(tr("Export the data in the current tab to a file"));
     consoleAction = new QAction(QIcon(":/icons/debugwindow"), tr("&Console"), this);
     consoleAction->setToolTip(tr("Open the RPC console"));
+    consoleAction->setCheckable(false);
+    tabGroup->addAction(consoleAction);
+    /* RPC console action connected already */
 
-    connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
-    connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
-    connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
-    connect(optionsAction, SIGNAL(triggered()), this, SLOT(optionsClicked()));
+    toggleHideAction = new QAction(QIcon(":/icons/orbitcoin"), tr("&Show / Hide"), this);
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
+
+    cloneWalletAction = new QAction(QIcon(":/icons/filesave"), tr("&Clone"), this);
+    connect(cloneWalletAction, SIGNAL(triggered()), this, SLOT(cloneWallet()));
+
+    optionsAction = new QAction(QIcon(":/icons/options"), tr("&Options"), this);
+    optionsAction->setMenuRole(QAction::PreferencesRole);
+    connect(optionsAction, SIGNAL(triggered()), this, SLOT(optionsClicked()));
+
+    lockWalletToggleAction = new QAction(QIcon(":/icons/lock_open"), tr("&Unlock"), this);
+    connect(lockWalletToggleAction, SIGNAL(triggered()), this, SLOT(lockWalletToggle()));
+
+    exportWalletAction = new QAction(QIcon(":/icons/key_export"), tr("&Export keys"), this);
+    connect(exportWalletAction, SIGNAL(triggered()), this, SLOT(exportWallet()));
+
+    importWalletAction = new QAction(QIcon(":/icons/key_import"), tr("&Import keys"), this);
+    connect(importWalletAction, SIGNAL(triggered()), this, SLOT(importWallet()));
+
+    quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
+    quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
+    quitAction->setMenuRole(QAction::QuitRole);
+    connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+
+    stakeMinerToggleAction = new QAction(this);
+    stakeMinerToggle(true);
+    connect(stakeMinerToggleAction, SIGNAL(triggered()), this, SLOT(stakeMinerToggle()));
+
+    encryptWalletAction = new QAction(QIcon(":/icons/lock_closed"), tr("Encrypt &wallet"), this);
+    encryptWalletAction->setCheckable(true);
     connect(encryptWalletAction, SIGNAL(triggered(bool)), this, SLOT(encryptWallet(bool)));
-    connect(backupWalletAction, SIGNAL(triggered()), this, SLOT(backupWallet()));
+
+    changePassphraseAction = new QAction(QIcon(":/icons/key"), tr("&Change passphrase"), this);
     connect(changePassphraseAction, SIGNAL(triggered()), this, SLOT(changePassphrase()));
+
+    inspectWalletAction = new QAction(QIcon(":/icons/inspect"), tr("&Inspect wallet"), this);
+    connect(inspectWalletAction, SIGNAL(triggered()), this, SLOT(inspectWallet()));
+
+    repairWalletAction = new QAction(QIcon(":/icons/repair"), tr("&Repair wallet"), this);
+    connect(repairWalletAction, SIGNAL(triggered()), this, SLOT(repairWallet()));
+
+    signMessageAction = new QAction(QIcon(":/icons/edit"), tr("&Sign message"), this);
     connect(signMessageAction, SIGNAL(triggered()), this, SLOT(gotoSignMessageTab()));
+
+    verifyMessageAction = new QAction(QIcon(":/icons/transaction_0"), tr("&Verify message"), this);
     connect(verifyMessageAction, SIGNAL(triggered()), this, SLOT(gotoVerifyMessageTab()));
+
+    exportAction = new QAction(QIcon(":/icons/export"), tr("E&xport"), this);
+    exportAction->setToolTip(tr("Export the data in the current tab to a file"));
+    /* Connected / disconnected on respective tab pages */
+
+    aboutAction = new QAction(QIcon(":/icons/orbitcoin"), tr("&About Orbitcoin"), this);
+    aboutAction->setMenuRole(QAction::AboutRole);
+    connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
+
+    aboutQtAction = new QAction(QIcon(":/trolltech/qmessagebox/images/qtlogo-64.png"), tr("About &Qt"), this);
+    aboutQtAction->setMenuRole(QAction::AboutQtRole);
+    connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 }
 
 void BitcoinGUI::createMenuBar()
@@ -289,23 +308,33 @@ void BitcoinGUI::createMenuBar()
 #endif
 
     // Configure the menus
-    QMenu *file = appMenuBar->addMenu(tr("&File"));
-    file->addAction(backupWalletAction);
-    file->addAction(exportAction);
-    file->addAction(signMessageAction);
-    file->addAction(verifyMessageAction);
-    file->addSeparator();
-    file->addAction(quitAction);
+    QMenu *wallet = appMenuBar->addMenu(tr("&Wallet"));
+    wallet->addAction(cloneWalletAction);
+    wallet->addAction(exportWalletAction);
+    wallet->addAction(importWalletAction);
+    wallet->addAction(optionsAction);
+    wallet->addSeparator();
+    wallet->addAction(lockWalletToggleAction);
+    wallet->addSeparator();
+    wallet->addAction(quitAction);
 
-    QMenu *settings = appMenuBar->addMenu(tr("&Settings"));
-    settings->addAction(encryptWalletAction);
-    settings->addAction(changePassphraseAction);
-    settings->addSeparator();
-    settings->addAction(optionsAction);
+    QMenu *tools = appMenuBar->addMenu(tr("&Tools"));
+    tools->addAction(consoleAction);
+    tools->addSeparator();
+    tools->addAction(stakeMinerToggleAction);
+    tools->addSeparator();
+    tools->addAction(encryptWalletAction);
+    tools->addAction(changePassphraseAction);
+    tools->addSeparator();
+    tools->addAction(inspectWalletAction);
+    tools->addAction(repairWalletAction);
+    tools->addSeparator();
+    tools->addAction(signMessageAction);
+    tools->addAction(verifyMessageAction);
+    tools->addSeparator();
+    tools->addAction(exportAction);
 
     QMenu *help = appMenuBar->addMenu(tr("&Help"));
-    help->addAction(consoleAction);
-    help->addSeparator();
     help->addAction(aboutAction);
     help->addAction(aboutQtAction);
 }
@@ -336,10 +365,10 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
         {
             setWindowTitle(windowTitle() + QString(" ") + tr("[testnet]"));
 #ifndef Q_OS_MAC
-            qApp->setWindowIcon(QIcon(":icons/bitcoin_testnet"));
-            setWindowIcon(QIcon(":icons/bitcoin_testnet"));
+            qApp->setWindowIcon(QIcon(":icons/orbitcoin_testnet"));
+            setWindowIcon(QIcon(":icons/orbitcoin_testnet"));
 #else
-            MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin_testnet"));
+            MacDockIconHandler::instance()->setIcon(QIcon(":icons/orbitcoin_testnet"));
 #endif
             if(trayIcon)
             {
@@ -483,18 +512,17 @@ void BitcoinGUI::setStakeMining() {
             if((GetTime() - 600) > nLastWalletStakeTime) {
                 walletModel->getStakeWeight(nMinWeightInputs, nAvgWeightInputs, nMaxWeightInputs, nTotalStakeWeight);
                 nLastWalletStakeTime = GetTime();
+            } 
+            if(!nTotalStakeWeight) {
+                fStakeIcon = false;
+                tooltip = tr("No mature coins found, staking paused");
             } else {
-                if(!nTotalStakeWeight) {
-                    fStakeIcon = false;
-                    tooltip = tr("No mature coins found, staking paused");
-                } else {
-                    fStakeIcon = true;
-                    tooltip = tr("Staking enabled for %1 inputs weighing %2 coin days") \
-                      .arg(nMinWeightInputs + nAvgWeightInputs + nMaxWeightInputs).arg(nTotalStakeWeight);
-                    tooltip += QString("<br>");
-                    tooltip += tr("Inputs: %1 min. age, %2 avg. age, %3 max. age") \
-                      .arg(nMinWeightInputs).arg(nAvgWeightInputs).arg(nMaxWeightInputs);
-                }
+                fStakeIcon = true;
+                tooltip = tr("Staking enabled for %1 inputs weighing %2 coin days") \
+                  .arg(nMinWeightInputs + nAvgWeightInputs + nMaxWeightInputs).arg(nTotalStakeWeight);
+                tooltip += QString("<br>");
+                tooltip += tr("Inputs: %1 min. age, %2 avg. age, %3 max. age") \
+                  .arg(nMinWeightInputs).arg(nAvgWeightInputs).arg(nMaxWeightInputs);
             }
         }
     }
@@ -667,16 +695,17 @@ void BitcoinGUI::closeEvent(QCloseEvent *event)
     QMainWindow::closeEvent(event);
 }
 
-void BitcoinGUI::askFee(qint64 nFeeRequired, bool *payFee)
-{
-    QString strMessage =
-        tr("This transaction is over the size limit.  You can still send it for a fee of %1, "
-          "which goes to the nodes that process your transaction and helps to support the network.  "
-          "Do you want to pay the fee?").arg(
-                BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, nFeeRequired));
-    QMessageBox::StandardButton retval = QMessageBox::question(
-          this, tr("Confirm transaction fee"), strMessage,
-          QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Yes);
+void BitcoinGUI::askFee(qint64 nFeeRequired, bool *payFee) {
+
+    QString strMessage = tr(
+      "This transaction is oversized. It is possible to send it for a fee of %1. "
+      "Are you ready to pay?"
+      ).arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, nFeeRequired));
+
+    QMessageBox::StandardButton retval = QMessageBox::question(this,
+      tr("Transaction fee request"), strMessage,
+      QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Yes);
+
     *payFee = (retval == QMessageBox::Yes);
 }
 
@@ -829,24 +858,33 @@ void BitcoinGUI::setEncryptionStatus(int status)
     case WalletModel::Unencrypted:
         labelEncryptionIcon->hide();
         encryptWalletAction->setChecked(false);
-        changePassphraseAction->setEnabled(false);
         encryptWalletAction->setEnabled(true);
+        changePassphraseAction->setEnabled(false);
+        lockWalletToggleAction->setEnabled(false);
         break;
-    case WalletModel::Unlocked:
+    case(WalletModel::Unlocked):
+    case(WalletModel::UnlockedStaking):
         labelEncryptionIcon->show();
         labelEncryptionIcon->setPixmap(QIcon(":/icons/lock_open").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-        labelEncryptionIcon->setToolTip(tr("Wallet is <b>encrypted</b> and currently <b>unlocked</b>"));
+        if(status == WalletModel::Unlocked)
+          labelEncryptionIcon->setToolTip(tr("Wallet is encrypted and unlocked"));
+        else
+          labelEncryptionIcon->setToolTip(tr("Wallet is encrypted and unlocked for staking only"));
         encryptWalletAction->setChecked(true);
+        encryptWalletAction->setEnabled(false);
         changePassphraseAction->setEnabled(true);
-        encryptWalletAction->setEnabled(false); // TODO: decrypt currently not supported
+        lockWalletToggleAction->setIcon(QIcon(":/icons/lock_closed"));
+        lockWalletToggleAction->setText(tr("&Lock"));
         break;
     case WalletModel::Locked:
         labelEncryptionIcon->show();
         labelEncryptionIcon->setPixmap(QIcon(":/icons/lock_closed").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-        labelEncryptionIcon->setToolTip(tr("Wallet is <b>encrypted</b> and currently <b>locked</b>"));
+        labelEncryptionIcon->setToolTip(tr("Wallet is encrypted and locked"));
         encryptWalletAction->setChecked(true);
+        encryptWalletAction->setEnabled(false);
         changePassphraseAction->setEnabled(true);
-        encryptWalletAction->setEnabled(false); // TODO: decrypt currently not supported
+        lockWalletToggleAction->setIcon(QIcon(":/icons/lock_open"));
+        lockWalletToggleAction->setText(tr("&Unlock"));
         break;
     }
     setStakeMining();
@@ -864,13 +902,87 @@ void BitcoinGUI::encryptWallet(bool status)
     setEncryptionStatus(walletModel->getEncryptionStatus());
 }
 
-void BitcoinGUI::backupWallet()
-{
+void BitcoinGUI::cloneWallet() {
+
+   if(!walletModel)
+     return;
+
+   WalletModel::UnlockContext ctx(walletModel->requestUnlock());
+   if(!ctx.isValid())
+     return;
+
+#if QT_VERSION < 0x050000
     QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
-    QString filename = QFileDialog::getSaveFileName(this, tr("Backup Wallet"), saveDir, tr("Wallet Data (*.dat)"));
+#else
+    QString saveDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+#endif
+    QString filename = QFileDialog::getSaveFileName(this, tr("Clone Wallet"), saveDir, tr("Wallet Data (*.dat)"));
     if(!filename.isEmpty()) {
-        if(!walletModel->backupWallet(filename)) {
-            QMessageBox::warning(this, tr("Backup Failed"), tr("There was an error trying to save the wallet data to the new location."));
+        if(walletModel->cloneWallet(filename)) {
+            QMessageBox::information(this,
+              tr("Cloning Complete"),
+              tr("A copy of your wallet has been saved to:<br>%1").arg(filename));
+        } else {
+            QMessageBox::critical(this,
+              tr("Cloning Failed"),
+              tr("There was an error while making a copy of your wallet."));
+        }
+    }
+}
+
+void BitcoinGUI::exportWallet() {
+
+   if(!walletModel)
+     return;
+
+   WalletModel::UnlockContext ctx(walletModel->requestUnlock());
+   if(!ctx.isValid())
+     return;
+
+#if QT_VERSION < 0x050000
+    QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+#else
+    QString saveDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+#endif
+    QString filename = QFileDialog::getSaveFileName(this, tr("Export Wallet Keys"), saveDir, tr("Wallet Text (*.txt)"));
+    if(!filename.isEmpty()) {
+        if(walletModel->exportWallet(filename)) {
+            QMessageBox::information(this,
+              tr("Export Complete"),
+              tr("All keys of your wallet have been exported into:<br>%1").arg(filename));
+        } else {
+            QMessageBox::critical(this,
+              tr("Export Failed"),
+              tr("There was an error while exporting your wallet keys."));
+        }
+    }
+}
+
+void BitcoinGUI::importWallet() {
+
+   if(!walletModel)
+     return;
+
+
+   WalletModel::UnlockContext ctx(walletModel->requestUnlock());
+   if(!ctx.isValid())
+     return;
+
+#if QT_VERSION < 0x050000
+    QString openDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+#else
+    QString openDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+#endif
+    QString filename = QFileDialog::getOpenFileName(this, tr("Import Wallet Keys"), openDir, tr("Wallet Text (*.txt)"));
+    if(!filename.isEmpty()) {
+        if(walletModel->importWallet(filename)) {
+            QMessageBox::information(this,
+              tr("Import Complete"),
+              tr("All keys have been imported into your wallet from:<br>%1").arg(filename));
+        } else {
+            QMessageBox::critical(this,
+              tr("Import Failed"),
+              tr("There was an error while importing wallet keys from:<br>%1").arg(filename));
         }
     }
 }
@@ -893,6 +1005,44 @@ void BitcoinGUI::unlockWallet()
         dlg.setModel(walletModel);
         dlg.exec();
     }
+}
+
+void BitcoinGUI::lockWalletToggle() {
+
+    if(!walletModel)
+      return;
+
+    if(walletModel->getEncryptionStatus() == WalletModel::Locked) {
+        AskPassphraseDialog dlg(AskPassphraseDialog::UnlockStaking, this);
+        dlg.setModel(walletModel);
+        dlg.exec();
+    } else {
+        walletModel->setWalletLocked(true);
+    }
+}
+
+/* Enables or disables the internal stake miner;
+ * only sets the menu icon and text on the initial run */
+void BitcoinGUI::stakeMinerToggle(bool fInitial) {
+    bool fStakeGenInt = fStakeGen;
+
+    if(fInitial) {
+        fStakeGenInt = GetBoolArg("-stakegen", fStakeGen);
+        fStakeGenInt = ~fStakeGenInt & 0x1;
+    }
+
+    if(fStakeGenInt) {
+        if(!fInitial) fStakeGen = false;
+        stakeMinerToggleAction->setIcon(QIcon(":/icons/staking_on"));
+        stakeMinerToggleAction->setText(tr("&Enable PoS mining"));
+    } else {
+        if(!fInitial) fStakeGen = true;
+        stakeMinerToggleAction->setIcon(QIcon(":/icons/staking_off"));
+        stakeMinerToggleAction->setText(tr("&Disable PoS mining"));
+    }
+
+    if(!fInitial)
+      setStakeMining();
 }
 
 void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden)
@@ -921,3 +1071,57 @@ void BitcoinGUI::toggleHidden()
 {
     showNormalIfMinimized(true);
 }
+
+void BitcoinGUI::inspectWallet() {
+    int nMismatchSpent;
+    int nOrphansFound;
+    int64 nBalanceInQuestion;
+
+    if(!walletModel)
+      return;
+
+    walletModel->repairWallet(nMismatchSpent, nOrphansFound, nBalanceInQuestion, true);
+
+    if(!nMismatchSpent)
+      notificator->notify(Notificator::Warning,
+        tr("Wallet Inspection Report"),
+        tr("Integrity test passed, nothing to fix.\n"));
+    else
+      notificator->notify(Notificator::Warning,
+        tr("Wallet Inspection Report"),
+        tr("Integrity test failed!\n\n"
+           "Mismatched coins found: %1\n"
+           "Amount in question: %2\n"
+           "Orphans found: %3\n\n"
+           "Please clone your wallet and repair it.\n")
+        .arg(nMismatchSpent)
+        .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(), nBalanceInQuestion, true))
+        .arg(nOrphansFound));
+}
+
+void BitcoinGUI::repairWallet() {
+    int nMismatchSpent;
+    int nOrphansFound;
+    int64 nBalanceInQuestion;
+
+    if(!walletModel)
+      return;
+
+    walletModel->repairWallet(nMismatchSpent, nOrphansFound, nBalanceInQuestion, false);
+
+    if(!nMismatchSpent)
+      notificator->notify(Notificator::Warning,
+        tr("Wallet Repair Report"),
+        tr("Integrity test passed, nothing to fix.\n"));
+    else
+      notificator->notify(Notificator::Warning,
+        tr("Wallet Repair Report"),
+        tr("Wallet repaired successfully!\n\n"
+           "Mismatched coins found: %1\n"
+           "Amount affected by repair: %2\n"
+           "Orphans removed: %3\n")
+        .arg(nMismatchSpent)
+        .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(), nBalanceInQuestion, true))
+        .arg(nOrphansFound));
+}
+

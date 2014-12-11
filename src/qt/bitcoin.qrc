@@ -1,10 +1,9 @@
 <RCC>
     <qresource prefix="/icons">
-        <file alias="bitcoin">res/icons/orbitcoin-128.png</file>
+        <file alias="orbitcoin">res/icons/orbitcoin.png</file>
         <file alias="toolbar">res/icons/toolbar.png</file>
-        <file alias="bitcoin_testnet">res/icons/orbitcoin-128_testnet.png</file>
+        <file alias="orbitcoin_testnet">res/icons/orbitcoin_testnet.png</file>
         <file alias="toolbar_testnet">res/icons/toolbar_testnet.png</file>
-        <file alias="backg">res/icons/orbitcoin.png</file>
         <file alias="address-book">res/icons/address-book.png</file>
         <file alias="quit">res/icons/quit.png</file>
         <file alias="send">res/icons/send.png</file>
@@ -39,11 +38,15 @@
         <file alias="lock_closed">res/icons/lock_closed.png</file>
         <file alias="lock_open">res/icons/lock_open.png</file>
         <file alias="key">res/icons/key.png</file>
+        <file alias="key_export">res/icons/key_export.png</file>
+        <file alias="key_import">res/icons/key_import.png</file>
         <file alias="filesave">res/icons/filesave.png</file>
         <file alias="qrcode">res/icons/qrcode.png</file>
         <file alias="debugwindow">res/icons/debugwindow.png</file>
         <file alias="staking_on">res/icons/staking_on.png</file>
         <file alias="staking_off">res/icons/staking_off.png</file>
+        <file alias="inspect">res/icons/inspect.png</file>
+        <file alias="repair">res/icons/repair.png</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="about">res/images/about.png</file>

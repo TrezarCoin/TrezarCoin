@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>573</width>
-    <height>342</height>
+    <width>874</width>
+    <height>690</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,53 +26,6 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <widget class="QLabel" name="label_5">
-            <property name="font">
-             <font>
-              <pointsize>11</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Wallet</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="labelWalletStatus">
-            <property name="toolTip">
-             <string>The displayed information may be out of date. Your wallet automatically synchronizes with the Orbitcoin network after a connection is established, but this process has not completed yet.</string>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QLabel { color: red; }</string>
-            </property>
-            <property name="text">
-             <string notr="true">(out of sync)</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </item>
-        <item>
          <layout class="QFormLayout" name="formLayout_2">
           <property name="fieldGrowthPolicy">
            <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
@@ -82,6 +35,12 @@
           </property>
           <property name="verticalSpacing">
            <number>12</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
           </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label">
@@ -102,7 +61,7 @@
              <cursorShape>IBeamCursor</cursorShape>
             </property>
             <property name="toolTip">
-             <string>Your current balance</string>
+             <string>Your available balance</string>
             </property>
             <property name="text">
              <string notr="true">0 ORB</string>
@@ -113,7 +72,7 @@
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_6">
+           <widget class="QLabel" name="labelStakeText">
             <property name="text">
              <string>Stake:</string>
             </property>
@@ -131,7 +90,7 @@
              <cursorShape>IBeamCursor</cursorShape>
             </property>
             <property name="toolTip">
-             <string>Total of coins that was staked, and do not yet count toward the current balance</string>
+             <string>Total of coins out of the current balance impermanently due to a profit generated recently</string>
             </property>
             <property name="text">
              <string notr="true">0 ORB</string>
@@ -142,7 +101,7 @@
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QLabel" name="label_3">
+           <widget class="QLabel" name="labelUnconfirmedText">
             <property name="text">
              <string>Unconfirmed:</string>
             </property>
@@ -160,7 +119,7 @@
              <cursorShape>IBeamCursor</cursorShape>
             </property>
             <property name="toolTip">
-             <string>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</string>
+             <string>Total of coins not yet confirmed and count pending toward the current balance</string>
             </property>
             <property name="text">
              <string notr="true">0 ORB</string>
@@ -186,7 +145,7 @@
              </font>
             </property>
             <property name="toolTip">
-             <string>Mined balance that has not yet matured</string>
+             <string>Mined balance not yet matured</string>
             </property>
             <property name="text">
              <string notr="true">0 ORB</string>
@@ -196,17 +155,62 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Number of transactions:</string>
+          <item row="4" column="0" colspan="2">
+           <widget class="QFrame" name="line">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::HLine</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <property name="lineWidth">
+             <number>2</number>
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
+          <item row="5" column="0">
+           <widget class="QLabel" name="labelConsolidatedText">
+            <property name="text">
+             <string>Consolidated balance:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLabel" name="labelConsolidated">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>Consolidated (total) balance of all the accounts above</string>
+            </property>
+            <property name="text">
+             <string notr="true">0 ORB</string>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Number of payments:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
            <widget class="QLabel" name="labelNumTransactions">
             <property name="toolTip">
-             <string>Total number of transactions in wallet</string>
+             <string>Total number of payments in your wallet</string>
             </property>
             <property name="text">
              <string notr="true">0</string>
@@ -218,13 +222,13 @@
        </layout>
       </widget>
      </item>
-      <item>
+     <item>
       <widget class="QLabel" name="orblogo">
        <property name="text">
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap resource="../bitcoin.qrc">:/icons/backg</pixmap>
+        <pixmap resource="../bitcoin.qrc">:/icons/orbitcoin</pixmap>
        </property>
        <property name="scaledContents">
         <bool>false</bool>
@@ -268,7 +272,7 @@
           <item>
            <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>&lt;b&gt;Recent transactions&lt;/b&gt;</string>
+             <string>&lt;b&gt;Recent payments&lt;/b&gt;</string>
             </property>
            </widget>
           </item>
@@ -342,6 +346,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../bitcoin.qrc"/>
+ </resources>
  <connections/>
 </ui>

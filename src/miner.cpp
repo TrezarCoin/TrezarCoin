@@ -20,42 +20,6 @@ string strMintWarning;
 
 extern unsigned int nMinerSleep;
 
-int static FormatHashBlocks(void* pbuffer, unsigned int len)
-{
-    unsigned char* pdata = (unsigned char*)pbuffer;
-    unsigned int blocks = 1 + ((len + 8) / 64);
-    unsigned char* pend = pdata + 64 * blocks;
-    memset(pdata + len, 0, 64 * blocks - len);
-    pdata[len] = 0x80;
-    unsigned int bits = len * 8;
-    pend[-1] = (bits >> 0) & 0xff;
-    pend[-2] = (bits >> 8) & 0xff;
-    pend[-3] = (bits >> 16) & 0xff;
-    pend[-4] = (bits >> 24) & 0xff;
-    return blocks;
-}
-
-static const unsigned int pSHA256InitState[8] =
-{0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
-
-void SHA256Transform(void* pstate, void* pinput, const void* pinit)
-{
-    SHA256_CTX ctx;
-    unsigned char data[64];
-
-    SHA256_Init(&ctx);
-
-    for (int i = 0; i < 16; i++)
-        ((uint32_t*)data)[i] = ByteReverse(((uint32_t*)pinput)[i]);
-
-    for (int i = 0; i < 8; i++)
-        ctx.h[i] = ((uint32_t*)pinit)[i];
-
-    SHA256_Update(&ctx, data, sizeof(data));
-    for (int i = 0; i < 8; i++)
-        ((uint32_t*)pstate)[i] = ctx.h[i];
-}
-
 // Some explaining would be appreciated
 class COrphan
 {
@@ -284,7 +248,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
                 continue;
 
             // Use advanced fee calculation after the chain switch
-            if(fTestNet || (nAdjTime > CHAIN_SWITCH_TIME)) {
+            if(fTestNet || (nAdjTime > nForkTwoTime)) {
                // Orbitcoin: low priority transactions up to 500 bytes in size
                // are free unless they get caught by the dust spam filter
                bool fAllowFree = ((nBlockSize + nTxSize < 1500) || CTransaction::AllowFree(dPriority));
@@ -403,65 +367,62 @@ void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& 
 }
 
 
-void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash1)
-{
-    //
-    // Pre-build hash buffers
-    //
-    struct
-    {
-        struct unnamed2
-        {
-            int nVersion;
-            uint256 hashPrevBlock;
-            uint256 hashMerkleRoot;
-            unsigned int nTime;
-            unsigned int nBits;
-            unsigned int nNonce;
-        }
-        block;
-        unsigned char pchPadding0[64];
-        uint256 hash1;
-        unsigned char pchPadding1[64];
+/* Prepares a block header for transmission using RPC getwork */
+void FormatDataBuffer(CBlock *pblock, uint *pdata) {
+    uint i;
+
+    struct {
+        int nVersion;
+        uint256 hashPrevBlock;
+        uint256 hashMerkleRoot;
+        uint nTime;
+        uint nBits;
+        uint nNonce;
+    } data;
+
+    data.nVersion       = pblock->nVersion;
+    data.hashPrevBlock  = pblock->hashPrevBlock;
+    data.hashMerkleRoot = pblock->hashMerkleRoot;
+    data.nTime          = pblock->nTime;
+    data.nBits          = pblock->nBits;
+    data.nNonce         = pblock->nNonce;
+
+    if(fNeoScrypt) {
+        /* Copy the LE data */
+        for(i = 0; i < 20; i++)
+          pdata[i] = ((uint *) &data)[i];
+    } else {
+        /* Block header size in bits */
+        pdata[31] = 640;
+        /* Convert LE to BE and copy */
+        for(i = 0; i < 20; i++)
+          pdata[i] = ByteReverse(((uint *) &data)[i]);
+        /* Erase the remaining part */
+        for(i = 20; i < 31; i++)
+          pdata[i] = 0;
     }
-    tmp;
-    memset(&tmp, 0, sizeof(tmp));
-
-    tmp.block.nVersion       = pblock->nVersion;
-    tmp.block.hashPrevBlock  = pblock->hashPrevBlock;
-    tmp.block.hashMerkleRoot = pblock->hashMerkleRoot;
-    tmp.block.nTime          = pblock->nTime;
-    tmp.block.nBits          = pblock->nBits;
-    tmp.block.nNonce         = pblock->nNonce;
-
-    FormatHashBlocks(&tmp.block, sizeof(tmp.block));
-    FormatHashBlocks(&tmp.hash1, sizeof(tmp.hash1));
-
-    // Byte swap all the input buffer
-    for (unsigned int i = 0; i < sizeof(tmp)/4; i++)
-        ((unsigned int*)&tmp)[i] = ByteReverse(((unsigned int*)&tmp)[i]);
-
-    // Precalc the first half of the first hash, which stays constant
-    SHA256Transform(pmidstate, &tmp.block, pSHA256InitState);
-
-    memcpy(pdata, &tmp.block, 128);
-    memcpy(phash1, &tmp.hash1, 64);
 }
 
 
-bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
-{
+bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey) {
     uint256 hashBlock = pblock->GetHash();
     uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
+    int nBlockHeight = pblock->GetBlockHeight();
 
     if(!pblock->IsProofOfWork())
-        return error("CheckWork() : %s is not a proof-of-work block", hashBlock.GetHex().c_str());
+      return(error("CheckWork() : %s height %d is not a proof-of-work block",
+        hashBlock.GetHex().c_str(), nBlockHeight));
 
-    if (hashBlock > hashTarget)
-        return error("CheckWork() : proof-of-work not meeting target");
+    uint256 hashProof = pblock->GetHashPoW();
 
-    //// debug print
-    printf("CheckWork() : new proof-of-work block found  \n  hash: %s  \ntarget: %s\n", hashBlock.GetHex().c_str(), hashTarget.GetHex().c_str());
+    if(hashProof > hashTarget)
+      return(error("CheckWork() : block %s height %d proof-of-work not meeting target",
+        hashBlock.GetHex().c_str(), nBlockHeight));
+
+    printf("CheckWork() : new proof-of-work block of height %d found!\n"
+      "  hash:      %s\n  proofhash: %s\n  target:    %s\n",
+      nBlockHeight, hashBlock.GetHex().c_str(), hashProof.GetHex().c_str(),
+      hashTarget.GetHex().c_str());
     pblock->print();
     printf("generated %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue).c_str());
 
@@ -488,23 +449,26 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     return true;
 }
 
-bool CheckStake(CBlock* pblock, CWallet& wallet)
-{
-    uint256 proofHash = 0, hashTarget = 0;
+bool CheckStake(CBlock* pblock, CWallet& wallet) {
     uint256 hashBlock = pblock->GetHash();
+    uint256 hashTarget = 0;
+    int nBlockHeight = pblock->GetBlockHeight();
     bool fCritical = true;
 
     if(!pblock->IsProofOfStake())
       return(error("CheckStake() : %s is not a proof-of-stake block",
         hashBlock.GetHex().c_str()));
 
-    /* Verify hash target and coin stake signature */
-    if(!CheckProofOfStake(pblock->vtx[1], pblock->nBits, proofHash, hashTarget, fCritical, true))
-      return(error("CheckStake() : proof-of-stake check failed"));
-        
+    uint256 hashProof;
 
-    //// debug print
-    printf("CheckStake() : new proof-of-stake block found  \n  hash: %s \nproofhash: %s  \ntarget: %s\n", hashBlock.GetHex().c_str(), proofHash.GetHex().c_str(), hashTarget.GetHex().c_str());
+    /* Verify hash target and coin stake signature */
+    if(!CheckProofOfStake(pblock->vtx[1], pblock->nBits, hashProof, hashTarget, fCritical, true))
+      return(error("CheckStake() : proof-of-stake check failed"));
+
+    printf("CheckStake() : new proof-of-stake block of height %d found!\n"
+      "  hash:      %s\n  proofhash: %s\n  target:    %s\n",
+      nBlockHeight, hashBlock.GetHex().c_str(), hashProof.GetHex().c_str(),
+      hashTarget.GetHex().c_str());
     pblock->print();
     printf("out %s\n", FormatMoney(pblock->vtx[1].GetValueOut()).c_str());
 

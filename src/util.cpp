@@ -52,7 +52,7 @@ namespace boost {
 #include <io.h> /* for _commit */
 #include "shlobj.h"
 #elif defined(__linux__)
-# include <sys/prctl.h>
+#include <sys/prctl.h>
 #endif
 
 #ifndef WIN32
@@ -80,6 +80,19 @@ bool fLogTimestamps = false;
 CMedianFilter<int64> vTimeOffsets(200,0);
 bool fReopenDebugLog = false;
 bool fStakeGen = true;
+bool fStakingOnly = false;
+
+/* NeoScrypt related */
+bool fNeoScrypt = false;
+uint nNeoScryptOptions = 0;
+
+/* Performance counters */
+uint64 nBlockHashCacheHits = 0;
+uint64 nBlockHashCacheMisses = 0;
+uint64 nModifierCacheHits = 0;
+uint64 nModifierCacheMisses = 0;
+uint64 nInputCacheHits = 0;
+uint64 nInputCacheMisses = 0;
 
 /* Shared between getmininginfo and the Qt client */
 long long nLastWalletStakeTime = 0;
@@ -1014,25 +1027,28 @@ void PrintExceptionContinue(std::exception* pex, const char* pszThread)
     strMiscWarning = message;
 }
 
-boost::filesystem::path GetDefaultDataDir()
-{
+boost::filesystem::path GetDefaultDataDir() {
     namespace fs = boost::filesystem;
-#ifdef WIN32
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Orbitcoin
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Orbitcoin
-//    return GetSpecialFolderPath(CSIDL_APPDATA) / "Orbitcoin";
-    // Windows: current directory \ data for livenet
-    return boost::filesystem::current_path() / "data";
+    fs::path path;
+
+#if (WIN32)
+    /* Windows: current directory \ data for livenet */
+    path = boost::filesystem::current_path() / "data";
 #else
-    fs::path pathRet;
+    /* Linux, Mac OS X, *BSD and so on: ~/.orbitcoin */
     char* pszHome = getenv("HOME");
-    if (pszHome == NULL || strlen(pszHome) == 0)
-        pathRet = fs::path("/");
-    else
-        pathRet = fs::path(pszHome);
-    // Linux, Mac OS X, *BSD and so on: ~/.orbitcoin
-    return pathRet / ".orbitcoin";
+    if(!pszHome || !strlen(pszHome))
+      /* Must be root if no $HOME set */
+#if (__APPLE__)
+      path = fs::path("/private/var/root/.orbitcoin");
+#else
+      path = fs::path("/root/.orbitcoin");
 #endif
+    else
+      path = fs::path(pszHome) / ".orbitcoin";
+#endif
+
+    return(path);
 }
 
 const boost::filesystem::path &GetDataDir(bool fNetSpecific)
@@ -1140,14 +1156,30 @@ bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest)
 #endif /* WIN32 */
 }
 
-void FileCommit(FILE *fileout)
-{
-    fflush(fileout);                // harmless if redundantly called
-#ifdef WIN32
-    _commit(_fileno(fileout));
+/* Returns zero on success and -1 on failure */
+int FileCommit(FILE *fileout) {
+    int ret, fd;
+
+    /* fflush() is a caller's responsibility */
+
+    /* Get a file descriptor and perform the synchronisation */
+#if (WIN32)
+    fd = _fileno(fileout);
+    ret = _commit(fd);
 #else
-    fsync(fileno(fileout));
+    fd = fileno(fileout);
+#if (__linux__)
+    ret = fdatasync(fd);
+#elif (__APPLE__) && (F_FULLFSYNC)
+    /* F_FULLFSYNC means fsync with device flush to medium;
+     * works with HFS only as of 10.4, so fail over to fsync */
+    ret = fcntl(fd, F_FULLFSYNC, 0);
+    if(!ret) ret = fsync(fd);
+#else
+    ret = fsync(fd);
 #endif
+#endif /* WIN32 */
+    return(ret);
 }
 
 int GetFilesize(FILE* file)

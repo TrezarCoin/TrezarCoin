@@ -3,8 +3,9 @@
 // Copyright (c) 2013 The NovaCoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef NOVACOIN_MINER_H
-#define NOVACOIN_MINER_H
+
+#ifndef MINER_H
+#define MINER_H
 
 #include "main.h"
 #include "wallet.h"
@@ -15,8 +16,8 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake=false, int64 *pStake
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
 
-/** Do mining precalculation */
-void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash1);
+/* Prepares a block header for transmission using RPC getwork */
+void FormatDataBuffer(CBlock *pblock, uint *pdata);
 
 /** Check mined proof-of-work block */
 bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey);
@@ -24,7 +25,4 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey);
 /** Check mined proof-of-stake block */
 bool CheckStake(CBlock* pblock, CWallet& wallet);
 
-/** Base sha256 mining transform */
-void SHA256Transform(void* pstate, void* pinput, const void* pinit);
-
-#endif // NOVACOIN_MINER_H
+#endif /* MINER_H */

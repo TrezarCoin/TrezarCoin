@@ -6,7 +6,7 @@
 
 #include "ui_interface.h"
 #include "wallet.h"
-#include "walletdb.h" // for BackupWallet
+#include "walletdb.h" // for cloneWallet
 #include "base58.h"
 
 #include <QSet>
@@ -15,7 +15,7 @@
 WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *parent) :
     QObject(parent), wallet(wallet), optionsModel(optionsModel), addressTableModel(0),
     transactionTableModel(0),
-    cachedBalance(0), cachedStake(0), cachedUnconfirmedBalance(0), cachedImmatureBalance(0),
+    cachedBalance(0), cachedUnconfirmed(0), cachedStake(0), cachedImmature(0),
     cachedNumTransactions(0),
     cachedEncryptionStatus(Unencrypted),
     cachedNumBlocks(0)
@@ -36,24 +36,24 @@ WalletModel::~WalletModel()
     unsubscribeFromCoreSignals();
 }
 
-qint64 WalletModel::getBalance() const
-{
-    return wallet->GetBalance();
+qint64 WalletModel::getBalance() {
+    /* Available (confirmed) balance */
+    return(wallet->GetBalance(0x1));
 }
 
-qint64 WalletModel::getUnconfirmedBalance() const
-{
-    return wallet->GetUnconfirmedBalance();
+qint64 WalletModel::getUnconfirmed() {
+    /* Unconfirmed balance (mined rewards excluded) */
+    return(wallet->GetBalance(0x2));
 }
 
-qint64 WalletModel::getStake() const
-{
-    return wallet->GetStake();
+qint64 WalletModel::getStake() {
+    /* Immature PoS debit */
+    return(wallet->GetMinted(0xE));
 }
 
-qint64 WalletModel::getImmatureBalance() const
-{
-    return wallet->GetImmatureBalance();
+qint64 WalletModel::getImmature() {
+    /* Immature PoW and PoS rewards */
+    return(wallet->GetMinted(0x7));
 }
 
 int WalletModel::getNumTransactions() const
@@ -84,20 +84,19 @@ void WalletModel::pollBalanceChanged()
     }
 }
 
-void WalletModel::checkBalanceChanged()
-{
-    qint64 newBalance = getBalance();
-    qint64 newStake = getStake();
-    qint64 newUnconfirmedBalance = getUnconfirmedBalance();
-    qint64 newImmatureBalance = getImmatureBalance();
+void WalletModel::checkBalanceChanged() {
+    qint64 newBalance     = getBalance();
+    qint64 newStake       = getStake();
+    qint64 newUnconfirmed = getUnconfirmed();
+    qint64 newImmature    = getImmature();
 
-    if(cachedBalance != newBalance || cachedStake != newStake || cachedUnconfirmedBalance != newUnconfirmedBalance || cachedImmatureBalance != newImmatureBalance)
-    {
-        cachedBalance = newBalance;
-        cachedStake = newStake;
-        cachedUnconfirmedBalance = newUnconfirmedBalance;
-        cachedImmatureBalance = newImmatureBalance;
-        emit balanceChanged(newBalance, newStake, newUnconfirmedBalance, newImmatureBalance);
+    if((cachedBalance != newBalance) || (cachedStake != newStake) ||
+      (cachedUnconfirmed != newUnconfirmed) || (cachedImmature != newImmature)) {
+        cachedBalance     = newBalance;
+        cachedStake       = newStake;
+        cachedUnconfirmed = newUnconfirmed;
+        cachedImmature    = newImmature;
+        emit(balanceChanged(newBalance, newStake, newUnconfirmed, newImmature));
     }
 }
 
@@ -253,20 +252,18 @@ TransactionTableModel *WalletModel::getTransactionTableModel()
     return transactionTableModel;
 }
 
-WalletModel::EncryptionStatus WalletModel::getEncryptionStatus() const
-{
+WalletModel::EncryptionStatus WalletModel::getEncryptionStatus() const {
+
     if(!wallet->IsCrypted())
-    {
-        return Unencrypted;
-    }
-    else if(wallet->IsLocked())
-    {
-        return Locked;
-    }
+      return(Unencrypted);
+
+    if(wallet->IsLocked())
+      return(Locked);
+
+    if(fStakingOnly)
+      return(UnlockedStaking);
     else
-    {
-        return Unlocked;
-    }
+      return(Unlocked);
 }
 
 bool WalletModel::setWalletEncrypted(bool encrypted, const SecureString &passphrase)
@@ -308,9 +305,16 @@ bool WalletModel::changePassphrase(const SecureString &oldPass, const SecureStri
     return retval;
 }
 
-bool WalletModel::backupWallet(const QString &filename)
-{
-    return BackupWallet(*wallet, filename.toLocal8Bit().data());
+bool WalletModel::cloneWallet(const QString &filename) {
+    return(BackupWallet(*wallet, filename.toLocal8Bit().data()));
+}
+
+bool WalletModel::exportWallet(const QString &filename) {
+    return(ExportWallet(wallet, filename.toLocal8Bit().data()));
+}
+
+bool WalletModel::importWallet(const QString &filename) {
+    return(ImportWallet(wallet, filename.toLocal8Bit().data()));
 }
 
 void WalletModel::getStakeWeightQuick(const int64& nTime, const int64& nValue, uint64& nWeight) {
@@ -319,6 +323,10 @@ void WalletModel::getStakeWeightQuick(const int64& nTime, const int64& nValue, u
 
 void WalletModel::getStakeWeight(uint64& nMinWeightInputs, uint64& nAvgWeightInputs, uint64& nMaxWeightInputs, uint64& nTotalStakeWeight) {
    wallet->GetStakeWeight(*wallet, nMinWeightInputs, nAvgWeightInputs, nMaxWeightInputs, nTotalStakeWeight);
+}
+
+void WalletModel::repairWallet(int& nMismatchSpent, int& nOrphansFound, int64& nBalanceInQuestion, bool fCheckOnly) {
+    wallet->FixSpentCoins(nMismatchSpent, nOrphansFound, nBalanceInQuestion, fCheckOnly);
 }
 
 // Handlers for core signals
@@ -367,12 +375,11 @@ WalletModel::UnlockContext WalletModel::requestUnlock()
 {
     bool was_locked = getEncryptionStatus() == Locked;
 
-    if ((!was_locked) && fWalletUnlockMintOnly)
-    {
+    if((!was_locked) && fStakingOnly) {
        setWalletLocked(true);
        was_locked = getEncryptionStatus() == Locked;
-
     }
+
     if(was_locked)
     {
         // Request UI to unlock wallet
@@ -381,7 +388,7 @@ WalletModel::UnlockContext WalletModel::requestUnlock()
     // If wallet is still locked, unlock was failed or cancelled, mark context as invalid
     bool valid = getEncryptionStatus() != Locked;
 
-    return UnlockContext(this, valid, was_locked && !fWalletUnlockMintOnly);
+    return(UnlockContext(this, valid, was_locked && !fStakingOnly));
 }
 
 WalletModel::UnlockContext::UnlockContext(WalletModel *wallet, bool valid, bool relock):
