@@ -1311,19 +1311,15 @@ public:
     }
 
     /* Block hashing */
-    uint256 GetHash(int nHeight = 0) const {
+    uint256 GetHash() const {
         if(timeCached != nTime) {
             uint profile = 0x0;
 
-            /* Not fail safe, but better than nothing */
-            if(!nHeight)
-              nHeight = GetBlockHeight();
-
-            if(fTestNet) {
-                if(nHeight < nTestnetForkFive)
+            if(!fTestNet) {
+                if(nTime < 1418511997)  /* nForkSix */
                   profile = 0x3;
             } else {
-                if(nHeight < nForkSix)
+                if(nTime < 1418144320)  /* nTestnetForkFive */
                   profile = 0x3;
             }
 
@@ -1359,13 +1355,11 @@ public:
         uint256 hashPoW;
         uint profile = 0x0;
 
-        /* All these blocks must be v2+ with valid nHeight */
-        int nHeight = GetBlockHeight();
-        if(fTestNet) {
-            if(nHeight < nTestnetForkFive)
+        if(!fTestNet) {
+            if(nTime < 1418511997)  /* nForkSix */
               profile = 0x3;
         } else {
-            if(nHeight < nForkSix)
+            if(nTime < 1418144320)  /* nTestnetForkFive */
               profile = 0x3;
         }
 
@@ -2101,8 +2095,7 @@ public:
         block.nBits           = nBits;
         block.nNonce          = nNonce;
 
-        /* nHeight is known and should be used to avoid trouble */
-        const_cast<CDiskBlockIndex*>(this)->blockHash = block.GetHash(nHeight);
+        const_cast<CDiskBlockIndex*>(this)->blockHash = block.GetHash();
 
         return(blockHash);
     }

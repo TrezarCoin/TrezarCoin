@@ -38,9 +38,6 @@ CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // 0.000244140625 PoW difficulty 
 CBigNum bnProofOfStakeLimit(~uint256(0) >> 20); // the same for PoS
 uint256 nPoWBase = uint256("0x00000000ffff0000000000000000000000000000000000000000000000000000"); // difficulty-1 target
 
-/* The PoW difficulty after switching to NeoScrypt (0.25) */
-static CBigNum bnNeoScryptSwitch(~uint256(0) >> 30);
-
 CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 16);
 CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 16);
 
@@ -1142,9 +1139,6 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     } else {
         if(!fNeoScrypt && (nHeight >= nForkSix))
           fNeoScrypt = true;
-        /* PoW difficulty reset after the switch */
-        if(!fProofOfStake && (nHeight == nForkSix))
-          return(bnNeoScryptSwitch.GetCompact());
     }
 
     if((fTestNet && (nHeight <= nTestnetForkThree)) ||
