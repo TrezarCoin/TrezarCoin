@@ -27,22 +27,22 @@ Value getmininginfo(const Array& params, bool fHelp)
 
     Object obj;
     obj.push_back(Pair("blocks",        (int)nBestHeight));
-    obj.push_back(Pair("currentblocksize",(uint64_t)nLastBlockSize));
-    obj.push_back(Pair("currentblocktx",(uint64_t)nLastBlockTx));
+    obj.push_back(Pair("currentblocksize",(boost::uint64_t)nLastBlockSize));
+    obj.push_back(Pair("currentblocktx",(boost::uint64_t)nLastBlockTx));
     obj.push_back(Pair("powdifficulty", (float)GetDifficulty()));
     obj.push_back(Pair("posdifficulty", (float)GetDifficulty(GetLastBlockIndex(pindexBest, true))));
     obj.push_back(Pair("powreward",     (float)(GetProofOfWorkReward(GetLastBlockIndex(pindexBest, false)->nHeight, (int64)NULL))/COIN));
     obj.push_back(Pair("posreward",     (float)(GetProofOfStakeReward(GetLastBlockIndex(pindexBest, true)->nHeight, (int64)NULL))/COIN));
     obj.push_back(Pair("networkhashps", getnetworkhashps(params, false)));
-    obj.push_back(Pair("stakeweight",   (uint64_t)nTotalStakeWeight));
-    obj.push_back(Pair("minweightinputs", (uint64_t)nMinWeightInputs));
-    obj.push_back(Pair("avgweightinputs", (uint64_t)nAvgWeightInputs));
-    obj.push_back(Pair("maxweightinputs", (uint64_t)nMaxWeightInputs));
+    obj.push_back(Pair("stakeweight",   (boost::uint64_t)nTotalStakeWeight));
+    obj.push_back(Pair("minweightinputs", (boost::uint64_t)nMinWeightInputs));
+    obj.push_back(Pair("avgweightinputs", (boost::uint64_t)nAvgWeightInputs));
+    obj.push_back(Pair("maxweightinputs", (boost::uint64_t)nMaxWeightInputs));
     obj.push_back(Pair("stakemindepth", (int)nStakeMinDepth));
     obj.push_back(Pair("minstakinginput", ValueFromAmount(nMinStakingInputValue)));
     obj.push_back(Pair("stakecombine",  ValueFromAmount(nCombineThreshold)));
     obj.push_back(Pair("stakesplit",    ValueFromAmount(nSplitThreshold)));
-    obj.push_back(Pair("pooledtx",      (uint64_t)mempool.size()));
+    obj.push_back(Pair("pooledtx",      (boost::uint64_t)mempool.size()));
     obj.push_back(Pair("testnet",       fTestNet));
 
     return(obj);
@@ -55,12 +55,12 @@ Value getcounters(const Array& params, bool fHelp) {
         "Returns an object containing performance counters."));
 
     Object obj;
-    obj.push_back(Pair("block hash cache hits",       (uint64_t)nBlockHashCacheHits));
-    obj.push_back(Pair("block hash cache misses",     (uint64_t)nBlockHashCacheMisses));
-    obj.push_back(Pair("stake modifier cache hits",   (uint64_t)nModifierCacheHits));
-    obj.push_back(Pair("stake modifier cache misses", (uint64_t)nModifierCacheMisses));
-    obj.push_back(Pair("stake input cache hits",      (uint64_t)nInputCacheHits));
-    obj.push_back(Pair("stake input cache misses",    (uint64_t)nInputCacheMisses));
+    obj.push_back(Pair("block hash cache hits",       (boost::uint64_t)nBlockHashCacheHits));
+    obj.push_back(Pair("block hash cache misses",     (boost::uint64_t)nBlockHashCacheMisses));
+    obj.push_back(Pair("stake modifier cache hits",   (boost::uint64_t)nModifierCacheHits));
+    obj.push_back(Pair("stake modifier cache misses", (boost::uint64_t)nModifierCacheMisses));
+    obj.push_back(Pair("stake input cache hits",      (boost::uint64_t)nInputCacheHits));
+    obj.push_back(Pair("stake input cache misses",    (boost::uint64_t)nInputCacheMisses));
 
     return(obj);
 }
@@ -283,7 +283,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     pblock->nNonce = 0;
 
     Array transactions;
-    map<uint256, int64_t> setTxIndex;
+    map<uint256, boost::int64_t> setTxIndex;
     int i = 0;
     CCoinsViewCache &view = *pcoinsTip;
     BOOST_FOREACH (CTransaction& tx, pblock->vtx)
@@ -310,13 +310,13 @@ Value getblocktemplate(const Array& params, bool fHelp)
         }
         entry.push_back(Pair("depends", deps));
 
-        int64_t nSigOps = tx.GetLegacySigOpCount();
+        int64 nSigOps = tx.GetLegacySigOpCount();
         if (tx.HaveInputs(view))
         {
-            entry.push_back(Pair("fee", (int64_t)(tx.GetValueIn(view) - tx.GetValueOut())));
+            entry.push_back(Pair("fee", (boost::int64_t)(tx.GetValueIn(view) - tx.GetValueOut())));
             nSigOps += tx.GetP2SHSigOpCount(view);
         }
-        entry.push_back(Pair("sigops", nSigOps));
+        entry.push_back(Pair("sigops", (boost::int64_t)nSigOps));
 
         transactions.push_back(entry);
     }
@@ -339,16 +339,16 @@ Value getblocktemplate(const Array& params, bool fHelp)
     result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
     result.push_back(Pair("transactions", transactions));
     result.push_back(Pair("coinbaseaux", aux));
-    result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].nValue));
+    result.push_back(Pair("coinbasevalue", (boost::int64_t)pblock->vtx[0].vout[0].nValue));
     result.push_back(Pair("target", hashTarget.GetHex()));
-    result.push_back(Pair("mintime", (int64_t)(pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1)));
+    result.push_back(Pair("mintime", (boost::int64_t)(pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1)));
     result.push_back(Pair("mutable", aMutable));
     result.push_back(Pair("noncerange", "00000000ffffffff"));
-    result.push_back(Pair("sigoplimit", (int64_t)MAX_BLOCK_SIGOPS));
-    result.push_back(Pair("sizelimit", (int64_t)MAX_BLOCK_SIZE));
-    result.push_back(Pair("curtime", (int64_t)pblock->nTime));
+    result.push_back(Pair("sigoplimit", (boost::int64_t)MAX_BLOCK_SIGOPS));
+    result.push_back(Pair("sizelimit", (boost::int64_t)MAX_BLOCK_SIZE));
+    result.push_back(Pair("curtime", (boost::int64_t)pblock->nTime));
     result.push_back(Pair("bits", HexBits(pblock->nBits)));
-    result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
+    result.push_back(Pair("height", (boost::int64_t)(pindexPrev->nHeight+1)));
 
     return result;
 }
