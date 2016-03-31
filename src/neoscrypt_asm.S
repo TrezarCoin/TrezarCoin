@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 John Doering <ghostlander@phoenixcoin.org>
+ * Copyright (c) 2014-2016 John Doering <ghostlander@phoenixcoin.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,7 +24,1316 @@
  * SUCH DAMAGE.
  */
 
-#if (ASM) && (__x86_64__)
+#if defined(ASM) && defined(__x86_64__)
+
+/* MOVQ_FIX addresses incorrect behaviour of old GNU assembler when transferring
+ * data between a 64-bit general purpose register and an MMX/SSE register:
+ * suffix or operands invalid for `movq' */
+
+/* blake2s_compress(mem)
+ * AMD64 BLAKE2s block compression;
+ * the MMX registers are used as a temporal general purpose storage */
+.globl blake2s_compress
+.globl _blake2s_compress
+blake2s_compress:
+_blake2s_compress:
+	pushq	%rbx
+	pushq	%rbp
+	pushq	%r12
+	pushq	%r13
+	pushq	%r14
+	pushq	%r15
+#ifdef WIN64
+	pushq	%rdi
+	pushq	%rsi
+	movq	%rcx, %rdi
+#endif
+
+#ifndef MOVQ_FIX
+	movq	%rsp, %mm0
+#else
+	movd	%esp, %mm0
+	shrq	$32, %rsp
+	movd	%esp, %mm7
+#endif
+
+/* initialise */
+	movl	0(%rdi), %eax
+	movl	4(%rdi), %ebx
+	movl	8(%rdi), %ecx
+	movl	12(%rdi), %edx
+	movl	16(%rdi), %ebp
+	movl	20(%rdi), %esp
+	movl	24(%rdi), %esi
+	movd	28(%rdi), %mm2
+	movl	32(%rdi), %r12d
+	movl	36(%rdi), %r13d
+	movl	40(%rdi), %r14d
+	movl	44(%rdi), %r15d
+	addl	48(%rdi), %eax		/* A */
+	movl	$0x6A09E667, %r8d
+	addl	64(%rdi), %ecx		/* C */
+	movl	$0x3C6EF372, %r10d
+	addl	%ebp, %eax		/* A */
+	movl	$0xBB67AE85, %r9d
+	addl	%esi, %ecx		/* C */
+	movl	$0xA54FF53A, %r11d
+	xorl	$0x510E527F, %r12d
+	xorl	$0x1F83D9AB, %r14d
+	xorl	%eax, %r12d		/* A */
+	xorl	$0x9B05688C, %r13d
+	xorl	%ecx, %r14d		/* C */
+	xorl	$0x5BE0CD19, %r15d
+/* round 0 (A and C) */
+	rorl	$16, %r12d		/* A */
+	addl	52(%rdi), %eax		/* A */
+	rorl	$16, %r14d		/* C */
+	addl	68(%rdi), %ecx		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$12, %ebp		/* A */
+	addl	56(%rdi), %ebx		/* B (initial) */
+	rorl	$12, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$8, %r12d		/* A */
+	addl	72(%rdi), %edx		/* D (initial) */
+	rorl	$8, %r14d		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$7, %ebp		/* A */
+	rorl	$7, %esi		/* C */
+	movd	%esi, %mm1		/* C */
+/* round 0 (B and D) */
+	movd	%mm2, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$16, %r13d		/* B */
+	addl	60(%rdi), %ebx		/* B */
+	rorl	$16, %r15d		/* D */
+	addl	76(%rdi), %edx		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$12, %esp		/* B */
+	addl	80(%rdi), %eax		/* E (initial) */
+	rorl	$12, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$8, %r13d		/* B */
+	addl	96(%rdi), %ecx		/* G (initial) */
+	rorl	$8, %r15d		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$7, %esp		/* B */
+	rorl	$7, %esi		/* D */
+/* round 0 (E and G) */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$16, %r15d		/* E */
+	addl	84(%rdi), %eax		/* E */
+	rorl	$16, %r13d		/* G */
+	addl	100(%rdi), %ecx		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$12, %esp		/* E */
+	addl	88(%rdi), %ebx		/* F (initial) */
+	rorl	$12, %esi		/* G */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$8, %r15d		/* E */
+	addl	104(%rdi), %edx		/* H (initial) */
+	rorl	$8, %r13d		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$7, %esp		/* E */
+	rorl	$7, %esi		/* G */
+	movd	%esi, %mm2		/* G */
+/* round 0 (F and H) */
+	movd	%mm1, %esi		/* F */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$16, %r12d		/* F */
+	addl	92(%rdi), %ebx		/* F */
+	rorl	$16, %r14d		/* H */
+	addl	108(%rdi), %edx		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$12, %esi		/* F */
+	addl	104(%rdi), %eax		/* A (initial) */
+	rorl	$12, %ebp		/* H */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$8, %r12d		/* F */
+	addl	84(%rdi), %ecx		/* C (initial) */
+	rorl	$8, %r14d		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$7, %esi		/* F */
+	rorl	$7, %ebp		/* H */
+	movd	%esi, %mm1		/* F */
+/* round 1 (A and C) */
+	movd	%mm1, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$16, %r12d		/* A */
+	addl	88(%rdi), %eax		/* A */
+	rorl	$16, %r14d		/* C */
+	addl	108(%rdi), %ecx		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$12, %ebp		/* A */
+	addl	64(%rdi), %ebx		/* B (initial) */
+	rorl	$12, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$8, %r12d		/* A */
+	addl	100(%rdi), %edx		/* D (initial) */
+	rorl	$8, %r14d		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$7, %ebp		/* A */
+	rorl	$7, %esi		/* C */
+	movd	%esi, %mm1		/* C */
+/* round 1 (B and D) */
+	movd	%mm2, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$16, %r13d		/* B */
+	addl	80(%rdi), %ebx		/* B */
+	rorl	$16, %r15d		/* D */
+	addl	72(%rdi), %edx		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$12, %esp		/* B */
+	addl	52(%rdi), %eax		/* E (initial) */
+	rorl	$12, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$8, %r13d		/* B */
+	addl	92(%rdi), %ecx		/* G (initial) */
+	rorl	$8, %r15d		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$7, %esp		/* B */
+	rorl	$7, %esi		/* D */
+/* round 1 (E and G) */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$16, %r15d		/* E */
+	addl	96(%rdi), %eax		/* E */
+	rorl	$16, %r13d		/* G */
+	addl	76(%rdi), %ecx		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$12, %esp		/* E */
+	addl	48(%rdi), %ebx		/* F (initial) */
+	rorl	$12, %esi		/* G */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$8, %r15d		/* E */
+	addl	68(%rdi), %edx		/* H (initial) */
+	rorl	$8, %r13d		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$7, %esp		/* E */
+	rorl	$7, %esi		/* G */
+	movd	%esi, %mm2		/* G */
+/* round 1 (F and H) */
+	movd	%mm1, %esi		/* F */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$16, %r12d		/* F */
+	addl	56(%rdi), %ebx		/* F */
+	rorl	$16, %r14d		/* H */
+	addl	60(%rdi), %edx		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$12, %esi		/* F */
+	addl	92(%rdi), %eax		/* A (initial) */
+	rorl	$12, %ebp		/* H */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$8, %r12d		/* F */
+	addl	68(%rdi), %ecx		/* C (initial) */
+	rorl	$8, %r14d		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$7, %esi		/* F */
+	rorl	$7, %ebp		/* H */
+	movd	%esi, %mm1		/* F */
+/* round 2 (A and C) */
+	movd	%mm1, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$16, %r12d		/* A */
+	addl	80(%rdi), %eax		/* A */
+	rorl	$16, %r14d		/* C */
+	addl	56(%rdi), %ecx		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$12, %ebp		/* A */
+	addl	96(%rdi), %ebx		/* B (initial) */
+	rorl	$12, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$8, %r12d		/* A */
+	addl	108(%rdi), %edx		/* D (initial) */
+	rorl	$8, %r14d		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$7, %ebp		/* A */
+	rorl	$7, %esi		/* C */
+	movd	%esi, %mm1		/* C */
+/* round 2 (B and D) */
+	movd	%mm2, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$16, %r13d		/* B */
+	addl	48(%rdi), %ebx		/* B */
+	rorl	$16, %r15d		/* D */
+	addl	100(%rdi), %edx		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$12, %esp		/* B */
+	addl	88(%rdi), %eax		/* E (initial) */
+	rorl	$12, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$8, %r13d		/* B */
+	addl	76(%rdi), %ecx		/* G (initial) */
+	rorl	$8, %r15d		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$7, %esp		/* B */
+	rorl	$7, %esi		/* D */
+/* round 2 (E and G) */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$16, %r15d		/* E */
+	addl	104(%rdi), %eax		/* E */
+	rorl	$16, %r13d		/* G */
+	addl	52(%rdi), %ecx		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$12, %esp		/* E */
+	addl	60(%rdi), %ebx		/* F (initial) */
+	rorl	$12, %esi		/* G */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$8, %r15d		/* E */
+	addl	84(%rdi), %edx		/* H (initial) */
+	rorl	$8, %r13d		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$7, %esp		/* E */
+	rorl	$7, %esi		/* G */
+	movd	%esi, %mm2		/* G */
+/* round 2 (F and H) */
+	movd	%mm1, %esi		/* F */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$16, %r12d		/* F */
+	addl	72(%rdi), %ebx		/* F */
+	rorl	$16, %r14d		/* H */
+	addl	64(%rdi), %edx		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$12, %esi		/* F */
+	addl	76(%rdi), %eax		/* A (initial) */
+	rorl	$12, %ebp		/* H */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$8, %r12d		/* F */
+	addl	100(%rdi), %ecx		/* C (initial) */
+	rorl	$8, %r14d		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$7, %esi		/* F */
+	rorl	$7, %ebp		/* H */
+	movd	%esi, %mm1		/* F */
+/* round 3 (A and C) */
+	movd	%mm1, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$16, %r12d		/* A */
+	addl	84(%rdi), %eax		/* A */
+	rorl	$16, %r14d		/* C */
+	addl	96(%rdi), %ecx		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$12, %ebp		/* A */
+	addl	60(%rdi), %ebx		/* B (initial) */
+	rorl	$12, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$8, %r12d		/* A */
+	addl	92(%rdi), %edx		/* D (initial) */
+	rorl	$8, %r14d		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$7, %ebp		/* A */
+	rorl	$7, %esi		/* C */
+	movd	%esi, %mm1		/* C */
+/* round 3 (B and D) */
+	movd	%mm2, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$16, %r13d		/* B */
+	addl	52(%rdi), %ebx		/* B */
+	rorl	$16, %r15d		/* D */
+	addl	104(%rdi), %edx		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$12, %esp		/* B */
+	addl	56(%rdi), %eax		/* E (initial) */
+	rorl	$12, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$8, %r13d		/* B */
+	addl	64(%rdi), %ecx		/* G (initial) */
+	rorl	$8, %r15d		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$7, %esp		/* B */
+	rorl	$7, %esi		/* D */
+/* round 3 (E and G) */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$16, %r15d		/* E */
+	addl	72(%rdi), %eax		/* E */
+	rorl	$16, %r13d		/* G */
+	addl	48(%rdi), %ecx		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$12, %esp		/* E */
+	addl	68(%rdi), %ebx		/* F (initial) */
+	rorl	$12, %esi		/* G */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$8, %r15d		/* E */
+	addl	108(%rdi), %edx		/* H (initial) */
+	rorl	$8, %r13d		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$7, %esp		/* E */
+	rorl	$7, %esi		/* G */
+	movd	%esi, %mm2		/* G */
+/* round 3 (F and H) */
+	movd	%mm1, %esi		/* F */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$16, %r12d		/* F */
+	addl	88(%rdi), %ebx		/* F */
+	rorl	$16, %r14d		/* H */
+	addl	80(%rdi), %edx		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$12, %esi		/* F */
+	addl	84(%rdi), %eax		/* A (initial) */
+	rorl	$12, %ebp		/* H */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$8, %r12d		/* F */
+	addl	56(%rdi), %ecx		/* C (initial) */
+	rorl	$8, %r14d		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$7, %esi		/* F */
+	rorl	$7, %ebp		/* H */
+	movd	%esi, %mm1		/* F */
+/* round 4 (A and C) */
+	movd	%mm1, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$16, %r12d		/* A */
+	addl	48(%rdi), %eax		/* A */
+	rorl	$16, %r14d		/* C */
+	addl	64(%rdi), %ecx		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$12, %ebp		/* A */
+	addl	68(%rdi), %ebx		/* B (initial) */
+	rorl	$12, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$8, %r12d		/* A */
+	addl	88(%rdi), %edx		/* D (initial) */
+	rorl	$8, %r14d		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$7, %ebp		/* A */
+	rorl	$7, %esi		/* C */
+	movd	%esi, %mm1		/* C */
+/* round 4 (B and D) */
+	movd	%mm2, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$16, %r13d		/* B */
+	addl	76(%rdi), %ebx		/* B */
+	rorl	$16, %r15d		/* D */
+	addl	108(%rdi), %edx		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$12, %esp		/* B */
+	addl	104(%rdi), %eax		/* E (initial) */
+	rorl	$12, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$8, %r13d		/* B */
+	addl	72(%rdi), %ecx		/* G (initial) */
+	rorl	$8, %r15d		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$7, %esp		/* B */
+	rorl	$7, %esi		/* D */
+/* round 4 (E and G) */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$16, %r15d		/* E */
+	addl	52(%rdi), %eax		/* E */
+	rorl	$16, %r13d		/* G */
+	addl	80(%rdi), %ecx		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$12, %esp		/* E */
+	addl	92(%rdi), %ebx		/* F (initial) */
+	rorl	$12, %esi		/* G */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$8, %r15d		/* E */
+	addl	60(%rdi), %edx		/* H (initial) */
+	rorl	$8, %r13d		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$7, %esp		/* E */
+	rorl	$7, %esi		/* G */
+	movd	%esi, %mm2		/* G */
+/* round 4 (F and H) */
+	movd	%mm1, %esi		/* F */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$16, %r12d		/* F */
+	addl	96(%rdi), %ebx		/* F */
+	rorl	$16, %r14d		/* H */
+	addl	100(%rdi), %edx		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$12, %esi		/* F */
+	addl	56(%rdi), %eax		/* A (initial) */
+	rorl	$12, %ebp		/* H */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$8, %r12d		/* F */
+	addl	48(%rdi), %ecx		/* C (initial) */
+	rorl	$8, %r14d		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$7, %esi		/* F */
+	rorl	$7, %ebp		/* H */
+	movd	%esi, %mm1		/* F */
+/* round 5 (A and C) */
+	movd	%mm1, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$16, %r12d		/* A */
+	addl	96(%rdi), %eax		/* A */
+	rorl	$16, %r14d		/* C */
+	addl	92(%rdi), %ecx		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$12, %ebp		/* A */
+	addl	72(%rdi), %ebx		/* B (initial) */
+	rorl	$12, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$8, %r12d		/* A */
+	addl	80(%rdi), %edx		/* D (initial) */
+	rorl	$8, %r14d		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$7, %ebp		/* A */
+	rorl	$7, %esi		/* C */
+	movd	%esi, %mm1		/* C */
+/* round 5 (B and D) */
+	movd	%mm2, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$16, %r13d		/* B */
+	addl	88(%rdi), %ebx		/* B */
+	rorl	$16, %r15d		/* D */
+	addl	60(%rdi), %edx		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$12, %esp		/* B */
+	addl	64(%rdi), %eax		/* E (initial) */
+	rorl	$12, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$8, %r13d		/* B */
+	addl	108(%rdi), %ecx		/* G (initial) */
+	rorl	$8, %r15d		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$7, %esp		/* B */
+	rorl	$7, %esi		/* D */
+/* round 5 (E and G) */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$16, %r15d		/* E */
+	addl	100(%rdi), %eax		/* E */
+	rorl	$16, %r13d		/* G */
+	addl	104(%rdi), %ecx		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$12, %esp		/* E */
+	addl	76(%rdi), %ebx		/* F (initial) */
+	rorl	$12, %esi		/* G */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$8, %r15d		/* E */
+	addl	52(%rdi), %edx		/* H (initial) */
+	rorl	$8, %r13d		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$7, %esp		/* E */
+	rorl	$7, %esi		/* G */
+	movd	%esi, %mm2		/* G */
+/* round 5 (F and H) */
+	movd	%mm1, %esi		/* F */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$16, %r12d		/* F */
+	addl	68(%rdi), %ebx		/* F */
+	rorl	$16, %r14d		/* H */
+	addl	84(%rdi), %edx		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$12, %esi		/* F */
+	addl	96(%rdi), %eax		/* A (initial) */
+	rorl	$12, %ebp		/* H */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$8, %r12d		/* F */
+	addl	104(%rdi), %ecx		/* C (initial) */
+	rorl	$8, %r14d		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$7, %esi		/* F */
+	rorl	$7, %ebp		/* H */
+	movd	%esi, %mm1		/* F */
+/* round 6 (A and C) */
+	movd	%mm1, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$16, %r12d		/* A */
+	addl	68(%rdi), %eax		/* A */
+	rorl	$16, %r14d		/* C */
+	addl	100(%rdi), %ecx		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$12, %ebp		/* A */
+	addl	52(%rdi), %ebx		/* B (initial) */
+	rorl	$12, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$8, %r12d		/* A */
+	addl	64(%rdi), %edx		/* D (initial) */
+	rorl	$8, %r14d		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$7, %ebp		/* A */
+	rorl	$7, %esi		/* C */
+	movd	%esi, %mm1		/* C */
+/* round 6 (B and D) */
+	movd	%mm2, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$16, %r13d		/* B */
+	addl	108(%rdi), %ebx		/* B */
+	rorl	$16, %r15d		/* D */
+	addl	88(%rdi), %edx		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$12, %esp		/* B */
+	addl	48(%rdi), %eax		/* E (initial) */
+	rorl	$12, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$8, %r13d		/* B */
+	addl	84(%rdi), %ecx		/* G (initial) */
+	rorl	$8, %r15d		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$7, %esp		/* B */
+	rorl	$7, %esi		/* D */
+/* round 6 (E and G) */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$16, %r15d		/* E */
+	addl	76(%rdi), %eax		/* E */
+	rorl	$16, %r13d		/* G */
+	addl	56(%rdi), %ecx		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$12, %esp		/* E */
+	addl	72(%rdi), %ebx		/* F (initial) */
+	rorl	$12, %esi		/* G */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$8, %r15d		/* E */
+	addl	80(%rdi), %edx		/* H (initial) */
+	rorl	$8, %r13d		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$7, %esp		/* E */
+	rorl	$7, %esi		/* G */
+	movd	%esi, %mm2		/* G */
+/* round 6 (F and H) */
+	movd	%mm1, %esi		/* F */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$16, %r12d		/* F */
+	addl	60(%rdi), %ebx		/* F */
+	rorl	$16, %r14d		/* H */
+	addl	92(%rdi), %edx		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$12, %esi		/* F */
+	addl	100(%rdi), %eax		/* A (initial) */
+	rorl	$12, %ebp		/* H */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$8, %r12d		/* F */
+	addl	96(%rdi), %ecx		/* C (initial) */
+	rorl	$8, %r14d		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$7, %esi		/* F */
+	rorl	$7, %ebp		/* H */
+	movd	%esi, %mm1		/* F */
+/* round 7 (A and C) */
+	movd	%mm1, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$16, %r12d		/* A */
+	addl	92(%rdi), %eax		/* A */
+	rorl	$16, %r14d		/* C */
+	addl	52(%rdi), %ecx		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$12, %ebp		/* A */
+	addl	76(%rdi), %ebx		/* B (initial) */
+	rorl	$12, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$8, %r12d		/* A */
+	addl	60(%rdi), %edx		/* D (initial) */
+	rorl	$8, %r14d		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$7, %ebp		/* A */
+	rorl	$7, %esi		/* C */
+	movd	%esi, %mm1		/* C */
+/* round 7 (B and D) */
+	movd	%mm2, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$16, %r13d		/* B */
+	addl	104(%rdi), %ebx		/* B */
+	rorl	$16, %r15d		/* D */
+	addl	84(%rdi), %edx		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$12, %esp		/* B */
+	addl	68(%rdi), %eax		/* E (initial) */
+	rorl	$12, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$8, %r13d		/* B */
+	addl	80(%rdi), %ecx		/* G (initial) */
+	rorl	$8, %r15d		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$7, %esp		/* B */
+	rorl	$7, %esi		/* D */
+/* round 7 (E and G) */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$16, %r15d		/* E */
+	addl	48(%rdi), %eax		/* E */
+	rorl	$16, %r13d		/* G */
+	addl	72(%rdi), %ecx		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$12, %esp		/* E */
+	addl	108(%rdi), %ebx		/* F (initial) */
+	rorl	$12, %esi		/* G */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$8, %r15d		/* E */
+	addl	56(%rdi), %edx		/* H (initial) */
+	rorl	$8, %r13d		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$7, %esp		/* E */
+	rorl	$7, %esi		/* G */
+	movd	%esi, %mm2		/* G */
+/* round 7 (F and H) */
+	movd	%mm1, %esi		/* F */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$16, %r12d		/* F */
+	addl	64(%rdi), %ebx		/* F */
+	rorl	$16, %r14d		/* H */
+	addl	88(%rdi), %edx		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$12, %esi		/* F */
+	addl	72(%rdi), %eax		/* A (initial) */
+	rorl	$12, %ebp		/* H */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$8, %r12d		/* F */
+	addl	92(%rdi), %ecx		/* C (initial) */
+	rorl	$8, %r14d		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$7, %esi		/* F */
+	rorl	$7, %ebp		/* H */
+	movd	%esi, %mm1		/* F */
+/* round 8 (A and C) */
+	movd	%mm1, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$16, %r12d		/* A */
+	addl	108(%rdi), %eax		/* A */
+	rorl	$16, %r14d		/* C */
+	addl	60(%rdi), %ecx		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$12, %ebp		/* A */
+	addl	104(%rdi), %ebx		/* B (initial) */
+	rorl	$12, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$8, %r12d		/* A */
+	addl	48(%rdi), %edx		/* D (initial) */
+	rorl	$8, %r14d		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$7, %ebp		/* A */
+	rorl	$7, %esi		/* C */
+	movd	%esi, %mm1		/* C */
+/* round 8 (B and D) */
+	movd	%mm2, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$16, %r13d		/* B */
+	addl	84(%rdi), %ebx		/* B */
+	rorl	$16, %r15d		/* D */
+	addl	80(%rdi), %edx		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$12, %esp		/* B */
+	addl	96(%rdi), %eax		/* E (initial) */
+	rorl	$12, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$8, %r13d		/* B */
+	addl	52(%rdi), %ecx		/* G (initial) */
+	rorl	$8, %r15d		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$7, %esp		/* B */
+	rorl	$7, %esi		/* D */
+/* round 8 (E and G) */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$16, %r15d		/* E */
+	addl	56(%rdi), %eax		/* E */
+	rorl	$16, %r13d		/* G */
+	addl	64(%rdi), %ecx		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$12, %esp		/* E */
+	addl	100(%rdi), %ebx		/* F (initial) */
+	rorl	$12, %esi		/* G */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$8, %r15d		/* E */
+	addl	88(%rdi), %edx		/* H (initial) */
+	rorl	$8, %r13d		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$7, %esp		/* E */
+	rorl	$7, %esi		/* G */
+	movd	%esi, %mm2		/* G */
+/* round 8 (F and H) */
+	movd	%mm1, %esi		/* F */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$16, %r12d		/* F */
+	addl	76(%rdi), %ebx		/* F */
+	rorl	$16, %r14d		/* H */
+	addl	68(%rdi), %edx		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$12, %esi		/* F */
+	addl	88(%rdi), %eax		/* A (initial) */
+	rorl	$12, %ebp		/* H */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$8, %r12d		/* F */
+	addl	76(%rdi), %ecx		/* C (initial) */
+	rorl	$8, %r14d		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$7, %esi		/* F */
+	rorl	$7, %ebp		/* H */
+	movd	%esi, %mm1		/* F */
+/* round 9 (A and C) */
+	movd	%mm1, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$16, %r12d		/* A */
+	addl	56(%rdi), %eax		/* A */
+	rorl	$16, %r14d		/* C */
+	addl	72(%rdi), %ecx		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$12, %ebp		/* A */
+	addl	80(%rdi), %ebx		/* B (initial) */
+	rorl	$12, %esi		/* C */
+	addl	%ebp, %eax		/* A */
+	addl	%esi, %ecx		/* C */
+	xorl	%eax, %r12d		/* A */
+	xorl	%ecx, %r14d		/* C */
+	rorl	$8, %r12d		/* A */
+	addl	52(%rdi), %edx		/* D (initial) */
+	rorl	$8, %r14d		/* C */
+	addl	%r12d, %r8d		/* A */
+	addl	%r14d, %r10d		/* C */
+	xorl	%r8d, %ebp		/* A */
+	xorl	%r10d, %esi		/* C */
+	rorl	$7, %ebp		/* A */
+	rorl	$7, %esi		/* C */
+	movd	%esi, %mm1		/* C */
+/* round 9 (B and D) */
+	movd	%mm2, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$16, %r13d		/* B */
+	addl	64(%rdi), %ebx		/* B */
+	rorl	$16, %r15d		/* D */
+	addl	68(%rdi), %edx		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$12, %esp		/* B */
+	addl	108(%rdi), %eax		/* E (initial) */
+	rorl	$12, %esi		/* D */
+	addl	%esp, %ebx		/* B */
+	addl	%esi, %edx		/* D */
+	xorl	%ebx, %r13d		/* B */
+	xorl	%edx, %r15d		/* D */
+	rorl	$8, %r13d		/* B */
+	addl	60(%rdi), %ecx		/* G (initial) */
+	rorl	$8, %r15d		/* D */
+	addl	%r13d, %r9d		/* B */
+	addl	%r15d, %r11d		/* D */
+	xorl	%r9d, %esp		/* B */
+	xorl	%r11d, %esi		/* D */
+	rorl	$7, %esp		/* B */
+	rorl	$7, %esi		/* D */
+/* round 9 (E and G) */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$16, %r15d		/* E */
+	addl	92(%rdi), %eax		/* E */
+	rorl	$16, %r13d		/* G */
+	addl	96(%rdi), %ecx		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	rorl	$12, %esp		/* E */
+	addl	84(%rdi), %ebx		/* F (initial) */
+	rorl	$12, %esi		/* G */
+	addl	%esp, %eax		/* E */
+	addl	%esi, %ecx		/* G */
+	xorl	%eax, %r15d		/* E */
+	xorl	%ecx, %r13d		/* G */
+	rorl	$8, %r15d		/* E */
+	addl	100(%rdi), %edx		/* H (initial) */
+	rorl	$8, %r13d		/* G */
+	addl	%r15d, %r10d		/* E */
+	addl	%r13d, %r8d		/* G */
+	xorl	%r10d, %esp		/* E */
+	xorl	%r8d, %esi		/* G */
+	xorl	%ecx, %r10d		/* finalise */
+	rorl	$7, %esp		/* E */
+	xorl	%eax, %r8d		/* finalise */
+	rorl	$7, %esi		/* G */
+	xorl	%r10d, 8(%rdi)		/* finalise */
+	xorl	%r8d, 0(%rdi)		/* finalise */
+	xorl	%esi, %r15d		/* finalise */
+	xorl	%esp, %r13d		/* finalise */
+/* round 9 (F and H) */
+	movd	%mm1, %esi		/* F */
+	xorl	%r15d, 28(%rdi)		/* finalise */
+	xorl	%r13d, 20(%rdi)		/* finalise */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$16, %r12d		/* F */
+	addl	104(%rdi), %ebx		/* F */
+	rorl	$16, %r14d		/* H */
+	addl	48(%rdi), %edx		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	rorl	$12, %esi		/* F */
+	rorl	$12, %ebp		/* H */
+	addl	%esi, %ebx		/* F */
+	addl	%ebp, %edx		/* H */
+	xorl	%ebx, %r12d		/* F */
+	xorl	%edx, %r14d		/* H */
+	rorl	$8, %r12d		/* F */
+	rorl	$8, %r14d		/* H */
+	addl	%r12d, %r11d		/* F */
+	addl	%r14d, %r9d		/* H */
+	xorl	%r11d, %esi		/* F */
+	xorl	%r9d, %ebp		/* H */
+	xorl	%edx, %r11d		/* finalise */
+	rorl	$7, %esi		/* F */
+	xorl	%ebx, %r9d		/* finalise */
+	rorl	$7, %ebp		/* H */
+	xorl	%esi, %r14d		/* finalise */
+	xorl	%ebp, %r12d		/* finalise */
+	xorl	%r9d, 4(%rdi)		/* finalise */
+	xorl	%r11d, 12(%rdi)		/* finalise */
+	xorl	%r12d, 16(%rdi)		/* finalise */
+	xorl	%r14d, 24(%rdi)		/* finalise */
+
+#ifndef MOVQ_FIX
+	movq	%mm0, %rsp
+#else
+	movd	%mm0, %esp
+	movd	%mm7, %eax
+	shlq	$32, %rax
+	orq	%rax, %rsp
+#endif
+
+#ifdef WIN64
+	popq	%rsi
+	popq	%rdi
+#endif
+	popq	%r15
+	popq	%r14
+	popq	%r13
+	popq	%r12
+	popq	%rbp
+	popq	%rbx
+	emms
+	ret
+
 
 /* neoscrypt_copy(dst, src, len)
  * AMD64 memcpy() */
@@ -32,7 +1341,7 @@
 .globl _neoscrypt_copy
 neoscrypt_copy:
 _neoscrypt_copy:
-#if (WIN64)
+#ifdef WIN64
 	movq	%rdi, %r10
 	movq	%rsi, %r11
 	movq	%rcx, %rdi
@@ -83,7 +1392,7 @@ _neoscrypt_copy:
 	jnz	.byte_copy
 
 .copy_finish:
-#if (WIN64)
+#ifdef WIN64
 	movq	%r10, %rdi
 	movq	%r11, %rsi
 #endif
@@ -96,7 +1405,7 @@ _neoscrypt_copy:
 .globl _neoscrypt_erase
 neoscrypt_erase:
 _neoscrypt_erase:
-#if (WIN64)
+#ifdef WIN64
 	movq	%rdi, %r10
 	movq	%rsi, %r11
 	movq	%rcx, %rdi
@@ -139,7 +1448,7 @@ _neoscrypt_erase:
 	jnz	.byte_erase
 
 .erase_finish:
-#if (WIN64)
+#ifdef WIN64
 	movq	%r10, %rdi
 	movq	%r11, %rsi
 #endif
@@ -152,7 +1461,7 @@ _neoscrypt_erase:
 .globl _neoscrypt_xor
 neoscrypt_xor:
 _neoscrypt_xor:
-#if (WIN64)
+#ifdef WIN64
 	movq	%rdi, %r10
 	movq	%rsi, %r11
 	movq	%rcx, %rdi
@@ -207,10 +1516,363 @@ _neoscrypt_xor:
 	jnz	.byte_xor
 
 .xor_finish:
-#if (WIN64)
+#ifdef WIN64
 	movq	%r10, %rdi
 	movq	%r11, %rsi
 #endif
+	ret
+
+
+/* neoscrypt_fastkdf_opt(password, salt, output, output_len)
+ * AMD64 SSE2 FastKDF optimised */
+.globl neoscrypt_fastkdf_opt
+.globl _neoscrypt_fastkdf_opt
+neoscrypt_fastkdf_opt:
+_neoscrypt_fastkdf_opt:
+	pushq	%rbx
+	pushq	%rbp
+	pushq	%r12
+	pushq	%r13
+	pushq	%r14
+	pushq	%r15
+#ifdef WIN64
+	pushq	%rdi
+	pushq	%rsi
+	subq	$160, %rsp
+	movdqu	%xmm6, 144(%rsp)
+	movdqu	%xmm7, 128(%rsp)
+	movdqu	%xmm8, 112(%rsp)
+	movdqu	%xmm9, 96(%rsp)
+	movdqu	%xmm10, 80(%rsp)
+	movdqu	%xmm11, 64(%rsp)
+	movdqu	%xmm12, 48(%rsp)
+	movdqu	%xmm13, 32(%rsp)
+	movdqu	%xmm14, 16(%rsp)
+	movdqu	%xmm15, 0(%rsp)
+	movq	%rcx, %rdi
+	movq	%rdx, %rsi
+	movq	%r8, %rdx
+	movq	%r9, %rcx
+#endif
+
+/* 64 bytes (local variables) + 64 bytes (alignment space) + 320 bytes (password
+ * buffer) + 288 bytes (salt buffer) + 112 bytes (BLAKE2s space) = 848 bytes */
+	subq	$848, %rsp
+	leaq	128(%rsp), %rbp
+	andq	$0xFFFFFFFFFFFFFFC0, %rbp
+	movq	%rdx, 48(%rsp)
+	movq	%rcx, 56(%rsp)
+
+	movdqu	0(%rdi), %xmm0
+	movdqu	16(%rdi), %xmm1
+	movdqu	32(%rdi), %xmm2
+	movdqu	48(%rdi), %xmm3
+	movdqu	64(%rdi), %xmm4
+	movdqa	%xmm0, 0(%rbp)
+	movdqa	%xmm1, 16(%rbp)
+	movdqa	%xmm2, 32(%rbp)
+	movdqa	%xmm3, 48(%rbp)
+	movdqa	%xmm4, 64(%rbp)
+	movdqa	%xmm0, 80(%rbp)
+	movdqa	%xmm1, 96(%rbp)
+	movdqa	%xmm2, 112(%rbp)
+	movdqa	%xmm3, 128(%rbp)
+	movdqa	%xmm4, 144(%rbp)
+	movdqa	%xmm0, 160(%rbp)
+	movdqa	%xmm1, 176(%rbp)
+	movdqa	%xmm2, 192(%rbp)
+	movdqa	%xmm3, 208(%rbp)
+	movdqa	%xmm4, 224(%rbp)
+	movdqa	%xmm0, 240(%rbp)
+	movdqa	%xmm0, 256(%rbp)
+	movdqa	%xmm1, 272(%rbp)
+	movdqa	%xmm2, 288(%rbp)
+	movdqa	%xmm3, 304(%rbp)
+
+	leaq	320(%rbp), %rbx
+	leaq	608(%rbp), %r14
+	movq	%rbp, %r12
+	xorq	%r13, %r13
+	movq	$32, %r15
+	testl	$0x01, 56(%rsp)
+	jnz	.fastkdf_mode_one
+
+	movl	$256, 56(%rsp)
+	movdqu	0(%rsi), %xmm0
+	movdqu	16(%rsi), %xmm1
+	movdqu	32(%rsi), %xmm2
+	movdqu	48(%rsi), %xmm3
+	movdqu	64(%rsi), %xmm4
+	movdqa	%xmm0, 0(%rbx)
+	movdqa	%xmm1, 16(%rbx)
+	movdqa	%xmm2, 32(%rbx)
+	movdqa	%xmm3, 48(%rbx)
+	movdqa	%xmm4, 64(%rbx)
+	movdqa	%xmm0, 80(%rbx)
+	movdqa	%xmm1, 96(%rbx)
+	movdqa	%xmm2, 112(%rbx)
+	movdqa	%xmm3, 128(%rbx)
+	movdqa	%xmm4, 144(%rbx)
+	movdqa	%xmm0, 160(%rbx)
+	movdqa	%xmm1, 176(%rbx)
+	movdqa	%xmm2, 192(%rbx)
+	movdqa	%xmm3, 208(%rbx)
+	movdqa	%xmm4, 224(%rbx)
+	movdqa	%xmm0, 240(%rbx)
+	movdqa	%xmm0, 256(%rbx)
+	movdqa	%xmm1, 272(%rbx)
+	jmp	.fastkdf_loop
+
+.fastkdf_mode_one:
+	movl	$32, 56(%rsp)
+	movdqa	0(%rsi), %xmm0
+	movdqa	16(%rsi), %xmm1
+	movdqa	32(%rsi), %xmm2
+	movdqa	48(%rsi), %xmm3
+	movdqa	64(%rsi), %xmm4
+	movdqa	80(%rsi), %xmm5
+	movdqa	96(%rsi), %xmm6
+	movdqa	112(%rsi), %xmm7
+	movdqa	128(%rsi), %xmm8
+	movdqa	144(%rsi), %xmm9
+	movdqa	160(%rsi), %xmm10
+	movdqa	176(%rsi), %xmm11
+	movdqa	192(%rsi), %xmm12
+	movdqa	208(%rsi), %xmm13
+	movdqa	224(%rsi), %xmm14
+	movdqa	240(%rsi), %xmm15
+	movdqa	%xmm0, 0(%rbx)
+	movdqa	%xmm1, 16(%rbx)
+	movdqa	%xmm2, 32(%rbx)
+	movdqa	%xmm3, 48(%rbx)
+	movdqa	%xmm4, 64(%rbx)
+	movdqa	%xmm5, 80(%rbx)
+	movdqa	%xmm6, 96(%rbx)
+	movdqa	%xmm7, 112(%rbx)
+	movdqa	%xmm8, 128(%rbx)
+	movdqa	%xmm9, 144(%rbx)
+	movdqa	%xmm10, 160(%rbx)
+	movdqa	%xmm11, 176(%rbx)
+	movdqa	%xmm12, 192(%rbx)
+	movdqa	%xmm13, 208(%rbx)
+	movdqa	%xmm14, 224(%rbx)
+	movdqa	%xmm15, 240(%rbx)
+	movdqa	%xmm0, 256(%rbx)
+	movdqa	%xmm1, 272(%rbx)
+
+.fastkdf_loop:
+	leaq	0(%r12, %r13), %rbp
+	leaq	320(%r12, %r13), %rbx
+	pxor	%xmm5, %xmm5
+
+	movq	$0xBB67AE856B08C647, %r8
+	movq	%r8, 0(%r14)
+	movq	$0xA54FF53A3C6EF372, %r9
+	movq	%r9, 8(%r14)
+	movq	$0x9B05688C510E527F, %r10
+	movq	%r10, 16(%r14)
+	movq	$0x5BE0CD191F83D9AB, %r11
+	movq	%r11, 24(%r14)
+	movdqa	%xmm5, 32(%r14)
+	movl	$64, 32(%r14)
+
+	movdqu	0(%rbx), %xmm0
+	movdqu	16(%rbx), %xmm1
+	movdqa	%xmm0, 48(%r14)
+	movdqa	%xmm1, 64(%r14)
+	movdqa	%xmm5, 80(%r14)
+	movdqa	%xmm5, 96(%r14)
+
+#ifdef WIN64
+	movq	%r14, %rcx
+#else
+	movq	%r14, %rdi
+#endif
+	call	blake2s_compress
+
+	movdqu	0(%rbp), %xmm0
+	movdqu	16(%rbp), %xmm1
+	movdqu	32(%rbp), %xmm2
+	movdqu	48(%rbp), %xmm3
+	movdqa	%xmm0, 48(%r14)
+	movdqa	%xmm1, 64(%r14)
+	movdqa	%xmm2, 80(%r14)
+	movdqa	%xmm3, 96(%r14)
+
+	movl	$128, 32(%r14)
+	movl	$0xFFFFFFFF, 40(%r14)
+
+#ifdef WIN64
+	movq	%r14, %rcx
+#else
+	movq	%r14, %rdi
+#endif
+	call	blake2s_compress
+
+	pxor	%xmm5, %xmm5
+	movdqa	0(%r14), %xmm0
+	movdqa	16(%r14), %xmm1
+	movdqa	%xmm0, %xmm2
+	movdqa	%xmm1, %xmm3
+	paddb	%xmm1, %xmm0
+	psadbw	%xmm5, %xmm0
+	movhlps	%xmm0, %xmm1
+	paddq	%xmm1, %xmm0
+#ifndef MOVQ_FIX
+	movq	%xmm0, %r13
+#else
+	movq	%xmm0, 0(%r14)
+	movq	0(%r14), %r13
+#endif
+	andq	$0xFF, %r13
+	leaq	320(%r12, %r13), %rbx
+	movdqu	0(%rbx), %xmm0
+	movdqu	16(%rbx), %xmm1
+	pxor	%xmm2, %xmm0
+	pxor	%xmm3, %xmm1
+	movdqu	%xmm0, 0(%rbx)
+	movdqu	%xmm1, 16(%rbx)
+
+/* tail update */
+	movq	$32, %rdx
+	cmpq	%r13, %rdx
+	jc	.fastkdf_headupd
+#ifdef WIN64
+	movq	%rdx, %r8
+	leaq	256(%rbx), %rcx
+	movq	%rbx, %rdx
+	subq	%r13, %r8
+#else
+	leaq	256(%rbx), %rdi
+	movq	%rbx, %rsi
+	subq	%r13, %rdx
+#endif
+	call	neoscrypt_copy
+	jmp	.fastkdf_loop_end
+
+/* head update */
+.fastkdf_headupd:
+	movq	$224, %rdx
+	cmpq	%r13, %rdx
+	jnc	.fastkdf_loop_end
+	movq	%r13, %rax
+	subq	%rdx, %rax
+#ifdef WIN64
+	leaq	320(%r12), %rcx
+	leaq	576(%r12), %rdx
+	movq	%rax, %r8
+#else
+	leaq	320(%r12), %rdi
+	leaq	576(%r12), %rsi
+	movq	%rax, %rdx
+#endif
+	call	neoscrypt_copy
+
+.fastkdf_loop_end:
+	decq	%r15
+	jnz	.fastkdf_loop
+
+	movq	48(%rsp), %r14
+	movq	56(%rsp), %r15
+	movq	$256, %rbp
+	subq	%r13, %rbp
+	cmpq	%r15, %rbp
+	jc	.fastkdf_crosscopy
+
+	leaq	320(%r12, %r13), %rbp
+#ifdef WIN64
+	movq	%rbp, %rcx
+	movq	%r12, %rdx
+	movq	%r15, %r8
+#else
+	movq	%rbp, %rdi
+	movq	%r12, %rsi
+	movq	%r15, %rdx
+#endif
+	call	neoscrypt_xor
+#ifdef WIN64
+	movq	%r14, %rcx
+	movq	%rbp, %rdx
+	movq	%r15, %r8
+#else
+	movq	%r14, %rdi
+	movq	%rbp, %rsi
+	movq	%r15, %rdx
+#endif
+	call	neoscrypt_copy
+	jmp	.fastkdf_finish
+
+.fastkdf_crosscopy:
+	leaq	320(%r12, %r13), %rbx
+#ifdef WIN64
+	movq	%rbx, %rcx
+	movq	%r12, %rdx
+	movq	%rbp, %r8
+#else
+	movq	%rbx, %rdi
+	movq	%r12, %rsi
+	movq	%rbp, %rdx
+#endif
+	call	neoscrypt_xor
+	leaq	320(%r12), %rdi
+	leaq	0(%r12, %rbp), %rsi
+#ifdef WIN64
+	movq	%rdi, %rcx
+	movq	%rsi, %rdx
+	movq	%r15, %r8
+	subq	%rbp, %r8
+#else
+	movq	%r15, %rdx
+	subq	%rbp, %rdx
+#endif
+	call	neoscrypt_xor
+#ifdef WIN64
+	movq	%r14, %rcx
+	movq	%rbx, %rdx
+	movq	%rbp, %r8
+#else
+	movq	%r14, %rdi
+	movq	%rbx, %rsi
+	movq	%rbp, %rdx
+#endif
+	call	neoscrypt_copy
+#ifdef WIN64
+	leaq	0(%r14, %rbp), %rcx
+	leaq	320(%r12), %rdx
+	movq	%r15, %r8
+	subq	%rbp, %r8
+#else
+	leaq	0(%r14, %rbp), %rdi
+	leaq	320(%r12), %rsi
+	movq	%r15, %rdx
+	subq	%rbp, %rdx
+#endif
+	call	neoscrypt_copy
+
+.fastkdf_finish:
+	addq	$848, %rsp
+
+#ifdef WIN64
+	movdqu	0(%rsp), %xmm15
+	movdqu	16(%rsp), %xmm14
+	movdqu	32(%rsp), %xmm13
+	movdqu	48(%rsp), %xmm12
+	movdqu	64(%rsp), %xmm11
+	movdqu	80(%rsp), %xmm10
+	movdqu	96(%rsp), %xmm9
+	movdqu	112(%rsp), %xmm8
+	movdqu	128(%rsp), %xmm7
+	movdqu	144(%rsp), %xmm6
+	addq	$160, %rsp
+	popq	%rsi
+	popq	%rdi
+#endif
+	popq	%r15
+	popq	%r14
+	popq	%r13
+	popq	%r12
+	popq	%rbp
+	popq	%rbx
 	ret
 
 
@@ -452,7 +2114,7 @@ neoscrypt_xor_salsa:
 	movdqa	%xmm2, %xmm14
 	movdqa	%xmm3, %xmm15
 .xor_salsa:
-/* quarters A and B */
+/* quarters A and B, initial C and D */
 	movl	0(%r10), %eax	/* A: load a */
 	movl	20(%r10), %ebx	/* B: load a */
 	addl	48(%r10), %eax	/* A: t = a + d */
@@ -497,117 +2159,117 @@ neoscrypt_xor_salsa:
 	roll	$7, %ebx	/* D: rotate t */
 	movl	%ecx, 0(%r10)	/* A: store a */
 	movl	%edx, 20(%r10)	/* B: store a */
-/* quarters C and D */
-	xorl	56(%r10), %eax
-	xorl	12(%r10), %ebx
-	movl	%eax, %esi
-	movl	%ebx, %edi
-	movl	%esi, 56(%r10)
-	movl	%edi, 12(%r10)
-	addl	40(%r10), %eax
-	addl	60(%r10), %ebx
-	roll	$9, %eax
-	roll	$9, %ebx
-	xorl	8(%r10), %eax
-	xorl	28(%r10), %ebx
-	movl	%eax, %ecx
-	movl	%ebx, %edx
-	movl	%ecx, 8(%r10)
-	movl	%edx, 28(%r10)
-	addl	%esi, %eax
-	addl	%edi, %ebx
-	roll	$13, %eax
-	roll	$13, %ebx
-	xorl	24(%r10), %eax
-	xorl	44(%r10), %ebx
-	movl	%eax, 24(%r10)
-	movl	%ebx, 44(%r10)
-	addl	%eax, %ecx
-	movl	0(%r10), %eax	/* E */
-	addl	%ebx, %edx
-	movl	20(%r10), %ebx	/* F */
-	roll	$18, %ecx
-	addl	12(%r10), %eax	/* E */
-	roll	$18, %edx
-	addl	16(%r10), %ebx	/* F */
-	xorl	40(%r10), %ecx
-	roll	$7, %eax	/* E */
-	xorl	60(%r10), %edx
-	roll	$7, %ebx	/* F */
-	movl	%ecx, 40(%r10)
-	movl	%edx, 60(%r10)
-/* quarters E and F */
-	xorl	4(%r10), %eax
-	xorl	24(%r10), %ebx
-	movl	%eax, %esi
-	movl	%ebx, %edi
-	movl	%esi, 4(%r10)
-	movl	%edi, 24(%r10)
-	addl	0(%r10), %eax
-	addl	20(%r10), %ebx
-	roll	$9, %eax
-	roll	$9, %ebx
-	xorl	8(%r10), %eax
-	xorl	28(%r10), %ebx
-	movl	%eax, %ecx
-	movl	%ebx, %edx
-	movl	%ecx, 8(%r10)
-	movl	%edx, 28(%r10)
-	addl	%esi, %eax
-	addl	%edi, %ebx
-	roll	$13, %eax
-	roll	$13, %ebx
-	xorl	12(%r10), %eax
-	xorl	16(%r10), %ebx
-	movl	%eax, 12(%r10)
-	movl	%ebx, 16(%r10)
-	addl	%eax, %ecx
-	movl	40(%r10), %eax	/* G */
-	addl	%ebx, %edx
-	movl	60(%r10), %ebx	/* H */
-	roll	$18, %ecx
-	addl	36(%r10), %eax	/* G */
-	roll	$18, %edx
-	addl	56(%r10), %ebx	/* H */
-	xorl	0(%r10), %ecx
-	roll	$7, %eax	/* G */
-	xorl	20(%r10), %edx
-	roll	$7, %ebx	/* H */
-	movl	%ecx, 0(%r10)
-	movl	%edx, 20(%r10)
+/* quarters C and D, initial E and F */
+	xorl	56(%r10), %eax	/* C: b = b ^ t */
+	xorl	12(%r10), %ebx	/* D: b = b ^ t */
+	movl	%eax, %esi	/* C: copy b */
+	movl	%ebx, %edi	/* D: copy b */
+	movl	%esi, 56(%r10)	/* C: store b */
+	movl	%edi, 12(%r10)	/* D: store b */
+	addl	40(%r10), %eax	/* C: t = b + a */
+	addl	60(%r10), %ebx	/* D: t = b + a */
+	roll	$9, %eax	/* C: rotate t */
+	roll	$9, %ebx	/* D: rotate t */
+	xorl	8(%r10), %eax	/* C: c = c ^ t */
+	xorl	28(%r10), %ebx	/* D: c = c ^ t */
+	movl	%eax, %ecx	/* C: copy c */
+	movl	%ebx, %edx	/* D: copy c */
+	movl	%ecx, 8(%r10)	/* C: store c */
+	movl	%edx, 28(%r10)	/* D: store c */
+	addl	%esi, %eax	/* C: t = c + b */
+	addl	%edi, %ebx	/* D: t = c + b */
+	roll	$13, %eax	/* C: rotate t */
+	roll	$13, %ebx	/* D: rotate t */
+	xorl	24(%r10), %eax	/* C: d = d ^ t */
+	xorl	44(%r10), %ebx	/* D: d = d ^ t */
+	movl	%eax, 24(%r10)	/* C: store d */
+	movl	%ebx, 44(%r10)	/* D: store d */
+	addl	%eax, %ecx	/* C: t = d + c */
+	movl	0(%r10), %eax	/* E: load a */
+	addl	%ebx, %edx	/* D: t = d + c */
+	movl	20(%r10), %ebx	/* F: load a */
+	roll	$18, %ecx	/* C: rotate t */
+	addl	12(%r10), %eax	/* E: t = a + d */
+	roll	$18, %edx	/* D: rotate t */
+	addl	16(%r10), %ebx	/* F: t = a + d */
+	xorl	40(%r10), %ecx	/* C: a = a ^ t */
+	roll	$7, %eax	/* E: rotate t */
+	xorl	60(%r10), %edx	/* D: a = a ^ t */
+	roll	$7, %ebx	/* F: rotate t */
+	movl	%ecx, 40(%r10)	/* C: store a */
+	movl	%edx, 60(%r10)	/* D: store a */
+/* quarters E and F, initial G and H */
+	xorl	4(%r10), %eax	/* E: b = b ^ t */
+	xorl	24(%r10), %ebx	/* F: b = b ^ t */
+	movl	%eax, %esi	/* E: copy b */
+	movl	%ebx, %edi	/* F: copy b */
+	movl	%esi, 4(%r10)	/* E: store b */
+	movl	%edi, 24(%r10)	/* F: store b */
+	addl	0(%r10), %eax	/* E: t = b + a */
+	addl	20(%r10), %ebx	/* F: t = b + a */
+	roll	$9, %eax	/* E: rotate t */
+	roll	$9, %ebx	/* F: rotate t */
+	xorl	8(%r10), %eax	/* E: c = c ^ t */
+	xorl	28(%r10), %ebx	/* F: c = c ^ t */
+	movl	%eax, %ecx	/* E: copy c */
+	movl	%ebx, %edx	/* F: copy c */
+	movl	%ecx, 8(%r10)	/* E: store c */
+	movl	%edx, 28(%r10)	/* F: store c */
+	addl	%esi, %eax	/* E: t = c + b */
+	addl	%edi, %ebx	/* F: t = c + b */
+	roll	$13, %eax	/* E: rotate t */
+	roll	$13, %ebx	/* F: rotate t */
+	xorl	12(%r10), %eax	/* E: d = d ^ t */
+	xorl	16(%r10), %ebx	/* F: d = d ^ t */
+	movl	%eax, 12(%r10)	/* E: store d */
+	movl	%ebx, 16(%r10)	/* F: store d */
+	addl	%eax, %ecx	/* E: t = d + c */
+	movl	40(%r10), %eax	/* G: load a */
+	addl	%ebx, %edx	/* F: t = d + c */
+	movl	60(%r10), %ebx	/* H: load a */
+	roll	$18, %ecx	/* E: rotate t */
+	addl	36(%r10), %eax	/* G: t = a + d */
+	roll	$18, %edx	/* F: rotate t */
+	addl	56(%r10), %ebx	/* H: t = a + d */
+	xorl	0(%r10), %ecx	/* E: a = a ^ t */
+	roll	$7, %eax	/* G: rotate t */
+	xorl	20(%r10), %edx	/* F: a = a ^ t */
+	roll	$7, %ebx	/* H: rotate t */
+	movl	%ecx, 0(%r10)	/* E: store a */
+	movl	%edx, 20(%r10)	/* F: store a */
 /* quarters G and H */
-	xorl	44(%r10), %eax
-	xorl	48(%r10), %ebx
-	movl	%eax, %esi
-	movl	%ebx, %edi
-	movl	%esi, 44(%r10)
-	movl	%edi, 48(%r10)
-	addl	40(%r10), %eax
-	addl	60(%r10), %ebx
-	roll	$9, %eax
-	roll	$9, %ebx
-	xorl	32(%r10), %eax
-	xorl	52(%r10), %ebx
-	movl	%eax, %ecx
-	movl	%ebx, %edx
-	movl	%ecx, 32(%r10)
-	movl	%edx, 52(%r10)
-	addl	%esi, %eax
-	addl	%edi, %ebx
-	roll	$13, %eax
-	roll	$13, %ebx
-	xorl	36(%r10), %eax
-	xorl	56(%r10), %ebx
-	movl	%eax, 36(%r10)
-	movl	%ebx, 56(%r10)
-	addl	%eax, %ecx
-	addl	%ebx, %edx
-	roll	$18, %ecx
-	roll	$18, %edx
-	xorl	40(%r10), %ecx
-	xorl	60(%r10), %edx
-	movl	%ecx, 40(%r10)
-	movl	%edx, 60(%r10)
+	xorl	44(%r10), %eax	/* G: b = b ^ t */
+	xorl	48(%r10), %ebx	/* H: b = b ^ t */
+	movl	%eax, %esi	/* G: copy b */
+	movl	%ebx, %edi	/* H: copy b */
+	movl	%esi, 44(%r10)	/* G: store b */
+	movl	%edi, 48(%r10)	/* H: store b */
+	addl	40(%r10), %eax	/* G: t = b + a */
+	addl	60(%r10), %ebx	/* H: t = b + a */
+	roll	$9, %eax	/* G: rotate t */
+	roll	$9, %ebx	/* H: rotate t */
+	xorl	32(%r10), %eax	/* G: c = c ^ t */
+	xorl	52(%r10), %ebx	/* H: c = c ^ t */
+	movl	%eax, %ecx	/* G: copy c */
+	movl	%ebx, %edx	/* H: copy c */
+	movl	%ecx, 32(%r10)	/* G: store c */
+	movl	%edx, 52(%r10)	/* H: store c */
+	addl	%esi, %eax	/* G: t = c + b */
+	addl	%edi, %ebx	/* H: t = c + b */
+	roll	$13, %eax	/* G: rotate t */
+	roll	$13, %ebx	/* H: rotate t */
+	xorl	36(%r10), %eax	/* G: d = d ^ t */
+	xorl	56(%r10), %ebx	/* H: d = d ^ t */
+	movl	%eax, 36(%r10)	/* G: store d */
+	movl	%ebx, 56(%r10)	/* H: store d */
+	addl	%eax, %ecx	/* G: t = d + c */
+	addl	%ebx, %edx	/* H: t = d + c */
+	roll	$18, %ecx	/* G: rotate t */
+	roll	$18, %edx	/* H: rotate t */
+	xorl	40(%r10), %ecx	/* G: a = a ^ t */
+	xorl	60(%r10), %edx	/* H: a = a ^ t */
+	movl	%ecx, 40(%r10)	/* G: store a */
+	movl	%edx, 60(%r10)	/* H: store a */
 	decq	%r11
 	jnz	.xor_salsa
 
@@ -649,174 +2311,170 @@ neoscrypt_xor_chacha:
 	movdqa	%xmm2, %xmm14
 	movdqa	%xmm3, %xmm15
 .xor_chacha:
-/* quarter A */
-	movl	16(%r10), %ebx	/* load b */
-	movl	0(%r10), %eax	/* load a */
-	addl	%ebx, %eax	/* a = a + b */
-	movl	48(%r10), %edx	/* load d */
-	xorl	%eax, %edx	/* d = d ^ a */
-	movl	32(%r10), %ecx	/* load c */
-	roll	$16, %edx	/* rotate d */
-	movl	20(%r10), %esi	/* B: load b */
-	addl	%edx, %ecx	/* c = c + d */
+/* quarters A and B, initial C */
+	movl	0(%r10), %eax	/* A: load a */
+	movl	16(%r10), %ebx	/* A: load b */
+	addl	%ebx, %eax	/* A: a = a + b */
+	movl	32(%r10), %ecx	/* A: load c */
+	movl	48(%r10), %edx	/* A: load d */
+	xorl	%eax, %edx	/* A: d = d ^ a */
 	movl	4(%r10), %edi	/* B: load a */
-	xorl	%ecx, %ebx	/* b = b ^ c */
+	roll	$16, %edx	/* A: rotate d */
+	movl	20(%r10), %esi	/* B: load b */
+	addl	%edx, %ecx	/* A: c = c + d */
+	xorl	%ecx, %ebx	/* A: b = b ^ c */
 	addl	%esi, %edi	/* B: a = a + b */
-	roll	$12, %ebx	/* rotate b */
-	addl	%ebx, %eax	/* a = a + b */
-	movl	%eax, 0(%r10)	/* store a */
-	xorl	%eax, %edx	/* d = d ^ a */
+	roll	$12, %ebx	/* A: rotate b */
+	addl	%ebx, %eax	/* A: a = a + b */
+	movl	%eax, 0(%r10)	/* A: store a */
+	xorl	%eax, %edx	/* A: d = d ^ a */
 	movl	52(%r10), %eax	/* B: load d */
-	roll	$8, %edx	/* rotate d */
+	roll	$8, %edx	/* A: rotate d */
 	xorl	%edi, %eax	/* B: d = d ^ a */
-	movl	%edx, 48(%r10)	/* store d */
-	addl	%edx, %ecx	/* c = c + d */
-	roll	$16, %eax	/* B: rotate d */
-	movl	%ecx, 32(%r10)	/* store c */
+	movl	%edx, 48(%r10)	/* A: store d */
+	addl	%edx, %ecx	/* A: c = c + d */
 	movl	36(%r10), %edx	/* B: load c */
-	xorl	%ecx, %ebx	/* b = b ^ c */
+	movl	%ecx, 32(%r10)	/* A: store c */
+	xorl	%ecx, %ebx	/* A: b = b ^ c */
+	roll	$16, %eax	/* B: rotate d */
+	movl	40(%r10), %ecx	/* C: load c */
+	roll	$7, %ebx	/* A: rotate b */
 	addl	%eax, %edx	/* B: c = c + d */
-	roll	$7, %ebx	/* rotate b */
-	movl	24(%r10), %ecx	/* C: load b */
-	movl	%ebx, 16(%r10)	/* store b */
-/* quarter B */
-	xorl	%edx, %esi	/* b = b ^ c */
-	movl	8(%r10), %ebx	/* C: load a */
-	roll	$12, %esi	/* rotate b */
-	addl	%esi, %edi	/* a = a + b */
-	addl	%ecx, %ebx	/* C: a = a + b */
-	movl	%edi, 4(%r10)	/* store a */
-	xorl	%edi, %eax	/* d = d ^ a */
-	movl	56(%r10), %edi	/* C: load d */
-	roll	$8, %eax	/* rotate d */
-	xorl	%ebx, %edi	/* C: d = d ^ a */
-	movl	%eax, 52(%r10)	/* store d */
-	addl	%eax, %edx	/* c = c + d */
-	roll	$16, %edi	/* C: rotate d */
-	movl	%edx, 36(%r10)	/* store c */
-	xorl	%edx, %esi	/* b = b ^ c */
-	movl	40(%r10), %eax	/* C: load c */
-	roll	$7, %esi	/* rotate b */
-	addl	%edi, %eax	/* C: c = c + d */
-	movl	%esi, 20(%r10)	/* store b */
-/* quarter C */
-	movl	28(%r10), %edx	/* D: load b */
-	xorl	%eax, %ecx	/* b = b ^ c */
-	movl	12(%r10), %esi	/* D: load a */
-	roll	$12, %ecx	/* rotate b */
-	addl	%ecx, %ebx	/* a = a + b */
-	addl	%edx, %esi	/* D: a = a + b */
-	movl	%ebx, 8(%r10)	/* store a */
-	xorl	%ebx, %edi	/* d = d ^ a */
-	movl	60(%r10), %ebx	/* D: load d */
-	roll	$8, %edi	/* rotate d */
-	xorl	%esi, %ebx	/* D: d = d ^ a */
-	movl	%edi, 56(%r10)	/* store d */
-	addl	%edi, %eax	/* c = c + d */
-	roll	$16, %ebx	/* D: rotate d */
-	movl	%eax, 40(%r10)	/* store c */
-	xorl	%eax, %ecx	/* b = b ^ c */
-	movl	44(%r10), %edi	/* D: load c */
-	roll	$7, %ecx	/* rotate b */
-	addl	%ebx, %edi	/* D: c = c + d */
-	movl	%ecx, 24(%r10)	/* store b */
-/* quarter D */
-	xorl	%edi, %edx	/* b = b ^ c */
-	roll	$12, %edx	/* rotate b */
-	addl	%edx, %esi	/* a = a + b */
-	movl	%esi, 12(%r10)	/* store a */
-	xorl	%esi, %ebx	/* d = d ^ a */
-	roll	$8, %ebx	/* rotate d */
-	movl	%ebx, 60(%r10)	/* store d */
-	addl	%ebx, %edi	/* c = c + d */
-	movl	%edi, 44(%r10)	/* store c */
-	xorl	%edi, %edx	/* b = b ^ c */
-	roll	$7, %edx	/* rotate b */
-	movl	%edx, 28(%r10)	/* store b */
-/* quarter E */
-	movl	0(%r10), %eax
-	movl	20(%r10), %ebx
-	addl	%ebx, %eax
-	movl	60(%r10), %edx
-	xorl	%eax, %edx
-	movl	40(%r10), %ecx
-	roll	$16, %edx
-	movl	24(%r10), %esi
-	addl	%edx, %ecx
-	movl	4(%r10), %edi
-	xorl	%ecx, %ebx
-	addl	%esi, %edi
-	roll	$12, %ebx
-	addl	%ebx, %eax
-	movl	%eax, 0(%r10)
-	xorl	%eax, %edx
-	movl	48(%r10), %eax
-	roll	$8, %edx
-	xorl	%edi, %eax
-	movl	%edx, 60(%r10)
-	addl	%edx, %ecx
-	roll	$16, %eax
-	movl	%ecx, 40(%r10)
-	movl	44(%r10), %edx
-	xorl	%ecx, %ebx
-	addl	%eax, %edx
-	roll	$7, %ebx
-	movl	28(%r10), %ecx
-	movl	%ebx, 20(%r10)
-/* quarter F */
-	xorl	%edx, %esi
-	movl	8(%r10), %ebx
-	roll	$12, %esi
-	addl	%esi, %edi
-	addl	%ecx, %ebx
-	movl	%edi, 4(%r10)
-	xorl	%edi, %eax
-	movl	52(%r10), %edi
-	roll	$8, %eax
-	xorl	%ebx, %edi
-	movl	%eax, 48(%r10)
-	addl	%eax, %edx
-	roll	$16, %edi
-	movl	%edx, 44(%r10)
-	xorl	%edx, %esi
-	movl	32(%r10), %eax
-	roll	$7, %esi
-	addl	%edi, %eax
-	movl	%esi, 24(%r10)
-/* quarter G */
-	movl	16(%r10), %edx
-	xorl	%eax, %ecx
-	movl	12(%r10), %esi
-	roll	$12, %ecx
-	addl	%ecx, %ebx
-	addl	%edx, %esi
-	movl	%ebx, 8(%r10)
-	xorl	%ebx, %edi
-	movl	56(%r10), %ebx
-	roll	$8, %edi
-	xorl	%esi, %ebx
-	movl	%edi, 52(%r10)
-	addl	%edi, %eax
-	roll	$16, %ebx
-	movl	%eax, 32(%r10)
-	xorl	%eax, %ecx
-	movl	36(%r10), %edi
-	roll	$7, %ecx
-	addl	%ebx, %edi
-	movl	%ecx, 28(%r10)
-/* quarter H */
-	xorl	%edi, %edx
-	roll	$12, %edx
-	addl	%edx, %esi
-	movl	%esi, 12(%r10)
-	xorl	%esi, %ebx
-	roll	$8, %ebx
-	movl	%ebx, 56(%r10)
-	addl	%ebx, %edi
-	movl	%edi, 36(%r10)
-	xorl	%edi, %edx
-	roll	$7, %edx
-	movl	%edx, 16(%r10)
+	movl	%ebx, 16(%r10)	/* A: store b */
+	xorl	%edx, %esi	/* B: b = b ^ c */
+	movl	24(%r10), %ebx	/* C: load b */
+	roll	$12, %esi	/* B: rotate b */
+	addl	%esi, %edi	/* B: a = a + b */
+	movl	%edi, 4(%r10)	/* B: store a */
+	xorl	%edi, %eax	/* B: d = d ^ a */
+	roll	$8, %eax	/* B: rotate d */
+	movl	%eax, 52(%r10)	/* B: store d */
+	addl	%eax, %edx	/* B: c = c + d */
+	movl	8(%r10), %eax	/* C: load a */
+	movl	%edx, 36(%r10)	/* B: store c */
+	xorl	%edx, %esi	/* B: b = b ^ c */
+	movl	56(%r10), %edx	/* C: load d */
+	roll	$7, %esi	/* B: rotate b */
+	addl	%ebx, %eax	/* C: a = a + b */
+	movl	%esi, 20(%r10)	/* B: store b */
+/* quarters C and D, initial E */
+	xorl	%eax, %edx	/* C: d = d ^ a */
+	movl	12(%r10), %edi	/* D: load a */
+	roll	$16, %edx	/* C: rotate d */
+	movl	28(%r10), %esi	/* D: load b */
+	addl	%edx, %ecx	/* C: c = c + d */
+	xorl	%ecx, %ebx	/* C: b = b ^ c */
+	addl	%esi, %edi	/* D: a = a + b */
+	roll	$12, %ebx	/* C: rotate b */
+	addl	%ebx, %eax	/* C: a = a + b */
+	movl	%eax, 8(%r10)	/* C: store a */
+	xorl	%eax, %edx	/* C: d = d ^ a */
+	movl	60(%r10), %eax	/* D: load d */
+	roll	$8, %edx	/* C: rotate d */
+	xorl	%edi, %eax	/* D: d = d ^ a */
+	movl	%edx, 56(%r10)	/* C: store d */
+	addl	%edx, %ecx	/* C: c = c + d */
+	movl	44(%r10), %edx	/* D: load c */
+	movl	%ecx, 40(%r10)	/* C: store c */
+	xorl	%ecx, %ebx	/* C: b = b ^ c */
+	roll	$16, %eax	/* D: rotate d */
+	movl	40(%r10), %ecx	/* E: load c */
+	roll	$7, %ebx	/* C: rotate b */
+	addl	%eax, %edx	/* D: c = c + d */
+	movl	%ebx, 24(%r10)	/* C: store b */
+	xorl	%edx, %esi	/* D: b = b ^ c */
+	movl	20(%r10), %ebx	/* E: load b */
+	roll	$12, %esi	/* D: rotate b */
+	addl	%esi, %edi	/* D: a = a + b */
+	movl	%edi, 12(%r10)	/* D: store a */
+	xorl	%edi, %eax	/* D: d = d ^ a */
+	roll	$8, %eax	/* D: rotate d */
+	movl	%eax, 60(%r10)	/* D: store d */
+	addl	%eax, %edx	/* D: c = c + d */
+	movl	0(%r10), %eax	/* E: load a */
+	movl	%edx, 44(%r10)	/* D: store c */
+	xorl	%edx, %esi	/* D: b = b ^ c */
+	movl	60(%r10), %edx	/* E: load d */
+	roll	$7, %esi	/* D: rotate b */
+	addl	%ebx, %eax	/* E: a = a + b */
+	movl	%esi, 28(%r10)	/* D: store b */
+/* quarters E and F, initial G */
+	xorl	%eax, %edx	/* E: d = d ^ a */
+	movl	4(%r10), %edi	/* F: load a */
+	roll	$16, %edx	/* E: rotate d */
+	movl	24(%r10), %esi	/* F: load b */
+	addl	%edx, %ecx	/* E: c = c + d */
+	xorl	%ecx, %ebx	/* E: b = b ^ c */
+	addl	%esi, %edi	/* F: a = a + b */
+	roll	$12, %ebx	/* E: rotate b */
+	addl	%ebx, %eax	/* E: a = a + b */
+	movl	%eax, 0(%r10)	/* E: store a */
+	xorl	%eax, %edx	/* E: d = d ^ a */
+	movl	48(%r10), %eax	/* F: load d */
+	roll	$8, %edx	/* E: rotate d */
+	xorl	%edi, %eax	/* F: d = d ^ a */
+	movl	%edx, 60(%r10)	/* E: store d */
+	addl	%edx, %ecx	/* E: c = c + d */
+	movl	44(%r10), %edx	/* F: load c */
+	movl	%ecx, 40(%r10)	/* E: store c */
+	xorl	%ecx, %ebx	/* E: b = b ^ c */
+	roll	$16, %eax	/* F: rotate d */
+	movl	32(%r10), %ecx	/* G: load c */
+	roll	$7, %ebx	/* E: rotate b */
+	addl	%eax, %edx	/* F: c = c + d */
+	movl	%ebx, 20(%r10)	/* E: store b */
+	xorl	%edx, %esi	/* F: b = b ^ c */
+	movl	28(%r10), %ebx	/* G: load b */
+	roll	$12, %esi	/* F: rotate b */
+	addl	%esi, %edi	/* F: a = a + b */
+	movl	%edi, 4(%r10)	/* F: store a */
+	xorl	%edi, %eax	/* F: d = d ^ a */
+	roll	$8, %eax	/* F: rotate d */
+	movl	%eax, 48(%r10)	/* F: store d */
+	addl	%eax, %edx	/* F: c = c + d */
+	movl	8(%r10), %eax	/* G: load a */
+	movl	%edx, 44(%r10)	/* F: store c */
+	xorl	%edx, %esi	/* F: b = b ^ c */
+	movl	52(%r10), %edx	/* G: load d */
+	roll	$7, %esi	/* F: rotate b */
+	addl	%ebx, %eax	/* G: a = a + b */
+	movl	%esi, 24(%r10)	/* F: store b */
+/* quarters G and H */
+	xorl	%eax, %edx	/* G: d = d ^ a */
+	movl	12(%r10), %edi	/* H: load a */
+	roll	$16, %edx	/* G: rotate d */
+	movl	16(%r10), %esi	/* H: load b */
+	addl	%edx, %ecx	/* G: c = c + d */
+	xorl	%ecx, %ebx	/* G: b = b ^ c */
+	addl	%esi, %edi	/* H: a = a + b */
+	roll	$12, %ebx	/* G: rotate b */
+	addl	%ebx, %eax	/* G: a = a + b */
+	movl	%eax, 8(%r10)	/* G: store a */
+	xorl	%eax, %edx	/* G: d = d ^ a */
+	movl	56(%r10), %eax	/* H: load d */
+	roll	$8, %edx	/* G: rotate d */
+	xorl	%edi, %eax	/* H: d = d ^ a */
+	movl	%edx, 52(%r10)	/* G: store d */
+	addl	%edx, %ecx	/* G: c = c + d */
+	movl	36(%r10), %edx	/* H: load c */
+	movl	%ecx, 32(%r10)	/* G: store c */
+	xorl	%ecx, %ebx	/* G: b = b ^ c */
+	roll	$16, %eax	/* H: rotate d */
+	roll	$7, %ebx	/* G: rotate b */
+	addl	%eax, %edx	/* H: c = c + d */
+	movl	%ebx, 28(%r10)	/* G: store b */
+	xorl	%edx, %esi	/* H: b = b ^ c */
+	roll	$12, %esi	/* H: rotate b */
+	addl	%esi, %edi	/* H: a = a + b */
+	movl	%edi, 12(%r10)	/* H: store a */
+	xorl	%edi, %eax	/* H: d = d ^ a */
+	roll	$8, %eax	/* H: rotate d */
+	movl	%eax, 56(%r10)	/* H: store d */
+	addl	%eax, %edx	/* H: c = c + d */
+	movl	%edx, 36(%r10)	/* H: store c */
+	xorl	%edx, %esi	/* H: b = b ^ c */
+	roll	$7, %esi	/* H: rotate b */
+	movl	%esi, 16(%r10)	/* H: store b */
 	decq	%r11
 	jnz	.xor_chacha
 
@@ -843,7 +2501,7 @@ neoscrypt_xor_chacha:
 .globl _neoscrypt
 neoscrypt:
 _neoscrypt:
-#if (WIN64)
+#ifdef WIN64
 	pushq	%rdi
 	pushq	%rsi
 	movq	%rcx, %rdi
@@ -860,14 +2518,14 @@ _neoscrypt:
 	movq	%rdi, %r14
 	movq	%rsi, %r15
 	movq	%rdx, %rbx
-	
-#if (SHA256)
+
+#ifdef SHA256
 /* Scrypt mode */
 	testl	$0x01, %ebx
 	jnz	.scrypt
 #endif
 
-#if (WIN64)
+#ifdef WIN64
 /* attempt to allocate 33280 + 128 bytes of stack space fails miserably;
  * have to use malloc() and free() instead */
 	subq	$128, %rsp
@@ -893,8 +2551,8 @@ _neoscrypt:
 #endif /* WIN64 */
 
 /* FastKDF */
-#if (WIN64)
-#if (OPT)
+#ifdef WIN64
+#ifdef OPT
 	movq	%r14, %rcx
 	movq	%r14, %rdx
 	movq	%rbp, %r8
@@ -912,12 +2570,12 @@ _neoscrypt:
 	call	neoscrypt_fastkdf
 #endif /* OPT */
 #else
-#if (OPT)
+#ifdef OPT
 	movq	%r14, %rdi
 	movq	%r14, %rsi
 	movq	%rbp, %rdx
 	xorq	%rcx, %rcx
-#if (__APPLE__)
+#ifdef __APPLE__
 	call	_neoscrypt_fastkdf_opt
 #else
 	call	neoscrypt_fastkdf_opt
@@ -931,7 +2589,7 @@ _neoscrypt:
 	movq	$32, %r8
 	movq	%rbp, %r9
 	movq	$256, 0(%rsp)
-#if (__APPLE__)
+#ifdef __APPLE__
 	call	_neoscrypt_fastkdf
 #else
 	call	neoscrypt_fastkdf
@@ -1388,8 +3046,8 @@ _neoscrypt:
 	movdqa	%xmm15, 240(%rbp)
 
 /* FastKDF */
-#if (WIN64)
-#if (OPT)
+#ifdef WIN64
+#ifdef OPT
 	movq	%r14, %rcx
 	movq	%rbp, %rdx
 	movq	%r15, %r8
@@ -1408,13 +3066,13 @@ _neoscrypt:
 	call	neoscrypt_fastkdf
 #endif /* OPT */
 #else
-#if (OPT)
+#ifdef OPT
 	movq	%r14, %rdi
 	movq	%rbp, %rsi
 	movq	%r15, %rdx
 	xorq	%rcx, %rcx
 	incq	%rcx
-#if (__APPLE__)
+#ifdef __APPLE__
 	call	_neoscrypt_fastkdf_opt
 #else
 	call	neoscrypt_fastkdf_opt
@@ -1427,7 +3085,7 @@ _neoscrypt:
 	movq	$32, %r8
 	movq	%r15, %r9
 	movq	$32, 0(%rsp)
-#if (__APPLE__)
+#ifdef __APPLE__
 	call	_neoscrypt_fastkdf
 #else
 	call	neoscrypt_fastkdf
@@ -1435,7 +3093,7 @@ _neoscrypt:
 #endif /* OPT */
 #endif /* WIN64 */
 
-#if (WIN64)
+#ifdef WIN64
 /* free memory */
 	movq	64(%rsp), %rcx
 	call	free
@@ -1451,7 +3109,7 @@ _neoscrypt:
 	popq	%r12
 	popq	%rbp
 	popq	%rbx
-#if (WIN64)
+#ifdef WIN64
 	popq	%rsi
 	popq	%rdi
 #endif
@@ -1874,8 +3532,8 @@ _neoscrypt:
 	movdqa	%xmm15, 240(%rbp)
 
 /* FastKDF */
-#if (WIN64)
-#if (OPT)
+#ifdef WIN64
+#ifdef OPT
 	movq	%r14, %rcx
 	movq	%rbp, %rdx
 	movq	%r15, %r8
@@ -1891,15 +3549,16 @@ _neoscrypt:
 	movq	%rax, 32(%rsp)
 	movq	%r15, 40(%rsp)
 	movq	%rax, 48(%rsp)
+	call	neoscrypt_fastkdf
 #endif /* OPT */
 #else
-#if (OPT)
+#ifdef OPT
 	movq	%r14, %rdi
 	movq	%rbp, %rsi
 	movq	%r15, %rdx
 	xorq	%rcx, %rcx
 	incq	%rcx
-#if (__APPLE__)
+#ifdef __APPLE__
 	call	_neoscrypt_fastkdf_opt
 #else
 	call	neoscrypt_fastkdf_opt
@@ -1913,7 +3572,7 @@ _neoscrypt:
 	movq	%rax, %r8
 	movq	%r15, %r9
 	movq	%rax, 0(%rsp)
-#if (__APPLE__)
+#ifdef __APPLE__
 	call	_neoscrypt_fastkdf
 #else
 	call	neoscrypt_fastkdf
@@ -1921,7 +3580,7 @@ _neoscrypt:
 #endif /* OPT */
 #endif /* WIN64 */
 
-#if (WIN64)
+#ifdef WIN64
 /* free memory */
 	movq	64(%rsp), %rcx
 	call	free
@@ -1937,16 +3596,16 @@ _neoscrypt:
 	popq	%r12
 	popq	%rbp
 	popq	%rbx
-#if (WIN64)
+#ifdef WIN64
 	popq	%rsi
 	popq	%rdi
 #endif
 	ret
 
-#if (SHA256)
+#ifdef SHA256
 
 .scrypt:
-#if (WIN64)
+#ifdef WIN64
 /* attempt to allocate 131200 + 128 bytes of stack space fails miserably;
  * have to use malloc() and free() instead */
 	subq	$128, %rsp
@@ -1972,7 +3631,7 @@ _neoscrypt:
 #endif /* WIN64 */
 
 /* PBKDF2-HMAC-SHA256 */
-#if (WIN64)
+#ifdef WIN64
 	movq	$80, %rax
 	movq	%r14, %rcx
 	movq	%rax, %rdx
@@ -1991,7 +3650,7 @@ _neoscrypt:
 	movq	$1, %r8
 	movq	%rbp, %r9
 	movq	$128, 0(%rsp)
-#if (__APPLE__)
+#ifdef __APPLE__
 	call	_neoscrypt_pbkdf2_sha256
 #else
 	call	neoscrypt_pbkdf2_sha256
@@ -2091,7 +3750,7 @@ _neoscrypt:
 	jnz	.salsa_s2
 
 /* PBKDF2-HMAC-SHA256 */
-#if (WIN64)
+#ifdef WIN64
 	movq	%r14, %rcx
 	movq	$80, %rdx
 	movq	%rbp, %r8
@@ -2108,14 +3767,15 @@ _neoscrypt:
 	movq	$1, %r8
 	movq	%r15, %r9
 	movq	$32, 0(%rsp)
-#if (__APPLE__)
+#ifdef __APPLE__
 	call	_neoscrypt_pbkdf2_sha256
 #else
 	call	neoscrypt_pbkdf2_sha256
 #endif /* __APPLE__ */
+
 #endif /* WIN64 */
 
-#if (WIN64)
+#ifdef WIN64
 /* free memory */
 	movq	64(%rsp), %rcx
 	call	free
@@ -2131,7 +3791,7 @@ _neoscrypt:
 	popq	%r12
 	popq	%rbp
 	popq	%rbx
-#if (WIN64)
+#ifdef WIN64
 	popq	%rsi
 	popq	%rdi
 #endif
@@ -2233,7 +3893,7 @@ _neoscrypt:
 	call	neoscrypt_salsa_tangle_sse2
 
 /* PBKDF2-HMAC-SHA256 */
-#if (WIN64)
+#ifdef WIN64
 	movq	%r14, %rcx
 	movq	$80, %rdx
 	movq	%rbp, %r8
@@ -2250,14 +3910,14 @@ _neoscrypt:
 	movq	$1, %r8
 	movq	%r15, %r9
 	movq	$32, 0(%rsp)
-#if (__APPLE__)
+#ifdef __APPLE__
 	call	_neoscrypt_pbkdf2_sha256
 #else
 	call	neoscrypt_pbkdf2_sha256
 #endif /* __APPLE__ */
 #endif /* WIN64 */
 
-#if (WIN64)
+#ifdef WIN64
 /* free memory */
 	movq	64(%rsp), %rcx
 	call	free
@@ -2273,18 +3933,2114 @@ _neoscrypt:
 	popq	%r12
 	popq	%rbp
 	popq	%rbx
-#if (WIN64)
+#ifdef WIN64
 	popq	%rsi
 	popq	%rdi
 #endif
 	ret
 
-#endif /* (SHA256) */
+#endif /* SHA256 */
+
+/* cpu_vec_exts()
+ * AMD64 detector of any processor vector extensions present
+ * output bits set in %rax:
+ *   0 : MMX [always true]
+ *   1 : Extended MMX (MMX+) [always true]
+ *   2 : 3DNow!
+ *   3 : Extended 3DNow! (3DNow!+)
+ *   4 : SSE [always true]
+ *   5 : SSE2 [always true]
+ *   6 : SSE3
+ *   7 : SSSE3
+ *   8 : SSE41
+ *   9 : SSE42
+ *  10 : SSE4A
+ *  11 : XOP
+ *  12 : FMA4
+ *  13 : AVX
+ *  14 : F16C
+ *  15 : FMA3
+ * the other bits are reserved for the future use */
+.globl cpu_vec_exts
+.globl _cpu_vec_exts
+cpu_vec_exts:
+_cpu_vec_exts:
+	pushq	%rbx
+	pushq	%rbp
+	xorq	%rbp, %rbp
+/* all AMD64 compatible processors support MMX, MMX+, SSE, SSE2 */
+	orl	$0x00000033, %ebp
+/* the CPUID extended function 0 should report the max.
+ * supported extended function number in %eax */
+	movl	$0x80000000, %eax
+	cpuid
+	cmpl	$0x80000001, %eax
+	jb	.cpu_vec_st1
+	movl	$0x80000001, %eax
+	cpuid
+/* 3DNow!+ (bit 30 of %edx); implies 3DNow! */
+	testl	$0x80000000, %edx
+	jz	.cpu_vec_sse4a
+	orl	$0x0000000C, %ebp
+	jmp	.cpu_vec_sse4a
+.cpu_vec_sse4a:
+/* SSE4A (bit 6 of %ecx) */
+	testl	$0x00000040, %ecx
+	jz	.cpu_vec_st1
+	orl	$0x00000400, %ebp
+/* XOP (bit 11 of %ecx) */
+	testl	$0x00000800, %ecx
+	jz	.cpu_vec_st1
+	orl	$0x00000800, %ebp
+/* FMA4 (bit 16 of %ecx) */
+	testl	$0x00010000, %ecx
+	jz	.cpu_vec_st1
+	orl	$0x00001000, %ebp
+.cpu_vec_st1:
+/* the CPUID standard function 1 */
+	movl	$1, %eax
+	cpuid
+/* SSE3 (bit 0 of %ecx) */
+	testl	$0x00000001, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00000040, %ebp
+/* SSSE3 (bit 9 of %ecx) */
+	testl	$0x00000100, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00000080, %ebp
+/* SSE4.1 (bit 19 of %ecx) */
+	testl	$0x00080000, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00000100, %ebp
+/* SSE4.2 (bit 20 of %ecx) */
+	testl	$0x00100000, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00000200, %ebp
+/* AVX (bit 28 of %ecx) */
+	testl	$0x10000000, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00002000, %ebp
+	jmp	.cpu_vec_exit
+/* F16C (bit 29 of %ecx) */
+	testl	$0x20000000, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00004000, %ebp
+	jmp	.cpu_vec_exit
+/* FMA3 (bit 12 of %ecx) */
+	testl	$0x00001000, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00008000, %ebp
+
+.cpu_vec_exit:
+	movq	%rbp, %rax
+	popq	%rbp
+	popq	%rbx
+	ret
 
 #endif /* (ASM) && (__x86_64__) */
 
 
-#if (ASM) && (__i386__)
+#if defined(ASM) && defined(__i386__)
+
+/* blake2s_compress(mem)
+ * i386 BLAKE2s block compression */
+.globl blake2s_compress
+.globl _blake2s_compress
+blake2s_compress:
+_blake2s_compress:
+	pushl	%ebx
+	pushl	%ebp
+	pushl	%esi
+	pushl	%edi
+	movl	20(%esp), %edi
+	leal	-64(%esp), %esi
+
+/* initialise */
+	movl	0(%edi), %eax
+	movl	4(%edi), %ebx
+	movl	8(%edi), %ecx
+	movl	12(%edi), %edx
+	movl	%eax, 0(%esi)
+	movl	%ebx, 4(%esi)
+	movl	%ecx, 8(%esi)
+	movl	%edx, 12(%esi)
+	movl	16(%edi), %eax
+	movl	20(%edi), %ebx
+	movl	24(%edi), %ecx
+	movl	28(%edi), %edx
+	movl	%eax, 16(%esi)
+	movl	%ebx, 20(%esi)
+	movl	%ecx, 24(%esi)
+	movl	%edx, 28(%esi)
+	movl	$0x6A09E667, %eax
+	movl	$0xBB67AE85, %ebx
+	movl	$0x3C6EF372, %ecx
+	movl	$0xA54FF53A, %edx
+	movl	%eax, 32(%esi)
+	movl	%ebx, 36(%esi)
+	movl	%ecx, 40(%esi)
+	movl	%edx, 44(%esi)
+	movl	32(%edi), %eax
+	movl	36(%edi), %ebx
+	movl	40(%edi), %ecx
+	movl	44(%edi), %edx
+	xorl	$0x510E527F, %eax
+	xorl	$0x9B05688C, %ebx
+	xorl	$0x1F83D9AB, %ecx
+	xorl	$0x5BE0CD19, %edx
+	movl	%eax, 48(%esi)
+	movl	0(%esi), %eax		/* A */
+	movl	%ebx, 52(%esi)
+	movl	16(%esi), %ebx		/* A */
+	movl	%ecx, 56(%esi)
+	addl	48(%edi), %eax		/* A */
+	movl	%edx, 60(%esi)
+/* round 0 (A) */
+	movl	48(%esi), %edx
+	addl	%ebx, %eax
+	movl	32(%esi), %ecx
+	xorl	%eax, %edx
+	movl	52(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	20(%esi), %ebp		/* B */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* B */
+	rorl	$8, %edx
+	addl	56(%edi), %eax		/* B */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* B */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* B */
+	rorl	$7, %ebx
+	movl	%ebx, 16(%esi)
+/* round 0 (B) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	60(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	24(%esi), %ebx		/* C */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* C */
+	rorl	$8, %edx
+	addl	64(%edi), %eax		/* C */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* C */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* C */
+	rorl	$7, %ebp
+	movl	%ebp, 20(%esi)
+/* round 0 (C) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	68(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	28(%esi), %ebp		/* D */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* D */
+	rorl	$8, %edx
+	addl	72(%edi), %eax		/* D */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* D */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* D */
+	rorl	$7, %ebx
+	movl	%ebx, 24(%esi)
+/* round 0 (D) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	76(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	20(%esi), %ebx		/* E */
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	movl	0(%esi), %eax		/* E */
+	rorl	$8, %edx
+	addl	80(%edi), %eax		/* E */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* E */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* E */
+	rorl	$7, %ebp
+	movl	%ebp, 28(%esi)
+/* round 0 (E) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	84(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	24(%esi), %ebp		/* F */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* F */
+	rorl	$8, %edx
+	addl	88(%edi), %eax		/* F */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	48(%esi), %edx		/* F */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* F */
+	rorl	$7, %ebx
+	movl	%ebx, 20(%esi)
+/* round 0 (F) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	92(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	28(%esi), %ebx		/* G */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* G */
+	rorl	$8, %edx
+	addl	96(%edi), %eax		/* G */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* G */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	32(%esi), %ecx		/* G */
+	rorl	$7, %ebp
+	movl	%ebp, 24(%esi)
+/* round 0 (G) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	100(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	16(%esi), %ebp		/* H */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* H */
+	rorl	$8, %edx
+	addl	104(%edi), %eax		/* H */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* H */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* H */
+	rorl	$7, %ebx
+	movl	%ebx, 28(%esi)
+/* round 0 (H) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	108(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	rorl	$8, %edx
+	movl	0(%esi), %eax		/* A */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	addl	104(%edi), %eax		/* A */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	48(%esi), %edx		/* A */
+	rorl	$7, %ebp
+	movl	%ebp, %ebx
+/* round 1 (A) */
+	addl	%ebx, %eax
+	movl	32(%esi), %ecx
+	xorl	%eax, %edx
+	movl	88(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	20(%esi), %ebp		/* B */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* B */
+	rorl	$8, %edx
+	addl	64(%edi), %eax		/* B */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* B */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* B */
+	rorl	$7, %ebx
+	movl	%ebx, 16(%esi)
+/* round 1 (B) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	80(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	24(%esi), %ebx		/* C */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* C */
+	rorl	$8, %edx
+	addl	84(%edi), %eax		/* C */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* C */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* C */
+	rorl	$7, %ebp
+	movl	%ebp, 20(%esi)
+/* round 1 (C) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	108(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	28(%esi), %ebp		/* D */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* D */
+	rorl	$8, %edx
+	addl	100(%edi), %eax		/* D */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* D */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* D */
+	rorl	$7, %ebx
+	movl	%ebx, 24(%esi)
+/* round 1 (D) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	72(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	20(%esi), %ebx		/* E */
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	movl	0(%esi), %eax		/* E */
+	rorl	$8, %edx
+	addl	52(%edi), %eax		/* E */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* E */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* E */
+	rorl	$7, %ebp
+	movl	%ebp, 28(%esi)
+/* round 1 (E) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	96(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	24(%esi), %ebp		/* F */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* F */
+	rorl	$8, %edx
+	addl	48(%edi), %eax		/* F */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	48(%esi), %edx		/* F */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* F */
+	rorl	$7, %ebx
+	movl	%ebx, 20(%esi)
+/* round 1 (F) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	56(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	28(%esi), %ebx		/* G */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* G */
+	rorl	$8, %edx
+	addl	92(%edi), %eax		/* G */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* G */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	32(%esi), %ecx		/* G */
+	rorl	$7, %ebp
+	movl	%ebp, 24(%esi)
+/* round 1 (G) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	76(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	16(%esi), %ebp		/* H */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* H */
+	rorl	$8, %edx
+	addl	68(%edi), %eax		/* H */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* H */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* H */
+	rorl	$7, %ebx
+	movl	%ebx, 28(%esi)
+/* round 1 (H) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	60(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	rorl	$8, %edx
+	movl	0(%esi), %eax		/* A */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	addl	92(%edi), %eax		/* A */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	48(%esi), %edx		/* A */
+	rorl	$7, %ebp
+	movl	%ebp, %ebx
+/* round 2 (A) */
+	addl	%ebx, %eax
+	movl	32(%esi), %ecx
+	xorl	%eax, %edx
+	movl	80(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	20(%esi), %ebp		/* B */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* B */
+	rorl	$8, %edx
+	addl	96(%edi), %eax		/* B */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* B */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* B */
+	rorl	$7, %ebx
+	movl	%ebx, 16(%esi)
+/* round 2 (B) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	48(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	24(%esi), %ebx		/* C */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* C */
+	rorl	$8, %edx
+	addl	68(%edi), %eax		/* C */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* C */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* C */
+	rorl	$7, %ebp
+	movl	%ebp, 20(%esi)
+/* round 2 (C) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	56(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	28(%esi), %ebp		/* D */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* D */
+	rorl	$8, %edx
+	addl	108(%edi), %eax		/* D */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* D */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* D */
+	rorl	$7, %ebx
+	movl	%ebx, 24(%esi)
+/* round 2 (D) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	100(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	20(%esi), %ebx		/* E */
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	movl	0(%esi), %eax		/* E */
+	rorl	$8, %edx
+	addl	88(%edi), %eax		/* E */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* E */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* E */
+	rorl	$7, %ebp
+	movl	%ebp, 28(%esi)
+/* round 2 (E) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	104(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	24(%esi), %ebp		/* F */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* F */
+	rorl	$8, %edx
+	addl	60(%edi), %eax		/* F */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	48(%esi), %edx		/* F */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* F */
+	rorl	$7, %ebx
+	movl	%ebx, 20(%esi)
+/* round 2 (F) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	72(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	28(%esi), %ebx		/* G */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* G */
+	rorl	$8, %edx
+	addl	76(%edi), %eax		/* G */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* G */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	32(%esi), %ecx		/* G */
+	rorl	$7, %ebp
+	movl	%ebp, 24(%esi)
+/* round 2 (G) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	52(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	16(%esi), %ebp		/* H */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* H */
+	rorl	$8, %edx
+	addl	84(%edi), %eax		/* H */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* H */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* H */
+	rorl	$7, %ebx
+	movl	%ebx, 28(%esi)
+/* round 2 (H) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	64(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	rorl	$8, %edx
+	movl	0(%esi), %eax		/* A */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	addl	76(%edi), %eax		/* A */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	48(%esi), %edx		/* A */
+	rorl	$7, %ebp
+	movl	%ebp, %ebx
+/* round 3 (A) */
+	addl	%ebx, %eax
+	movl	32(%esi), %ecx
+	xorl	%eax, %edx
+	movl	84(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	20(%esi), %ebp		/* B */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* B */
+	rorl	$8, %edx
+	addl	60(%edi), %eax		/* B */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* B */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* B */
+	rorl	$7, %ebx
+	movl	%ebx, 16(%esi)
+/* round 3 (B) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	52(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	24(%esi), %ebx		/* C */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* C */
+	rorl	$8, %edx
+	addl	100(%edi), %eax		/* C */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* C */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* C */
+	rorl	$7, %ebp
+	movl	%ebp, 20(%esi)
+/* round 3 (C) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	96(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	28(%esi), %ebp		/* D */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* D */
+	rorl	$8, %edx
+	addl	92(%edi), %eax		/* D */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* D */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* D */
+	rorl	$7, %ebx
+	movl	%ebx, 24(%esi)
+/* round 3 (D) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	104(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	20(%esi), %ebx		/* E */
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	movl	0(%esi), %eax		/* E */
+	rorl	$8, %edx
+	addl	56(%edi), %eax		/* E */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* E */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* E */
+	rorl	$7, %ebp
+	movl	%ebp, 28(%esi)
+/* round 3 (E) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	72(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	24(%esi), %ebp		/* F */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* F */
+	rorl	$8, %edx
+	addl	68(%edi), %eax		/* F */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	48(%esi), %edx		/* F */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* F */
+	rorl	$7, %ebx
+	movl	%ebx, 20(%esi)
+/* round 3 (F) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	88(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	28(%esi), %ebx		/* G */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* G */
+	rorl	$8, %edx
+	addl	64(%edi), %eax		/* G */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* G */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	32(%esi), %ecx		/* G */
+	rorl	$7, %ebp
+	movl	%ebp, 24(%esi)
+/* round 3 (G) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	48(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	16(%esi), %ebp		/* H */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* H */
+	rorl	$8, %edx
+	addl	108(%edi), %eax		/* H */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* H */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* H */
+	rorl	$7, %ebx
+	movl	%ebx, 28(%esi)
+/* round 3 (H) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	80(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	rorl	$8, %edx
+	movl	0(%esi), %eax		/* A */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	addl	84(%edi), %eax		/* A */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	48(%esi), %edx		/* A */
+	rorl	$7, %ebp
+	movl	%ebp, %ebx
+/* round 4 (A) */
+	addl	%ebx, %eax
+	movl	32(%esi), %ecx
+	xorl	%eax, %edx
+	movl	48(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	20(%esi), %ebp		/* B */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* B */
+	rorl	$8, %edx
+	addl	68(%edi), %eax		/* B */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* B */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* B */
+	rorl	$7, %ebx
+	movl	%ebx, 16(%esi)
+/* round 4 (B) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	76(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	24(%esi), %ebx		/* C */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* C */
+	rorl	$8, %edx
+	addl	56(%edi), %eax		/* C */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* C */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* C */
+	rorl	$7, %ebp
+	movl	%ebp, 20(%esi)
+/* round 4 (C) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	64(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	28(%esi), %ebp		/* D */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* D */
+	rorl	$8, %edx
+	addl	88(%edi), %eax		/* D */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* D */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* D */
+	rorl	$7, %ebx
+	movl	%ebx, 24(%esi)
+/* round 4 (D) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	108(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	20(%esi), %ebx		/* E */
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	movl	0(%esi), %eax		/* E */
+	rorl	$8, %edx
+	addl	104(%edi), %eax		/* E */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* E */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* E */
+	rorl	$7, %ebp
+	movl	%ebp, 28(%esi)
+/* round 4 (E) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	52(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	24(%esi), %ebp		/* F */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* F */
+	rorl	$8, %edx
+	addl	92(%edi), %eax		/* F */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	48(%esi), %edx		/* F */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* F */
+	rorl	$7, %ebx
+	movl	%ebx, 20(%esi)
+/* round 4 (F) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	96(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	28(%esi), %ebx		/* G */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* G */
+	rorl	$8, %edx
+	addl	72(%edi), %eax		/* G */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* G */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	32(%esi), %ecx		/* G */
+	rorl	$7, %ebp
+	movl	%ebp, 24(%esi)
+/* round 4 (G) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	80(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	16(%esi), %ebp		/* H */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* H */
+	rorl	$8, %edx
+	addl	60(%edi), %eax		/* H */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* H */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* H */
+	rorl	$7, %ebx
+	movl	%ebx, 28(%esi)
+/* round 4 (H) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	100(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	rorl	$8, %edx
+	movl	0(%esi), %eax		/* A */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	addl	56(%edi), %eax		/* A */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	48(%esi), %edx		/* A */
+	rorl	$7, %ebp
+	movl	%ebp, %ebx
+/* round 5 (A) */
+	addl	%ebx, %eax
+	movl	32(%esi), %ecx
+	xorl	%eax, %edx
+	movl	96(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	20(%esi), %ebp		/* B */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* B */
+	rorl	$8, %edx
+	addl	72(%edi), %eax		/* B */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* B */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* B */
+	rorl	$7, %ebx
+	movl	%ebx, 16(%esi)
+/* round 5 (B) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	88(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	24(%esi), %ebx		/* C */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* C */
+	rorl	$8, %edx
+	addl	48(%edi), %eax		/* C */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* C */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* C */
+	rorl	$7, %ebp
+	movl	%ebp, 20(%esi)
+/* round 5 (C) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	92(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	28(%esi), %ebp		/* D */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* D */
+	rorl	$8, %edx
+	addl	80(%edi), %eax		/* D */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* D */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* D */
+	rorl	$7, %ebx
+	movl	%ebx, 24(%esi)
+/* round 5 (D) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	60(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	20(%esi), %ebx		/* E */
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	movl	0(%esi), %eax		/* E */
+	rorl	$8, %edx
+	addl	64(%edi), %eax		/* E */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* E */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* E */
+	rorl	$7, %ebp
+	movl	%ebp, 28(%esi)
+/* round 5 (E) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	100(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	24(%esi), %ebp		/* F */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* F */
+	rorl	$8, %edx
+	addl	76(%edi), %eax		/* F */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	48(%esi), %edx		/* F */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* F */
+	rorl	$7, %ebx
+	movl	%ebx, 20(%esi)
+/* round 5 (F) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	68(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	28(%esi), %ebx		/* G */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* G */
+	rorl	$8, %edx
+	addl	108(%edi), %eax		/* G */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* G */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	32(%esi), %ecx		/* G */
+	rorl	$7, %ebp
+	movl	%ebp, 24(%esi)
+/* round 5 (G) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	104(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	16(%esi), %ebp		/* H */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* H */
+	rorl	$8, %edx
+	addl	52(%edi), %eax		/* H */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* H */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* H */
+	rorl	$7, %ebx
+	movl	%ebx, 28(%esi)
+/* round 5 (H) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	84(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	rorl	$8, %edx
+	movl	0(%esi), %eax		/* A */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	addl	96(%edi), %eax		/* A */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	48(%esi), %edx		/* A */
+	rorl	$7, %ebp
+	movl	%ebp, %ebx
+/* round 6 (A) */
+	addl	%ebx, %eax
+	movl	32(%esi), %ecx
+	xorl	%eax, %edx
+	movl	68(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	20(%esi), %ebp		/* B */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* B */
+	rorl	$8, %edx
+	addl	52(%edi), %eax		/* B */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* B */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* B */
+	rorl	$7, %ebx
+	movl	%ebx, 16(%esi)
+/* round 6 (B) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	108(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	24(%esi), %ebx		/* C */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* C */
+	rorl	$8, %edx
+	addl	104(%edi), %eax		/* C */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* C */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* C */
+	rorl	$7, %ebp
+	movl	%ebp, 20(%esi)
+/* round 6 (C) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	100(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	28(%esi), %ebp		/* D */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* D */
+	rorl	$8, %edx
+	addl	64(%edi), %eax		/* D */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* D */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* D */
+	rorl	$7, %ebx
+	movl	%ebx, 24(%esi)
+/* round 6 (D) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	88(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	20(%esi), %ebx		/* E */
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	movl	0(%esi), %eax		/* E */
+	rorl	$8, %edx
+	addl	48(%edi), %eax		/* E */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* E */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* E */
+	rorl	$7, %ebp
+	movl	%ebp, 28(%esi)
+/* round 6 (E) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	76(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	24(%esi), %ebp		/* F */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* F */
+	rorl	$8, %edx
+	addl	72(%edi), %eax		/* F */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	48(%esi), %edx		/* F */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* F */
+	rorl	$7, %ebx
+	movl	%ebx, 20(%esi)
+/* round 6 (F) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	60(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	28(%esi), %ebx		/* G */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* G */
+	rorl	$8, %edx
+	addl	84(%edi), %eax		/* G */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* G */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	32(%esi), %ecx		/* G */
+	rorl	$7, %ebp
+	movl	%ebp, 24(%esi)
+/* round 6 (G) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	56(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	16(%esi), %ebp		/* H */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* H */
+	rorl	$8, %edx
+	addl	80(%edi), %eax		/* H */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* H */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* H */
+	rorl	$7, %ebx
+	movl	%ebx, 28(%esi)
+/* round 6 (H) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	92(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	rorl	$8, %edx
+	movl	0(%esi), %eax		/* A */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	addl	100(%edi), %eax		/* A */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	48(%esi), %edx		/* A */
+	rorl	$7, %ebp
+	movl	%ebp, %ebx
+/* round 7 (A) */
+	addl	%ebx, %eax
+	movl	32(%esi), %ecx
+	xorl	%eax, %edx
+	movl	92(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	20(%esi), %ebp		/* B */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* B */
+	rorl	$8, %edx
+	addl	76(%edi), %eax		/* B */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* B */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* B */
+	rorl	$7, %ebx
+	movl	%ebx, 16(%esi)
+/* round 7 (B) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	104(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	24(%esi), %ebx		/* C */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* C */
+	rorl	$8, %edx
+	addl	96(%edi), %eax		/* C */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* C */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* C */
+	rorl	$7, %ebp
+	movl	%ebp, 20(%esi)
+/* round 7 (C) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	52(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	28(%esi), %ebp		/* D */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* D */
+	rorl	$8, %edx
+	addl	60(%edi), %eax		/* D */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* D */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* D */
+	rorl	$7, %ebx
+	movl	%ebx, 24(%esi)
+/* round 7 (D) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	84(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	20(%esi), %ebx		/* E */
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	movl	0(%esi), %eax		/* E */
+	rorl	$8, %edx
+	addl	68(%edi), %eax		/* E */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* E */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* E */
+	rorl	$7, %ebp
+	movl	%ebp, 28(%esi)
+/* round 7 (E) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	48(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	24(%esi), %ebp		/* F */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* F */
+	rorl	$8, %edx
+	addl	108(%edi), %eax		/* F */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	48(%esi), %edx		/* F */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* F */
+	rorl	$7, %ebx
+	movl	%ebx, 20(%esi)
+/* round 7 (F) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	64(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	28(%esi), %ebx		/* G */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* G */
+	rorl	$8, %edx
+	addl	80(%edi), %eax		/* G */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* G */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	32(%esi), %ecx		/* G */
+	rorl	$7, %ebp
+	movl	%ebp, 24(%esi)
+/* round 7 (G) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	72(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	16(%esi), %ebp		/* H */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* H */
+	rorl	$8, %edx
+	addl	56(%edi), %eax		/* H */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* H */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* H */
+	rorl	$7, %ebx
+	movl	%ebx, 28(%esi)
+/* round 7 (H) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	88(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	rorl	$8, %edx
+	movl	0(%esi), %eax		/* A */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	addl	72(%edi), %eax		/* A */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	48(%esi), %edx		/* A */
+	rorl	$7, %ebp
+	movl	%ebp, %ebx
+/* round 8 (A) */
+	addl	%ebx, %eax
+	movl	32(%esi), %ecx
+	xorl	%eax, %edx
+	movl	108(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	20(%esi), %ebp		/* B */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* B */
+	rorl	$8, %edx
+	addl	104(%edi), %eax		/* B */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* B */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* B */
+	rorl	$7, %ebx
+	movl	%ebx, 16(%esi)
+/* round 8 (B) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	84(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	24(%esi), %ebx		/* C */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* C */
+	rorl	$8, %edx
+	addl	92(%edi), %eax		/* C */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* C */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* C */
+	rorl	$7, %ebp
+	movl	%ebp, 20(%esi)
+/* round 8 (C) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	60(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	28(%esi), %ebp		/* D */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* D */
+	rorl	$8, %edx
+	addl	48(%edi), %eax		/* D */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* D */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* D */
+	rorl	$7, %ebx
+	movl	%ebx, 24(%esi)
+/* round 8 (D) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	80(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	20(%esi), %ebx		/* E */
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	movl	0(%esi), %eax		/* E */
+	rorl	$8, %edx
+	addl	96(%edi), %eax		/* E */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* E */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* E */
+	rorl	$7, %ebp
+	movl	%ebp, 28(%esi)
+/* round 8 (E) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	56(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	24(%esi), %ebp		/* F */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* F */
+	rorl	$8, %edx
+	addl	100(%edi), %eax		/* F */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	48(%esi), %edx		/* F */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* F */
+	rorl	$7, %ebx
+	movl	%ebx, 20(%esi)
+/* round 8 (F) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	76(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	28(%esi), %ebx		/* G */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* G */
+	rorl	$8, %edx
+	addl	52(%edi), %eax		/* G */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* G */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	32(%esi), %ecx		/* G */
+	rorl	$7, %ebp
+	movl	%ebp, 24(%esi)
+/* round 8 (G) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	64(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	16(%esi), %ebp		/* H */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* H */
+	rorl	$8, %edx
+	addl	88(%edi), %eax		/* H */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* H */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* H */
+	rorl	$7, %ebx
+	movl	%ebx, 28(%esi)
+/* round 8 (H) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	68(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	rorl	$8, %edx
+	movl	0(%esi), %eax		/* A */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	addl	88(%edi), %eax		/* A */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	48(%esi), %edx		/* A */
+	rorl	$7, %ebp
+	movl	%ebp, %ebx
+/* round 9 (A) */
+	addl	%ebx, %eax
+	movl	32(%esi), %ecx
+	xorl	%eax, %edx
+	movl	56(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	20(%esi), %ebp		/* B */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* B */
+	rorl	$8, %edx
+	addl	80(%edi), %eax		/* B */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* B */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* B */
+	rorl	$7, %ebx
+	movl	%ebx, 16(%esi)
+/* round 9 (B) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	64(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	24(%esi), %ebx		/* C */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* C */
+	rorl	$8, %edx
+	addl	76(%edi), %eax		/* C */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* C */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* C */
+	rorl	$7, %ebp
+	movl	%ebp, 20(%esi)
+/* round 9 (C) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	72(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	28(%esi), %ebp		/* D */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* D */
+	rorl	$8, %edx
+	addl	52(%edi), %eax		/* D */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* D */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* D */
+	rorl	$7, %ebx
+	movl	%ebx, 24(%esi)
+/* round 9 (D) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	68(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	20(%esi), %ebx		/* E */
+	movl	%eax, 12(%esi)
+	xorl	%eax, %edx
+	movl	0(%esi), %eax		/* E */
+	rorl	$8, %edx
+	addl	108(%edi), %eax		/* E */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	60(%esi), %edx		/* E */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	40(%esi), %ecx		/* E */
+	rorl	$7, %ebp
+	movl	%ebp, 28(%esi)
+/* round 9 (E) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	92(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	24(%esi), %ebp		/* F */
+	movl	%eax, 0(%esi)
+	xorl	%eax, %edx
+	movl	4(%esi), %eax		/* F */
+	rorl	$8, %edx
+	addl	84(%edi), %eax		/* F */
+	movl	%edx, 60(%esi)
+	addl	%edx, %ecx
+	movl	48(%esi), %edx		/* F */
+	movl	%ecx, 40(%esi)
+	xorl	%ecx, %ebx
+	movl	44(%esi), %ecx		/* F */
+	rorl	$7, %ebx
+	movl	%ebx, 20(%esi)
+/* round 9 (F) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	104(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	movl	28(%esi), %ebx		/* G */
+	movl	%eax, 4(%esi)
+	xorl	%eax, %edx
+	movl	8(%esi), %eax		/* G */
+	rorl	$8, %edx
+	addl	60(%edi), %eax		/* G */
+	movl	%edx, 48(%esi)
+	addl	%edx, %ecx
+	movl	52(%esi), %edx		/* G */
+	movl	%ecx, 44(%esi)
+	xorl	%ecx, %ebp
+	movl	32(%esi), %ecx		/* G */
+	rorl	$7, %ebp
+	movl	%ebp, 24(%esi)
+/* round 9 (G) */
+	addl	%ebx, %eax
+	xorl	%eax, %edx
+	movl	96(%edi), %ebp
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebx
+	rorl	$12, %ebx
+	addl	%ebp, %eax
+	addl	%ebx, %eax
+	movl	16(%esi), %ebp		/* H */
+	movl	%eax, 8(%esi)
+	xorl	%eax, %edx
+	movl	12(%esi), %eax		/* H */
+	rorl	$8, %edx
+	addl	100(%edi), %eax		/* H */
+	movl	%edx, 52(%esi)
+	addl	%edx, %ecx
+	movl	56(%esi), %edx		/* H */
+	movl	%ecx, 32(%esi)
+	xorl	%ecx, %ebx
+	movl	36(%esi), %ecx		/* H */
+	rorl	$7, %ebx
+	movl	%ebx, 28(%esi)
+/* round 9 (H) */
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	movl	48(%edi), %ebx
+	rorl	$16, %edx
+	addl	%edx, %ecx
+	xorl	%ecx, %ebp
+	rorl	$12, %ebp
+	addl	%ebx, %eax
+	addl	%ebp, %eax
+	xorl	%eax, %edx
+	rorl	$8, %edx
+	movl	8(%esi), %ebx		/* finalise */
+	movl	%edx, 56(%esi)
+	addl	%edx, %ecx
+	movl	0(%esi), %edx		/* finalise */
+	movl	%ecx, 36(%esi)
+	xorl	%ecx, %ebp
+	movl	4(%esi), %ecx		/* finalise */
+	rorl	$7, %ebp
+	movl	%ebp, 16(%esi)
+/* finalise */
+	xorl	32(%esi), %edx
+	xorl	36(%esi), %ecx
+	xorl	40(%esi), %ebx
+	xorl	44(%esi), %eax
+	xorl	0(%edi), %edx
+	xorl	4(%edi), %ecx
+	xorl	8(%edi), %ebx
+	xorl	12(%edi), %eax
+	movl	%edx, 0(%edi)
+	movl	%ecx, 4(%edi)
+	movl	%ebx, 8(%edi)
+	movl	%eax, 12(%edi)
+	movl	16(%esi), %eax
+	movl	20(%esi), %ebx
+	movl	24(%esi), %ecx
+	movl	28(%esi), %edx
+	xorl	48(%esi), %eax
+	xorl	52(%esi), %ebx
+	xorl	56(%esi), %ecx
+	xorl	60(%esi), %edx
+	xorl	16(%edi), %eax
+	xorl	20(%edi), %ebx
+	xorl	24(%edi), %ecx
+	xorl	28(%edi), %edx
+	movl	%eax, 16(%edi)
+	movl	%ebx, 20(%edi)
+	movl	%ecx, 24(%edi)
+	movl	%edx, 28(%edi)
+
+	popl	%edi
+	popl	%esi
+	popl	%ebp
+	popl	%ebx
+	ret
+
 
 /* neoscrypt_copy(dst, src, len)
  * i386 memcpy() */
@@ -2477,6 +6233,373 @@ _neoscrypt_xor:
 	ret
 
 
+/* neoscrypt_fastkdf_opt(password, salt, output, output_len)
+ * i386 (MMX) FastKDF optimised */
+.globl neoscrypt_fastkdf_opt
+.globl _neoscrypt_fastkdf_opt
+neoscrypt_fastkdf_opt:
+_neoscrypt_fastkdf_opt:
+	pushl	%ebx
+	pushl	%ebp
+	pushl	%esi
+	pushl	%edi
+
+/* 32 bytes (call stack and local variables + 64 bytes (alignment space) +
+ * 320 bytes (password buffer) + 288 bytes (salt buffer) + 112 bytes (BLAKE2s
+ * space) = 816 bytes */
+	subl	$816, %esp
+	leal	96(%esp), %ebp
+	andl	$0xFFFFFFC0, %ebp
+	movl	%ebp, 28(%esp)
+
+	movl	836(%esp), %edx
+	movq	0(%edx), %mm0
+	movq	8(%edx), %mm1
+	movq	16(%edx), %mm2
+	movq	24(%edx), %mm3
+	movq	32(%edx), %mm4
+	movq	40(%edx), %mm5
+	movq	48(%edx), %mm6
+	movq	56(%edx), %mm7
+	movq	%mm0, 0(%ebp)
+	movq	%mm1, 8(%ebp)
+	movq	%mm2, 16(%ebp)
+	movq	%mm3, 24(%ebp)
+	movq	%mm4, 32(%ebp)
+	movq	%mm5, 40(%ebp)
+	movq	%mm6, 48(%ebp)
+	movq	%mm7, 56(%ebp)
+	movq	%mm0, 80(%ebp)
+	movq	%mm1, 88(%ebp)
+	movq	%mm2, 96(%ebp)
+	movq	%mm3, 104(%ebp)
+	movq	%mm4, 112(%ebp)
+	movq	%mm5, 120(%ebp)
+	movq	%mm6, 128(%ebp)
+	movq	%mm7, 136(%ebp)
+	movq	%mm0, 160(%ebp)
+	movq	%mm1, 168(%ebp)
+	movq	%mm2, 176(%ebp)
+	movq	%mm3, 184(%ebp)
+	movq	%mm4, 192(%ebp)
+	movq	%mm5, 200(%ebp)
+	movq	%mm6, 208(%ebp)
+	movq	%mm7, 216(%ebp)
+	movq	%mm0, 240(%ebp)
+	movq	%mm1, 248(%ebp)
+	movq	%mm0, 256(%ebp)
+	movq	%mm1, 264(%ebp)
+	movq	%mm2, 272(%ebp)
+	movq	%mm3, 280(%ebp)
+	movq	%mm4, 288(%ebp)
+	movq	%mm5, 296(%ebp)
+	movq	%mm6, 304(%ebp)
+	movq	%mm7, 312(%ebp)
+	movq	64(%edx), %mm0
+	movq	72(%edx), %mm1
+	movq	%mm0, 64(%ebp)
+	movq	%mm1, 72(%ebp)
+	movq	%mm0, 144(%ebp)
+	movq	%mm1, 152(%ebp)
+	movq	%mm0, 224(%ebp)
+	movq	%mm1, 232(%ebp)
+
+	movl	840(%esp), %edx
+	leal	320(%ebp), %ebx
+	movl	$32, 20(%esp)
+	xorl	%edi, %edi
+	testl	$0x01, 848(%esp)
+	jnz	.fastkdf_mode_one
+
+	movl	$256, 24(%esp)
+	movq	0(%edx), %mm0
+	movq	8(%edx), %mm1
+	movq	16(%edx), %mm2
+	movq	24(%edx), %mm3
+	movq	32(%edx), %mm4
+	movq	40(%edx), %mm5
+	movq	48(%edx), %mm6
+	movq	56(%edx), %mm7
+	movq	%mm0, 0(%ebx)
+	movq	%mm1, 8(%ebx)
+	movq	%mm2, 16(%ebx)
+	movq	%mm3, 24(%ebx)
+	movq	%mm4, 32(%ebx)
+	movq	%mm5, 40(%ebx)
+	movq	%mm6, 48(%ebx)
+	movq	%mm7, 56(%ebx)
+	movq	%mm0, 80(%ebx)
+	movq	%mm1, 88(%ebx)
+	movq	%mm2, 96(%ebx)
+	movq	%mm3, 104(%ebx)
+	movq	%mm4, 112(%ebx)
+	movq	%mm5, 120(%ebx)
+	movq	%mm6, 128(%ebx)
+	movq	%mm7, 136(%ebx)
+	movq	%mm0, 160(%ebx)
+	movq	%mm1, 168(%ebx)
+	movq	%mm2, 176(%ebx)
+	movq	%mm3, 184(%ebx)
+	movq	%mm4, 192(%ebx)
+	movq	%mm5, 200(%ebx)
+	movq	%mm6, 208(%ebx)
+	movq	%mm7, 216(%ebx)
+	movq	%mm0, 240(%ebx)
+	movq	%mm1, 248(%ebx)
+	movq	%mm0, 256(%ebx)
+	movq	%mm1, 264(%ebx)
+	movq	%mm2, 272(%ebx)
+	movq	%mm3, 280(%ebx)
+	movq	64(%edx), %mm0
+	movq	72(%edx), %mm1
+	movq	%mm0, 64(%ebx)
+	movq	%mm1, 72(%ebx)
+	movq	%mm0, 144(%ebx)
+	movq	%mm1, 152(%ebx)
+	movq	%mm0, 224(%ebx)
+	movq	%mm1, 232(%ebx)
+	jmp	.fastkdf_loop
+
+.fastkdf_mode_one:
+	movl	$32, 24(%esp)
+	movq	0(%edx), %mm0
+	movq	8(%edx), %mm1
+	movq	16(%edx), %mm2
+	movq	24(%edx), %mm3
+	movq	32(%edx), %mm4
+	movq	40(%edx), %mm5
+	movq	48(%edx), %mm6
+	movq	56(%edx), %mm7
+	movq	%mm0, 0(%ebx)
+	movq	%mm1, 8(%ebx)
+	movq	%mm2, 16(%ebx)
+	movq	%mm3, 24(%ebx)
+	movq	%mm4, 32(%ebx)
+	movq	%mm5, 40(%ebx)
+	movq	%mm6, 48(%ebx)
+	movq	%mm7, 56(%ebx)
+	movq	%mm0, 256(%ebx)
+	movq	%mm1, 264(%ebx)
+	movq	%mm2, 272(%ebx)
+	movq	%mm3, 280(%ebx)
+	movq	64(%edx), %mm0
+	movq	72(%edx), %mm1
+	movq	80(%edx), %mm2
+	movq	88(%edx), %mm3
+	movq	96(%edx), %mm4
+	movq	104(%edx), %mm5
+	movq	112(%edx), %mm6
+	movq	120(%edx), %mm7
+	movq	%mm0, 64(%ebx)
+	movq	%mm1, 72(%ebx)
+	movq	%mm2, 80(%ebx)
+	movq	%mm3, 88(%ebx)
+	movq	%mm4, 96(%ebx)
+	movq	%mm5, 104(%ebx)
+	movq	%mm6, 112(%ebx)
+	movq	%mm7, 120(%ebx)
+	movq	128(%edx), %mm0
+	movq	136(%edx), %mm1
+	movq	144(%edx), %mm2
+	movq	152(%edx), %mm3
+	movq	160(%edx), %mm4
+	movq	168(%edx), %mm5
+	movq	176(%edx), %mm6
+	movq	184(%edx), %mm7
+	movq	%mm0, 128(%ebx)
+	movq	%mm1, 136(%ebx)
+	movq	%mm2, 144(%ebx)
+	movq	%mm3, 152(%ebx)
+	movq	%mm4, 160(%ebx)
+	movq	%mm5, 168(%ebx)
+	movq	%mm6, 176(%ebx)
+	movq	%mm7, 184(%ebx)
+	movq	192(%edx), %mm0
+	movq	200(%edx), %mm1
+	movq	208(%edx), %mm2
+	movq	216(%edx), %mm3
+	movq	224(%edx), %mm4
+	movq	232(%edx), %mm5
+	movq	240(%edx), %mm6
+	movq	248(%edx), %mm7
+	movq	%mm0, 192(%ebx)
+	movq	%mm1, 200(%ebx)
+	movq	%mm2, 208(%ebx)
+	movq	%mm3, 216(%ebx)
+	movq	%mm4, 224(%ebx)
+	movq	%mm5, 232(%ebx)
+	movq	%mm6, 240(%ebx)
+	movq	%mm7, 248(%ebx)
+
+.fastkdf_loop:
+	movl	28(%esp), %edx
+	leal	0(%edx, %edi), %ebp
+	leal	320(%edx, %edi), %ebx
+	leal	608(%edx), %esi
+	xorl	%ecx, %ecx
+	pxor	%mm0, %mm0
+
+	movl	$0x6B08C647, 0(%esi)
+	movl	$0xBB67AE85, 4(%esi)
+	movl	$0x3C6EF372, 8(%esi)
+	movl	$0xA54FF53A, 12(%esi)
+	movl	$0x510E527F, 16(%esi)
+	movl	$0x9B05688C, 20(%esi)
+	movl	$0x1F83D9AB, 24(%esi)
+	movl	$0x5BE0CD19, 28(%esi)
+	movl	$64, 32(%esi)
+	movl	%ecx, 36(%esi)
+	movq	%mm0, 40(%esi)
+
+	movq	0(%ebx), %mm4
+	movq	8(%ebx), %mm5
+	movq	16(%ebx), %mm6
+	movq	24(%ebx), %mm7
+	movq	%mm4, 48(%esi)
+	movq	%mm5, 56(%esi)
+	movq	%mm6, 64(%esi)
+	movq	%mm7, 72(%esi)
+	movq	%mm0, 80(%esi)
+	movq	%mm0, 88(%esi)
+	movq	%mm0, 96(%esi)
+	movq	%mm0, 104(%esi)
+
+	movl	%esi, 0(%esp)
+	call	blake2s_compress
+
+	movq	0(%ebp), %mm0
+	movq	8(%ebp), %mm1
+	movq	16(%ebp), %mm2
+	movq	24(%ebp), %mm3
+	movq	32(%ebp), %mm4
+	movq	40(%ebp), %mm5
+	movq	48(%ebp), %mm6
+	movq	56(%ebp), %mm7
+	movq	%mm0, 48(%esi)
+	movq	%mm1, 56(%esi)
+	movq	%mm2, 64(%esi)
+	movq	%mm3, 72(%esi)
+	movq	%mm4, 80(%esi)
+	movq	%mm5, 88(%esi)
+	movq	%mm6, 96(%esi)
+	movq	%mm7, 104(%esi)
+
+	movl	$128, 32(%esi)
+	movl	$0xFFFFFFFF, 40(%esi)
+	call	blake2s_compress
+
+	movq	0(%esi), %mm3
+	movq	8(%esi), %mm5
+	movq	16(%esi), %mm6
+	movq	24(%esi), %mm7
+	pxor	%mm0, %mm0
+	movq	%mm3, %mm4
+	paddb	%mm5, %mm3
+	paddb	%mm6, %mm3
+	paddb	%mm7, %mm3
+	psadbw	%mm0, %mm3
+	movd	%mm3, %edi
+	andl	$0xFF, %edi
+	movl	28(%esp), %edx
+	leal	320(%edx, %edi), %ebx
+	movq	0(%ebx), %mm0
+	movq	8(%ebx), %mm1
+	movq	16(%ebx), %mm2
+	movq	24(%ebx), %mm3
+	pxor	%mm4, %mm0
+	pxor	%mm5, %mm1
+	pxor	%mm6, %mm2
+	pxor	%mm7, %mm3
+	movq	%mm0, 0(%ebx)
+	movq	%mm1, 8(%ebx)
+	movq	%mm2, 16(%ebx)
+	movq	%mm3, 24(%ebx)
+
+/* tail update */
+	movl	$32, %eax
+	cmpl	%edi, %eax
+	jc	.fastkdf_headupd
+	leal	256(%ebx), %edx
+	movl	%edx, 0(%esp)
+	movl	%ebx, 4(%esp)
+	subl	%edi, %eax
+	movl	%eax, 8(%esp)
+	call	neoscrypt_copy
+	jmp	.fastkdf_loop_end
+
+/* head update */
+.fastkdf_headupd:
+	movl	$224, %eax
+	cmpl	%edi, %eax
+	jnc	.fastkdf_loop_end
+	movl	%ebx, %edx
+	subl	%edi, %edx
+	movl	%edx, 0(%esp)
+	leal	256(%edx), %edx
+	movl	%edx, 4(%esp)
+	movl	%edi, %edx
+	subl	%eax, %edx
+	movl	%edx, 8(%esp)
+	call	neoscrypt_copy
+
+.fastkdf_loop_end:
+	decl	20(%esp)
+	jnz	.fastkdf_loop
+
+	movl	24(%esp), %esi
+	movl	28(%esp), %ebp
+	movl	$256, %ebx
+	subl	%edi, %ebx
+	cmpl	%esi, %ebx
+	jc	.fastkdf_crosscopy
+
+	leal	320(%ebp, %edi), %ebx
+	movl	%ebx, 0(%esp)
+	movl	%ebp, 4(%esp)
+	movl	%esi, 8(%esp)
+	call	neoscrypt_xor
+	movl	844(%esp), %eax
+	movl	%eax, 0(%esp)
+	movl	%ebx, 4(%esp)
+	call	neoscrypt_copy
+	jmp	.fastkdf_finish
+
+.fastkdf_crosscopy:
+	leal	320(%ebp, %edi), %edi
+	movl	%edi, 0(%esp)
+	movl	%ebp, 4(%esp)
+	movl	%ebx, 8(%esp)
+	call	neoscrypt_xor
+	leal	320(%ebp), %eax
+	movl	%eax, 0(%esp)
+	leal	0(%ebp, %ebx), %edx
+	movl	%edx, 4(%esp)
+	subl	%ebx, %esi
+	movl	%esi, 8(%esp)
+	call	neoscrypt_xor
+	movl	844(%esp), %eax
+	movl	%eax, 0(%esp)
+	movl	%edi, 4(%esp)
+	movl	%ebx, 8(%esp)
+	call	neoscrypt_copy
+	movl	844(%esp), %eax
+	leal	0(%eax, %ebx), %eax
+	movl	%eax, 0(%esp)
+	leal	320(%ebp), %edx
+	movl	%edx, 4(%esp)
+	movl	%esi, 8(%esp)
+	call	neoscrypt_copy
+
+.fastkdf_finish:
+	addl	$816, %esp
+	popl	%edi
+	popl	%esi
+	popl	%ebp
+	popl	%ebx
+	emms
+	ret
+
+
 /* neoscrypt_xor_salsa(mem, xormem, workmem, double_rounds)
  * i386 (INT) Salsa20 with XOR (MMX support required) */
 neoscrypt_xor_salsa:
@@ -2524,7 +6647,7 @@ neoscrypt_xor_salsa:
 	movl	32(%esp), %eax
 	movl	%eax, -4(%esp)
 .xor_salsa:
-/* quarters A and B */
+/* quarters A and B, initial C and D */
 	movl	0(%ebp), %eax	/* A: load a */
 	movl	20(%ebp), %ebx	/* B: load a */
 	addl	48(%ebp), %eax	/* A: t = a + d */
@@ -2569,117 +6692,117 @@ neoscrypt_xor_salsa:
 	roll	$7, %ebx	/* D: rotate t */
 	movl	%ecx, 0(%ebp)	/* A: store a */
 	movl	%edx, 20(%ebp)	/* B: store a */
-/* quarters C and D */
-	xorl	56(%ebp), %eax
-	xorl	12(%ebp), %ebx
-	movl	%eax, %esi
-	movl	%ebx, %edi
-	movl	%esi, 56(%ebp)
-	movl	%edi, 12(%ebp)
-	addl	40(%ebp), %eax
-	addl	60(%ebp), %ebx
-	roll	$9, %eax
-	roll	$9, %ebx
-	xorl	8(%ebp), %eax
-	xorl	28(%ebp), %ebx
-	movl	%eax, %ecx
-	movl	%ebx, %edx
-	movl	%ecx, 8(%ebp)
-	movl	%edx, 28(%ebp)
-	addl	%esi, %eax
-	addl	%edi, %ebx
-	roll	$13, %eax
-	roll	$13, %ebx
-	xorl	24(%ebp), %eax
-	xorl	44(%ebp), %ebx
-	movl	%eax, 24(%ebp)
-	movl	%ebx, 44(%ebp)
-	addl	%eax, %ecx
-	movl	0(%ebp), %eax	/* E */
-	addl	%ebx, %edx
-	movl	20(%ebp), %ebx	/* F */
-	roll	$18, %ecx
-	addl	12(%ebp), %eax	/* E */
-	roll	$18, %edx
-	addl	16(%ebp), %ebx	/* F */
-	xorl	40(%ebp), %ecx
-	roll	$7, %eax	/* E */
-	xorl	60(%ebp), %edx
-	roll	$7, %ebx	/* F */
-	movl	%ecx, 40(%ebp)
-	movl	%edx, 60(%ebp)
-/* quarters E and F */
-	xorl	4(%ebp), %eax
-	xorl	24(%ebp), %ebx
-	movl	%eax, %esi
-	movl	%ebx, %edi
-	movl	%esi, 4(%ebp)
-	movl	%edi, 24(%ebp)
-	addl	0(%ebp), %eax
-	addl	20(%ebp), %ebx
-	roll	$9, %eax
-	roll	$9, %ebx
-	xorl	8(%ebp), %eax
-	xorl	28(%ebp), %ebx
-	movl	%eax, %ecx
-	movl	%ebx, %edx
-	movl	%ecx, 8(%ebp)
-	movl	%edx, 28(%ebp)
-	addl	%esi, %eax
-	addl	%edi, %ebx
-	roll	$13, %eax
-	roll	$13, %ebx
-	xorl	12(%ebp), %eax
-	xorl	16(%ebp), %ebx
-	movl	%eax, 12(%ebp)
-	movl	%ebx, 16(%ebp)
-	addl	%eax, %ecx
-	movl	40(%ebp), %eax	/* G */
-	addl	%ebx, %edx
-	movl	60(%ebp), %ebx	/* H */
-	roll	$18, %ecx
-	addl	36(%ebp), %eax	/* G */
-	roll	$18, %edx
-	addl	56(%ebp), %ebx	/* H */
-	xorl	0(%ebp), %ecx
-	roll	$7, %eax	/* G */
-	xorl	20(%ebp), %edx
-	roll	$7, %ebx	/* H */
-	movl	%ecx, 0(%ebp)
-	movl	%edx, 20(%ebp)
+/* quarters C and D, initial E and F */
+	xorl	56(%ebp), %eax	/* C: b = b ^ t */
+	xorl	12(%ebp), %ebx	/* D: b = b ^ t */
+	movl	%eax, %esi	/* C: copy b */
+	movl	%ebx, %edi	/* D: copy b */
+	movl	%esi, 56(%ebp)	/* C: store b */
+	movl	%edi, 12(%ebp)	/* D: store b */
+	addl	40(%ebp), %eax	/* C: t = b + a */
+	addl	60(%ebp), %ebx	/* D: t = b + a */
+	roll	$9, %eax	/* C: rotate t */
+	roll	$9, %ebx	/* D: rotate t */
+	xorl	8(%ebp), %eax	/* C: c = c ^ t */
+	xorl	28(%ebp), %ebx	/* D: c = c ^ t */
+	movl	%eax, %ecx	/* C: copy c */
+	movl	%ebx, %edx	/* D: copy c */
+	movl	%ecx, 8(%ebp)	/* C: store c */
+	movl	%edx, 28(%ebp)	/* D: store c */
+	addl	%esi, %eax	/* C: t = c + b */
+	addl	%edi, %ebx	/* D: t = c + b */
+	roll	$13, %eax	/* C: rotate t */
+	roll	$13, %ebx	/* D: rotate t */
+	xorl	24(%ebp), %eax	/* C: d = d ^ t */
+	xorl	44(%ebp), %ebx	/* D: d = d ^ t */
+	movl	%eax, 24(%ebp)	/* C: store d */
+	movl	%ebx, 44(%ebp)	/* D: store d */
+	addl	%eax, %ecx	/* C: t = d + c */
+	movl	0(%ebp), %eax	/* E: load a */
+	addl	%ebx, %edx	/* D: t = d + c */
+	movl	20(%ebp), %ebx	/* F: load a */
+	roll	$18, %ecx	/* C: rotate t */
+	addl	12(%ebp), %eax	/* E: t = a + d */
+	roll	$18, %edx	/* D: rotate t */
+	addl	16(%ebp), %ebx	/* F: t = a + d */
+	xorl	40(%ebp), %ecx	/* C: a = a ^ t */
+	roll	$7, %eax	/* E: rotate t */
+	xorl	60(%ebp), %edx	/* D: a = a ^ t */
+	roll	$7, %ebx	/* F: rotate t */
+	movl	%ecx, 40(%ebp)	/* C: store a */
+	movl	%edx, 60(%ebp)	/* D: store a */
+/* quarters E and F, initial G and H */
+	xorl	4(%ebp), %eax	/* E: b = b ^ t */
+	xorl	24(%ebp), %ebx	/* F: b = b ^ t */
+	movl	%eax, %esi	/* E: copy b */
+	movl	%ebx, %edi	/* F: copy b */
+	movl	%esi, 4(%ebp)	/* E: store b */
+	movl	%edi, 24(%ebp)	/* F: store b */
+	addl	0(%ebp), %eax	/* E: t = b + a */
+	addl	20(%ebp), %ebx	/* F: t = b + a */
+	roll	$9, %eax	/* E: rotate t */
+	roll	$9, %ebx	/* F: rotate t */
+	xorl	8(%ebp), %eax	/* E: c = c ^ t */
+	xorl	28(%ebp), %ebx	/* F: c = c ^ t */
+	movl	%eax, %ecx	/* E: copy c */
+	movl	%ebx, %edx	/* F: copy c */
+	movl	%ecx, 8(%ebp)	/* E: store c */
+	movl	%edx, 28(%ebp)	/* F: store c */
+	addl	%esi, %eax	/* E: t = c + b */
+	addl	%edi, %ebx	/* F: t = c + b */
+	roll	$13, %eax	/* E: rotate t */
+	roll	$13, %ebx	/* F: rotate t */
+	xorl	12(%ebp), %eax	/* E: d = d ^ t */
+	xorl	16(%ebp), %ebx	/* F: d = d ^ t */
+	movl	%eax, 12(%ebp)	/* E: store d */
+	movl	%ebx, 16(%ebp)	/* F: store d */
+	addl	%eax, %ecx	/* E: t = d + c */
+	movl	40(%ebp), %eax	/* G: load a */
+	addl	%ebx, %edx	/* F: t = d + c */
+	movl	60(%ebp), %ebx	/* H: load a */
+	roll	$18, %ecx	/* E: rotate t */
+	addl	36(%ebp), %eax	/* G: t = a + d */
+	roll	$18, %edx	/* F: rotate t */
+	addl	56(%ebp), %ebx	/* H: t = a + d */
+	xorl	0(%ebp), %ecx	/* E: a = a ^ t */
+	roll	$7, %eax	/* G: rotate t */
+	xorl	20(%ebp), %edx	/* F: a = a ^ t */
+	roll	$7, %ebx	/* H: rotate t */
+	movl	%ecx, 0(%ebp)	/* E: store a */
+	movl	%edx, 20(%ebp)	/* F: store a */
 /* quarters G and H */
-	xorl	44(%ebp), %eax
-	xorl	48(%ebp), %ebx
-	movl	%eax, %esi
-	movl	%ebx, %edi
-	movl	%esi, 44(%ebp)
-	movl	%edi, 48(%ebp)
-	addl	40(%ebp), %eax
-	addl	60(%ebp), %ebx
-	roll	$9, %eax
-	roll	$9, %ebx
-	xorl	32(%ebp), %eax
-	xorl	52(%ebp), %ebx
-	movl	%eax, %ecx
-	movl	%ebx, %edx
-	movl	%ecx, 32(%ebp)
-	movl	%edx, 52(%ebp)
-	addl	%esi, %eax
-	addl	%edi, %ebx
-	roll	$13, %eax
-	roll	$13, %ebx
-	xorl	36(%ebp), %eax
-	xorl	56(%ebp), %ebx
-	movl	%eax, 36(%ebp)
-	movl	%ebx, 56(%ebp)
-	addl	%eax, %ecx
-	addl	%ebx, %edx
-	roll	$18, %ecx
-	roll	$18, %edx
-	xorl	40(%ebp), %ecx
-	xorl	60(%ebp), %edx
-	movl	%ecx, 40(%ebp)
-	movl	%edx, 60(%ebp)
+	xorl	44(%ebp), %eax	/* G: b = b ^ t */
+	xorl	48(%ebp), %ebx	/* H: b = b ^ t */
+	movl	%eax, %esi	/* G: copy b */
+	movl	%ebx, %edi	/* H: copy b */
+	movl	%esi, 44(%ebp)	/* G: store b */
+	movl	%edi, 48(%ebp)	/* H: store b */
+	addl	40(%ebp), %eax	/* G: t = b + a */
+	addl	60(%ebp), %ebx	/* H: t = b + a */
+	roll	$9, %eax	/* G: rotate t */
+	roll	$9, %ebx	/* H: rotate t */
+	xorl	32(%ebp), %eax	/* G: c = c ^ t */
+	xorl	52(%ebp), %ebx	/* H: c = c ^ t */
+	movl	%eax, %ecx	/* G: copy c */
+	movl	%ebx, %edx	/* H: copy c */
+	movl	%ecx, 32(%ebp)	/* G: store c */
+	movl	%edx, 52(%ebp)	/* H: store c */
+	addl	%esi, %eax	/* G: t = c + b */
+	addl	%edi, %ebx	/* H: t = c + b */
+	roll	$13, %eax	/* G: rotate t */
+	roll	$13, %ebx	/* H: rotate t */
+	xorl	36(%ebp), %eax	/* G: d = d ^ t */
+	xorl	56(%ebp), %ebx	/* H: d = d ^ t */
+	movl	%eax, 36(%ebp)	/* G: store d */
+	movl	%ebx, 56(%ebp)	/* H: store d */
+	addl	%eax, %ecx	/* G: t = d + c */
+	addl	%ebx, %edx	/* H: t = d + c */
+	roll	$18, %ecx	/* G: rotate t */
+	roll	$18, %edx	/* H: rotate t */
+	xorl	40(%ebp), %ecx	/* G: a = a ^ t */
+	xorl	60(%ebp), %edx	/* H: a = a ^ t */
+	movl	%ecx, 40(%ebp)	/* G: store a */
+	movl	%edx, 60(%ebp)	/* H: store a */
 	decl	-4(%esp)
 	jnz	.xor_salsa
 
@@ -2764,174 +6887,170 @@ neoscrypt_xor_chacha:
 	movl	32(%esp), %eax
 	movl	%eax, -4(%esp)
 .xor_chacha:
-/* quarter A */
-	movl	16(%ebp), %ebx	/* load b */
-	movl	0(%ebp), %eax	/* load a */
-	addl	%ebx, %eax	/* a = a + b */
-	movl	48(%ebp), %edx	/* load d */
-	xorl	%eax, %edx	/* d = d ^ a */
-	movl	32(%ebp), %ecx	/* load c */
-	roll	$16, %edx	/* rotate d */
-	movl	20(%ebp), %esi	/* B: load b */
-	addl	%edx, %ecx	/* c = c + d */
+/* quarters A and B, initial C */
+	movl	0(%ebp), %eax	/* A: load a */
+	movl	16(%ebp), %ebx	/* A: load b */
+	addl	%ebx, %eax	/* A: a = a + b */
+	movl	32(%ebp), %ecx	/* A: load c */
+	movl	48(%ebp), %edx	/* A: load d */
+	xorl	%eax, %edx	/* A: d = d ^ a */
 	movl	4(%ebp), %edi	/* B: load a */
-	xorl	%ecx, %ebx	/* b = b ^ c */
+	roll	$16, %edx	/* A: rotate d */
+	movl	20(%ebp), %esi	/* B: load b */
+	addl	%edx, %ecx	/* A: c = c + d */
+	xorl	%ecx, %ebx	/* A: b = b ^ c */
 	addl	%esi, %edi	/* B: a = a + b */
-	roll	$12, %ebx	/* rotate b */
-	addl	%ebx, %eax	/* a = a + b */
-	movl	%eax, 0(%ebp)	/* store a */
-	xorl	%eax, %edx	/* d = d ^ a */
+	roll	$12, %ebx	/* A: rotate b */
+	addl	%ebx, %eax	/* A: a = a + b */
+	movl	%eax, 0(%ebp)	/* A: store a */
+	xorl	%eax, %edx	/* A: d = d ^ a */
 	movl	52(%ebp), %eax	/* B: load d */
-	roll	$8, %edx	/* rotate d */
+	roll	$8, %edx	/* A: rotate d */
 	xorl	%edi, %eax	/* B: d = d ^ a */
-	movl	%edx, 48(%ebp)	/* store d */
-	addl	%edx, %ecx	/* c = c + d */
-	roll	$16, %eax	/* B: rotate d */
-	movl	%ecx, 32(%ebp)	/* store c */
+	movl	%edx, 48(%ebp)	/* A: store d */
+	addl	%edx, %ecx	/* A: c = c + d */
 	movl	36(%ebp), %edx	/* B: load c */
-	xorl	%ecx, %ebx	/* b = b ^ c */
+	movl	%ecx, 32(%ebp)	/* A: store c */
+	xorl	%ecx, %ebx	/* A: b = b ^ c */
+	roll	$16, %eax	/* B: rotate d */
+	movl	40(%ebp), %ecx	/* C: load c */
+	roll	$7, %ebx	/* A: rotate b */
 	addl	%eax, %edx	/* B: c = c + d */
-	roll	$7, %ebx	/* rotate b */
-	movl	24(%ebp), %ecx	/* C: load b */
-	movl	%ebx, 16(%ebp)	/* store b */
-/* quarter B */
-	xorl	%edx, %esi	/* b = b ^ c */
-	movl	8(%ebp), %ebx	/* C: load a */
-	roll	$12, %esi	/* rotate b */
-	addl	%esi, %edi	/* a = a + b */
-	addl	%ecx, %ebx	/* C: a = a + b */
-	movl	%edi, 4(%ebp)	/* store a */
-	xorl	%edi, %eax	/* d = d ^ a */
-	movl	56(%ebp), %edi	/* C: load d */
-	roll	$8, %eax	/* rotate d */
-	xorl	%ebx, %edi	/* C: d = d ^ a */
-	movl	%eax, 52(%ebp)	/* store d */
-	addl	%eax, %edx	/* c = c + d */
-	roll	$16, %edi	/* C: rotate d */
-	movl	%edx, 36(%ebp)	/* store c */
-	xorl	%edx, %esi	/* b = b ^ c */
-	movl	40(%ebp), %eax	/* C: load c */
-	roll	$7, %esi	/* rotate b */
-	addl	%edi, %eax	/* C: c = c + d */
-	movl	%esi, 20(%ebp)	/* store b */
-/* quarter C */
-	movl	28(%ebp), %edx	/* D: load b */
-	xorl	%eax, %ecx	/* b = b ^ c */
-	movl	12(%ebp), %esi	/* D: load a */
-	roll	$12, %ecx	/* rotate b */
-	addl	%ecx, %ebx	/* a = a + b */
-	addl	%edx, %esi	/* D: a = a + b */
-	movl	%ebx, 8(%ebp)	/* store a */
-	xorl	%ebx, %edi	/* d = d ^ a */
-	movl	60(%ebp), %ebx	/* D: load d */
-	roll	$8, %edi	/* rotate d */
-	xorl	%esi, %ebx	/* D: d = d ^ a */
-	movl	%edi, 56(%ebp)	/* store d */
-	addl	%edi, %eax	/* c = c + d */
-	roll	$16, %ebx	/* D: rotate d */
-	movl	%eax, 40(%ebp)	/* store c */
-	xorl	%eax, %ecx	/* b = b ^ c */
-	movl	44(%ebp), %edi	/* D: load c */
-	roll	$7, %ecx	/* rotate b */
-	addl	%ebx, %edi	/* D: c = c + d */
-	movl	%ecx, 24(%ebp)	/* store b */
-/* quarter D */
-	xorl	%edi, %edx	/* b = b ^ c */
-	roll	$12, %edx	/* rotate b */
-	addl	%edx, %esi	/* a = a + b */
-	movl	%esi, 12(%ebp)	/* store a */
-	xorl	%esi, %ebx	/* d = d ^ a */
-	roll	$8, %ebx	/* rotate d */
-	movl	%ebx, 60(%ebp)	/* store d */
-	addl	%ebx, %edi	/* c = c + d */
-	movl	%edi, 44(%ebp)	/* store c */
-	xorl	%edi, %edx	/* b = b ^ c */
-	roll	$7, %edx	/* rotate b */
-	movl	%edx, 28(%ebp)	/* store b */
-/* quarter E */
-	movl	0(%ebp), %eax
-	movl	20(%ebp), %ebx
-	addl	%ebx, %eax
-	movl	60(%ebp), %edx
-	xorl	%eax, %edx
-	movl	40(%ebp), %ecx
-	roll	$16, %edx
-	movl	24(%ebp), %esi
-	addl	%edx, %ecx
-	movl	4(%ebp), %edi
-	xorl	%ecx, %ebx
-	addl	%esi, %edi
-	roll	$12, %ebx
-	addl	%ebx, %eax
-	movl	%eax, 0(%ebp)
-	xorl	%eax, %edx
-	movl	48(%ebp), %eax
-	roll	$8, %edx
-	xorl	%edi, %eax
-	movl	%edx, 60(%ebp)
-	addl	%edx, %ecx
-	roll	$16, %eax
-	movl	%ecx, 40(%ebp)
-	movl	44(%ebp), %edx
-	xorl	%ecx, %ebx
-	addl	%eax, %edx
-	roll	$7, %ebx
-	movl	28(%ebp), %ecx
-	movl	%ebx, 20(%ebp)
-/* quarter F */
-	xorl	%edx, %esi
-	movl	8(%ebp), %ebx
-	roll	$12, %esi
-	addl	%esi, %edi
-	addl	%ecx, %ebx
-	movl	%edi, 4(%ebp)
-	xorl	%edi, %eax
-	movl	52(%ebp), %edi
-	roll	$8, %eax
-	xorl	%ebx, %edi
-	movl	%eax, 48(%ebp)
-	addl	%eax, %edx
-	roll	$16, %edi
-	movl	%edx, 44(%ebp)
-	xorl	%edx, %esi
-	movl	32(%ebp), %eax
-	roll	$7, %esi
-	addl	%edi, %eax
-	movl	%esi, 24(%ebp)
-/* quarter G */
-	movl	16(%ebp), %edx
-	xorl	%eax, %ecx
-	movl	12(%ebp), %esi
-	roll	$12, %ecx
-	addl	%ecx, %ebx
-	addl	%edx, %esi
-	movl	%ebx, 8(%ebp)
-	xorl	%ebx, %edi
-	movl	56(%ebp), %ebx
-	roll	$8, %edi
-	xorl	%esi, %ebx
-	movl	%edi, 52(%ebp)
-	addl	%edi, %eax
-	roll	$16, %ebx
-	movl	%eax, 32(%ebp)
-	xorl	%eax, %ecx
-	movl	36(%ebp), %edi
-	roll	$7, %ecx
-	addl	%ebx, %edi
-	movl	%ecx, 28(%ebp)
-/* quarter H */
-	xorl	%edi, %edx
-	roll	$12, %edx
-	addl	%edx, %esi
-	movl	%esi, 12(%ebp)
-	xorl	%esi, %ebx
-	roll	$8, %ebx
-	movl	%ebx, 56(%ebp)
-	addl	%ebx, %edi
-	movl	%edi, 36(%ebp)
-	xorl	%edi, %edx
-	roll	$7, %edx
-	movl	%edx, 16(%ebp)
+	movl	%ebx, 16(%ebp)	/* A: store b */
+	xorl	%edx, %esi	/* B: b = b ^ c */
+	movl	24(%ebp), %ebx	/* C: load b */
+	roll	$12, %esi	/* B: rotate b */
+	addl	%esi, %edi	/* B: a = a + b */
+	movl	%edi, 4(%ebp)	/* B: store a */
+	xorl	%edi, %eax	/* B: d = d ^ a */
+	roll	$8, %eax	/* B: rotate d */
+	movl	%eax, 52(%ebp)	/* B: store d */
+	addl	%eax, %edx	/* B: c = c + d */
+	movl	8(%ebp), %eax	/* C: load a */
+	movl	%edx, 36(%ebp)	/* B: store c */
+	xorl	%edx, %esi	/* B: b = b ^ c */
+	movl	56(%ebp), %edx	/* C: load d */
+	roll	$7, %esi	/* B: rotate b */
+	addl	%ebx, %eax	/* C: a = a + b */
+	movl	%esi, 20(%ebp)	/* B: store b */
+/* quarters C and D, initial E */
+	xorl	%eax, %edx	/* C: d = d ^ a */
+	movl	12(%ebp), %edi	/* D: load a */
+	roll	$16, %edx	/* C: rotate d */
+	movl	28(%ebp), %esi	/* D: load b */
+	addl	%edx, %ecx	/* C: c = c + d */
+	xorl	%ecx, %ebx	/* C: b = b ^ c */
+	addl	%esi, %edi	/* D: a = a + b */
+	roll	$12, %ebx	/* C: rotate b */
+	addl	%ebx, %eax	/* C: a = a + b */
+	movl	%eax, 8(%ebp)	/* C: store a */
+	xorl	%eax, %edx	/* C: d = d ^ a */
+	movl	60(%ebp), %eax	/* D: load d */
+	roll	$8, %edx	/* C: rotate d */
+	xorl	%edi, %eax	/* D: d = d ^ a */
+	movl	%edx, 56(%ebp)	/* C: store d */
+	addl	%edx, %ecx	/* C: c = c + d */
+	movl	44(%ebp), %edx	/* D: load c */
+	movl	%ecx, 40(%ebp)	/* C: store c */
+	xorl	%ecx, %ebx	/* C: b = b ^ c */
+	roll	$16, %eax	/* D: rotate d */
+	movl	40(%ebp), %ecx	/* E: load c */
+	roll	$7, %ebx	/* C: rotate b */
+	addl	%eax, %edx	/* D: c = c + d */
+	movl	%ebx, 24(%ebp)	/* C: store b */
+	xorl	%edx, %esi	/* D: b = b ^ c */
+	movl	20(%ebp), %ebx	/* E: load b */
+	roll	$12, %esi	/* D: rotate b */
+	addl	%esi, %edi	/* D: a = a + b */
+	movl	%edi, 12(%ebp)	/* D: store a */
+	xorl	%edi, %eax	/* D: d = d ^ a */
+	roll	$8, %eax	/* D: rotate d */
+	movl	%eax, 60(%ebp)	/* D: store d */
+	addl	%eax, %edx	/* D: c = c + d */
+	movl	0(%ebp), %eax	/* E: load a */
+	movl	%edx, 44(%ebp)	/* D: store c */
+	xorl	%edx, %esi	/* D: b = b ^ c */
+	movl	60(%ebp), %edx	/* E: load d */
+	roll	$7, %esi	/* D: rotate b */
+	addl	%ebx, %eax	/* E: a = a + b */
+	movl	%esi, 28(%ebp)	/* D: store b */
+/* quarters E and F, initial G */
+	xorl	%eax, %edx	/* E: d = d ^ a */
+	movl	4(%ebp), %edi	/* F: load a */
+	roll	$16, %edx	/* E: rotate d */
+	movl	24(%ebp), %esi	/* F: load b */
+	addl	%edx, %ecx	/* E: c = c + d */
+	xorl	%ecx, %ebx	/* E: b = b ^ c */
+	addl	%esi, %edi	/* F: a = a + b */
+	roll	$12, %ebx	/* E: rotate b */
+	addl	%ebx, %eax	/* E: a = a + b */
+	movl	%eax, 0(%ebp)	/* E: store a */
+	xorl	%eax, %edx	/* E: d = d ^ a */
+	movl	48(%ebp), %eax	/* F: load d */
+	roll	$8, %edx	/* E: rotate d */
+	xorl	%edi, %eax	/* F: d = d ^ a */
+	movl	%edx, 60(%ebp)	/* E: store d */
+	addl	%edx, %ecx	/* E: c = c + d */
+	movl	44(%ebp), %edx	/* F: load c */
+	movl	%ecx, 40(%ebp)	/* E: store c */
+	xorl	%ecx, %ebx	/* E: b = b ^ c */
+	roll	$16, %eax	/* F: rotate d */
+	movl	32(%ebp), %ecx	/* G: load c */
+	roll	$7, %ebx	/* E: rotate b */
+	addl	%eax, %edx	/* F: c = c + d */
+	movl	%ebx, 20(%ebp)	/* E: store b */
+	xorl	%edx, %esi	/* F: b = b ^ c */
+	movl	28(%ebp), %ebx	/* G: load b */
+	roll	$12, %esi	/* F: rotate b */
+	addl	%esi, %edi	/* F: a = a + b */
+	movl	%edi, 4(%ebp)	/* F: store a */
+	xorl	%edi, %eax	/* F: d = d ^ a */
+	roll	$8, %eax	/* F: rotate d */
+	movl	%eax, 48(%ebp)	/* F: store d */
+	addl	%eax, %edx	/* F: c = c + d */
+	movl	8(%ebp), %eax	/* G: load a */
+	movl	%edx, 44(%ebp)	/* F: store c */
+	xorl	%edx, %esi	/* F: b = b ^ c */
+	movl	52(%ebp), %edx	/* G: load d */
+	roll	$7, %esi	/* F: rotate b */
+	addl	%ebx, %eax	/* G: a = a + b */
+	movl	%esi, 24(%ebp)	/* F: store b */
+/* quarters G and H */
+	xorl	%eax, %edx	/* G: d = d ^ a */
+	movl	12(%ebp), %edi	/* H: load a */
+	roll	$16, %edx	/* G: rotate d */
+	movl	16(%ebp), %esi	/* H: load b */
+	addl	%edx, %ecx	/* G: c = c + d */
+	xorl	%ecx, %ebx	/* G: b = b ^ c */
+	addl	%esi, %edi	/* H: a = a + b */
+	roll	$12, %ebx	/* G: rotate b */
+	addl	%ebx, %eax	/* G: a = a + b */
+	movl	%eax, 8(%ebp)	/* G: store a */
+	xorl	%eax, %edx	/* G: d = d ^ a */
+	movl	56(%ebp), %eax	/* H: load d */
+	roll	$8, %edx	/* G: rotate d */
+	xorl	%edi, %eax	/* H: d = d ^ a */
+	movl	%edx, 52(%ebp)	/* G: store d */
+	addl	%edx, %ecx	/* G: c = c + d */
+	movl	36(%ebp), %edx	/* H: load c */
+	movl	%ecx, 32(%ebp)	/* G: store c */
+	xorl	%ecx, %ebx	/* G: b = b ^ c */
+	roll	$16, %eax	/* H: rotate d */
+	roll	$7, %ebx	/* G: rotate b */
+	addl	%eax, %edx	/* H: c = c + d */
+	movl	%ebx, 28(%ebp)	/* G: store b */
+	xorl	%edx, %esi	/* H: b = b ^ c */
+	roll	$12, %esi	/* H: rotate b */
+	addl	%esi, %edi	/* H: a = a + b */
+	movl	%edi, 12(%ebp)	/* H: store a */
+	xorl	%edi, %eax	/* H: d = d ^ a */
+	roll	$8, %eax	/* H: rotate d */
+	movl	%eax, 56(%ebp)	/* H: store d */
+	addl	%eax, %edx	/* H: c = c + d */
+	movl	%edx, 36(%ebp)	/* H: store c */
+	xorl	%edx, %esi	/* H: b = b ^ c */
+	roll	$7, %esi	/* H: rotate b */
+	movl	%esi, 16(%ebp)	/* H: store b */
 	decl	-4(%esp)
 	jnz	.xor_chacha
 
@@ -3206,14 +7325,14 @@ _neoscrypt:
 	movl	20(%esp), %esi
 	movl	24(%esp), %edi
 	movl	28(%esp), %ebx
-	
-#if (SHA256)
+
+#ifdef SHA256
 /* Scrypt mode */
 	testl	$0x01, %ebx
 	jnz	.scrypt
 #endif
 
-#if (WIN32)
+#ifdef WIN32
 /* attempt to allocate 33280 + 128 bytes of stack space fails miserably;
  * have to use malloc() and free() instead */
 	subl	$64, %esp
@@ -3239,17 +7358,17 @@ _neoscrypt:
 #endif /* WIN32 */
 
 /* FastKDF */
-#if (OPT)
+#ifdef OPT
 	movl	%esi, 0(%esp)
 	movl	%esi, 4(%esp)
 	movl	%ebp, 8(%esp)
 	xorl	%eax, %eax
 	movl	%eax, 12(%esp)
-#if (WIN32) || (__APPLE__)
+#if defined(WIN32) || defined(__APPLE__)
 	call	_neoscrypt_fastkdf_opt
 #else
 	call	neoscrypt_fastkdf_opt
-#endif /* WIN32 || __APPLE__ */
+#endif /* (WIN32) || (__APPLE__) */
 #else
 	movl	$80, %eax
 	movl	%esi, 0(%esp)
@@ -3259,11 +7378,11 @@ _neoscrypt:
 	movl	$32, 16(%esp)
 	movl	%ebp, 20(%esp)
 	movl	$256, 24(%esp)
-#if (WIN32) || (__APPLE__)
+#if defined(WIN32) || defined(__APPLE__)
 	call	_neoscrypt_fastkdf
 #else
 	call	neoscrypt_fastkdf
-#endif /* WIN32  || __APPLE__ */
+#endif /* (WIN32) || (__APPLE__) */
 #endif /* OPT */
 
 /* SSE2 switch */
@@ -4029,16 +8148,16 @@ _neoscrypt:
 	movq	%mm7, 248(%ebp)
 
 /* FastKDF */
-#if (OPT)
+#ifdef OPT
 	movl	%esi, 0(%esp)
 	movl	%ebp, 4(%esp)
 	movl	%edi, 8(%esp)
 	movl	$1, 12(%esp)
-#if (WIN32) || (__APPLE__)
+#if defined(WIN32) || defined(__APPLE__)
 	call	_neoscrypt_fastkdf_opt
 #else
 	call	neoscrypt_fastkdf_opt
-#endif /* WIN32 || __APPLE__ */
+#endif /* (WIN32) || (__APPLE__) */
 #else
 	movl	%esi, 0(%esp)
 	movl	$80, 4(%esp)
@@ -4047,14 +8166,14 @@ _neoscrypt:
 	movl	$32, 16(%esp)
 	movl	%edi, 20(%esp)
 	movl	$32, 24(%esp)
-#if (WIN32) || (__APPLE__)
+#if defined(WIN32) || defined(__APPLE__)
 	call	_neoscrypt_fastkdf
 #else
 	call	neoscrypt_fastkdf
-#endif /* WIN32 || __APPLE__ */
+#endif /* (WIN32) || (__APPLE__) */
 #endif /* OPT */
 
-#if (WIN32)
+#ifdef WIN32
 /* free memory */
 	movl	32(%esp), %eax
 	movl	%eax, 0(%esp)
@@ -4534,16 +8653,16 @@ _neoscrypt:
 	movdqa	%xmm7, 240(%ebp)
 
 /* FastKDF */
-#if (OPT)
+#ifdef OPT
 	movl	%esi, 0(%esp)
 	movl	%ebp, 4(%esp)
 	movl	%edi, 8(%esp)
 	movl	$1, 12(%esp)
-#if (WIN32) || (__APPLE__)
+#if defined(WIN32) || defined(__APPLE__)
 	call	_neoscrypt_fastkdf_opt
 #else
 	call	neoscrypt_fastkdf_opt
-#endif /* WIN32 || __APPLE__ */
+#endif /* (WIN32) || (__APPLE__) */
 #else
 	movl	%esi, 0(%esp)
 	movl	$80, 4(%esp)
@@ -4552,14 +8671,14 @@ _neoscrypt:
 	movl	$32, 16(%esp)
 	movl	%edi, 20(%esp)
 	movl	$32, 24(%esp)
-#if (WIN32) || (__APPLE__)
+#if defined(WIN32) || defined(__APPLE__)
 	call	_neoscrypt_fastkdf
 #else
 	call	neoscrypt_fastkdf
-#endif /* WIN32 || __APPLE__ */
+#endif /* (WIN32) || (__APPLE__) */
 #endif /* OPT */
 
-#if (WIN32)
+#ifdef WIN32
 /* free memory */
 	movl	32(%esp), %eax
 	movl	%eax, 0(%esp)
@@ -4576,10 +8695,10 @@ _neoscrypt:
 	popl	%ebx
 	ret
 
-#if (SHA256)
+#ifdef SHA256
 
 .scrypt:
-#if (WIN32)
+#ifdef WIN32
 /* attempt to allocate 131200 + 128 bytes of stack space fails miserably;
  * have to use malloc() and free() instead */
 	subl	$64, %esp
@@ -4613,7 +8732,7 @@ _neoscrypt:
 	movl	$1, 16(%esp)
 	movl	%ebp, 20(%esp)
 	movl	$128, 24(%esp)
-#if (WIN32) || (__APPLE__)
+#if defined(WIN32) || defined(__APPLE__)
 	call	_neoscrypt_pbkdf2_sha256
 #else
 	call	neoscrypt_pbkdf2_sha256
@@ -4758,13 +8877,13 @@ _neoscrypt:
 	movl	$1, 16(%esp)
 	movl	%edi, 20(%esp)
 	movl	$32, 24(%esp)
-#if (WIN32) || (__APPLE__)
+#if defined(WIN32) || defined(__APPLE__)
 	call	_neoscrypt_pbkdf2_sha256
 #else
 	call	neoscrypt_pbkdf2_sha256
 #endif
 
-#if (WIN32)
+#ifdef WIN32
 /* free memory */
 	movl	32(%esp), %eax
 	movl	%eax, 0(%esp)
@@ -4884,13 +9003,13 @@ _neoscrypt:
 	movl	$1, 16(%esp)
 	movl	%edi, 20(%esp)
 	movl	$32, 24(%esp)
-#if (WIN32) || (__APPLE__)
+#if defined(WIN32) || defined(__APPLE__)
 	call	_neoscrypt_pbkdf2_sha256
 #else
 	call	neoscrypt_pbkdf2_sha256
 #endif
 
-#if (WIN32)
+#ifdef WIN32
 /* free memory */
 	movl	32(%esp), %eax
 	movl	%eax, 0(%esp)
@@ -4907,6 +9026,126 @@ _neoscrypt:
 	popl	%ebx
 	ret
 
-#endif /* (SHA256) */
+#endif /* SHA256 */
+
+/* cpu_vec_exts()
+ * i386 detector of any vector extensions present
+ * output bits set in %eax:
+ *   0 : MMX
+ *   1 : Extended MMX (MMX+)
+ *   2 : 3DNow!
+ *   3 : Extended 3DNow! (3DNow!+)
+ *   4 : SSE
+ *   5 : SSE2
+ *   6 : SSE3
+ *   7 : SSSE3
+ *   8 : SSE41
+ *   9 : SSE42
+ *  10 : SSE4A
+ *  11 : XOP
+ *  12 : FMA4
+ *  13 : AVX
+ *  14 : F16C
+ *  15 : FMA3
+ * the other bits are reserved for the future use */
+.globl cpu_vec_exts
+.globl _cpu_vec_exts
+cpu_vec_exts:
+_cpu_vec_exts:
+	pushl	%ebx
+	pushl	%ebp
+	xorl	%ebp, %ebp
+/* the CPUID extended function 0 should report the max.
+ * supported extended function number in %eax */
+	movl	$0x80000000, %eax
+	cpuid
+	cmpl	$0x80000001, %eax
+	jb	.cpu_vec_st1
+	movl	$0x80000001, %eax
+	cpuid
+/* MMX+ (bit 22 of %edx); implies MMX */
+	testl	$0x00400000, %edx
+	jz	.cpu_vec_3dnp
+	orl	$0x00000003, %ebp
+.cpu_vec_3dnp:
+/* 3DNow!+ (bit 30 of %edx); implies 3DNow! */
+	testl	$0x80000000, %edx
+	jz	.cpu_vec_3dn
+	orl	$0x0000000C, %ebp
+	jmp	.cpu_vec_sse4a
+.cpu_vec_3dn:
+/* 3DNow! (bit 31 of %edx); implies MMX */
+	testl	$0x80000000, %edx
+	jz	.cpu_vec_sse4a
+	orl	$0x00000005, %ebp
+.cpu_vec_sse4a:
+/* SSE4A (bit 6 of %ecx) */
+	testl	$0x00000040, %ecx
+	jz	.cpu_vec_st1
+	orl	$0x00000400, %ebp
+/* XOP (bit 11 of %ecx) */
+	testl	$0x00000800, %ecx
+	jz	.cpu_vec_st1
+	orl	$0x00000800, %ebp
+/* FMA4 (bit 16 of %ecx) */
+	testl	$0x00010000, %ecx
+	jz	.cpu_vec_st1
+	orl	$0x00001000, %ebp
+.cpu_vec_st1:
+/* Some original Cyrix processors report nonsense in %ecx of
+ * the CPUID standard function 1, however they don't support even SSE */
+	movl	$1, %eax
+	cpuid
+/* SSE (bit 25 of %edx); implies MMX+ and MMX */
+	testl	$0x02000000, %edx
+	jz	.cpu_vec_mmx
+	orl	$0x00000013, %ebp
+/* SSE2 (bit 26 of %edx) */
+	testl	$0x04000000, %edx
+	jz	.cpu_vec_exit
+	orl	$0x00000020, %ebp
+/* SSE3 (bit 0 of %ecx) */
+	testl	$0x00000001, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00000040, %ebp
+/* SSSE3 (bit 9 of %ecx) */
+	testl	$0x00000100, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00000080, %ebp
+/* SSE4.1 (bit 19 of %ecx) */
+	testl	$0x00080000, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00000100, %ebp
+/* SSE4.2 (bit 20 of %ecx) */
+	testl	$0x00100000, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00000200, %ebp
+/* AVX (bit 28 of %ecx) */
+	testl	$0x10000000, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00002000, %ebp
+	jmp	.cpu_vec_exit
+/* F16C (bit 29 of %ecx) */
+	testl	$0x20000000, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00004000, %ebp
+	jmp	.cpu_vec_exit
+/* FMA3 (bit 12 of %ecx) */
+	testl	$0x00001000, %ecx
+	jz	.cpu_vec_exit
+	orl	$0x00008000, %ebp
+	jmp	.cpu_vec_exit
+
+.cpu_vec_mmx:
+/* MMX (bit 23 of %edx) */
+	testl	$0x00800000, %edx
+	jz	.cpu_vec_exit
+	orl	$0x00000001, %ebp
+
+.cpu_vec_exit:
+	movl	%ebp, %eax
+	popl	%ebp
+	popl	%ebx
+	ret
 
 #endif /* (ASM) && (__i386__) */

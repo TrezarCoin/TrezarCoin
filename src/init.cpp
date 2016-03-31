@@ -36,6 +36,9 @@ unsigned int nStakeMinDepth;
 bool fUseFastStakeMiner;
 enum Checkpoints::CPMode CheckpointsMode;
 
+/* Assembly level processor optimisation features */
+uint opt_flags = 0;
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // Shutdown
@@ -381,9 +384,22 @@ bool AppInit2()
 
     // ********************************************************* Step 2: parameter interactions
 
-    if(GetBoolArg("-sse2", false)) {
-        printf("SSE2 assembly optimisations enabled\n");
-        nNeoScryptOptions |= 0x1000;
+    printf("\n\n\n\n\n\n\n\n\n\n");
+    fPrintToConsole = GetBoolArg("-printtoconsole", false);
+    fPrintToDebugger = GetBoolArg("-printtodebugger", false);
+    fLogTimestamps = GetBoolArg("-logtimestamps", false);
+
+    opt_flags = cpu_vec_exts();
+    if(GetBoolArg("-sse2", true)) {
+        /* Verify hardware SSE2 support */
+        if(opt_flags & 0x00000020) {
+            printf("SSE2 optimisations enabled\n");
+            nNeoScryptOptions |= 0x1000;
+        } else {
+            printf("SSE2 unsupported, optimisations disabled\n");
+        }
+    } else {
+        printf("SSE2 optimisations disabled\n");
     }
 
     fTestNet = GetBoolArg("-testnet");
@@ -473,9 +489,6 @@ bool AppInit2()
 #if !defined(QT_GUI)
     fServer = true;
 #endif
-    fPrintToConsole = GetBoolArg("-printtoconsole");
-    fPrintToDebugger = GetBoolArg("-printtodebugger");
-    fLogTimestamps = GetBoolArg("-logtimestamps");
 
     if (mapArgs.count("-timeout"))
     {
@@ -578,7 +591,7 @@ bool AppInit2()
 
     if (GetBoolArg("-shrinkdebugfile", !fDebug))
         ShrinkDebugFile();
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
     printf("Orbitcoin version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
     printf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
     if (!fLogTimestamps)
