@@ -200,9 +200,9 @@ Value getwork(const Array& params, bool fHelp) {
 }
 
 
-Value getblocktemplate(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 1)
+Value getblocktemplate(const Array& params, bool fHelp) {
+
+    if(fHelp || (params.size() > 1))
         throw runtime_error(
             "getblocktemplate [params]\n"
             "Returns data needed to construct a block to work on:\n"
