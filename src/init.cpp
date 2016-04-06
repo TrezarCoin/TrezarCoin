@@ -17,6 +17,10 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <openssl/crypto.h>
 
+#ifdef USE_UPNP
+#include <miniupnpc/miniupnpc.h>
+#endif
+
 #ifndef WIN32
 #include <signal.h>
 #endif
@@ -593,11 +597,18 @@ bool AppInit2()
         ShrinkDebugFile();
 
     printf("Orbitcoin version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
-    printf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
-    if (!fLogTimestamps)
-        printf("Startup time: %s\n", DateTimeStrFormat("%x %H:%M:%S", GetTime()).c_str());
-    printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
-    printf("Used data directory %s\n", strDataDir.c_str());
+    printf("Using OpenSSL release: %s\n", SSLeay_version(SSLEAY_VERSION));
+    printf("Using BerkeleyDB release: %s\n", DbEnv::version(0, 0, 0));
+    printf("Using LevelDB v%d.%d\n", leveldb::kMajorVersion, leveldb::kMinorVersion);
+    printf("Using Boost v%d.%d.%d\n",
+      BOOST_VERSION / 100000, BOOST_VERSION / 100 % 1000, BOOST_VERSION % 100);
+#ifdef USE_UPNP
+    printf("Using miniUPnP Client v%s API v%d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
+#endif
+    if(!fLogTimestamps)
+        printf("Launch time: %s\n", DateTimeStrFormat("%x %H:%M:%S", GetTime()).c_str());
+    printf("The default data directory is %s\n", GetDefaultDataDir().string().c_str());
+    printf("Set up for a data directory of %s\n", strDataDir.c_str());
     std::ostringstream strErrors;
 
     int64 nStart;
