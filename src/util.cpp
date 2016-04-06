@@ -1329,12 +1329,9 @@ void AddTimeData(const CNetAddr& ip, int64 nTime)
 
 
 
-string FormatVersion(int nVersion)
-{
-    if (nVersion%100 == 0)
-        return strprintf("%d.%d.%d", nVersion/1000000, (nVersion/10000)%100, (nVersion/100)%100);
-    else
-        return strprintf("%d.%d.%d.%d", nVersion/1000000, (nVersion/10000)%100, (nVersion/100)%100, nVersion%100);
+string FormatVersion(int nVersion) {
+    return(strprintf("%d.%d.%d.%d", nVersion / 1000000,
+      (nVersion / 10000) % 100, (nVersion / 100) % 100, nVersion % 100));
 }
 
 string FormatFullVersion()
