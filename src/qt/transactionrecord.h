@@ -1,7 +1,6 @@
 #ifndef TRANSACTIONRECORD_H
 #define TRANSACTIONRECORD_H
 
-#include "main.h"
 #include "uint256.h"
 
 #include <QList>
@@ -73,9 +72,6 @@ public:
         SendToSelf,
         Staked
     };
-
-    /* The default number of confirmations for regular transactions defined in main.h */
-    static const int NumConfirmations = TX_MATURITY;
 
     TransactionRecord():
             hash(), time(0), type(Other), address(""), debit(0), credit(0), idx(0)

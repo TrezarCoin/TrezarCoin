@@ -2,11 +2,19 @@ TEMPLATE = app
 TARGET = orbitcoin-qt
 VERSION = 1.5.0.0
 INCLUDEPATH += src src/json src/qt
+QT += core gui network
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
 CONFIG += thread
 CONFIG += static
 QMAKE_CFLAGS += -DSHA256 -DASM -DOPT
+
+greaterThan(QT_MAJOR_VERSION, 4): {
+    QT += widgets
+    message("Building with the Qt v5 support$$escape_expand(\\n)")
+} else {
+    message("Building with the Qt v4 support$$escape_expand(\\n)")
+}
 
 # for boost 1.37, add -mt to the boost libraries
 # use: qmake BOOST_LIB_SUFFIX=-mt
@@ -37,6 +45,8 @@ contains(RELEASE, 1) {
 
 # strip symbols
 QMAKE_LFLAGS += -Wl,-s
+# disable debug builds on Windows
+win32:CONFIG -= debug_and_release debug_and_release_target
 # for extra security on Windows: enable ASLR and DEP via GCC linker flags
 win32:QMAKE_LFLAGS *= -Wl,--dynamicbase -Wl,--nxcompat
 # on Windows: enable GCC large address aware linker flag
@@ -47,7 +57,7 @@ win32:QMAKE_LFLAGS *= -static-libgcc -static-libstdc++
 # use: qmake "USE_QRCODE=1"
 # libqrencode (http://fukuchi.org/works/qrencode/index.en.html) must be installed for support
 contains(USE_QRCODE, 1) {
-    message(Building with QRCode support)
+    message("Building with the QR code support$$escape_expand(\\n)")
     DEFINES += USE_QRCODE
     LIBS += -lqrencode
 }
@@ -57,9 +67,9 @@ contains(USE_QRCODE, 1) {
 #  or: qmake "USE_UPNP=-" (not supported)
 # miniupnpc (http://miniupnp.free.fr/files/) must be installed for support
 contains(USE_UPNP, -) {
-    message(Building without UPNP support)
+    message("Building without UPnP support$$escape_expand(\\n)")
 } else {
-    message(Building with UPNP support)
+    message("Building with the UPnP support$$escape_expand(\\n)")
     count(USE_UPNP, 0) {
         USE_UPNP=1
     }
@@ -71,17 +81,18 @@ contains(USE_UPNP, -) {
 
 # use: qmake "USE_DBUS=1"
 contains(USE_DBUS, 1) {
-    message(Building with DBUS (Freedesktop notifications) support)
+    message("Building with the D-Bus support$$escape_expand(\\n)")
     DEFINES += USE_DBUS
     QT += dbus
 }
 
-# use: qmake "USE_IPV6=1" ( enabled by default; default)
-#  or: qmake "USE_IPV6=0" (disabled by default)
-#  or: qmake "USE_IPV6=-" (not supported)
+# use: qmake "USE_IPV6=1" (compiled and enabled by default)
+#  or: qmake "USE_IPV6=0" (compiled and disabled by default)
+#  or: qmake "USE_IPV6=-" (not compiled)
 contains(USE_IPV6, -) {
-    message(Building without IPv6 support)
+    message("Building without IPv6 support$$escape_expand(\\n)")
 } else {
+    message("Building with the IPv6 support$$escape_expand(\\n)")
     count(USE_IPV6, 0) {
         USE_IPV6=1
     }

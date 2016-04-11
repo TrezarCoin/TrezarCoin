@@ -50,11 +50,17 @@
 #include <QStackedWidget>
 #include <QDateTime>
 #include <QFileDialog>
-#include <QDesktopServices>
 #include <QTimer>
 #include <QDragEnterEvent>
-#include <QUrl>
 #include <QStyle>
+
+#if (QT_VERSION < 0x050000)
+#include <QUrl>
+#include <QDesktopServices>
+#else
+#include <QMimeData>
+#include <QStandardPaths>
+#endif
 
 #include <iostream>
 
@@ -292,7 +298,7 @@ void BitcoinGUI::createActions() {
     aboutAction->setMenuRole(QAction::AboutRole);
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
 
-    aboutQtAction = new QAction(QIcon(":/trolltech/qmessagebox/images/qtlogo-64.png"), tr("About &Qt"), this);
+    aboutQtAction = new QAction(QIcon(":/icons/qt"), tr("About &Qt"), this);
     aboutQtAction->setMenuRole(QAction::AboutQtRole);
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 }
@@ -911,11 +917,12 @@ void BitcoinGUI::cloneWallet() {
    if(!ctx.isValid())
      return;
 
-#if QT_VERSION < 0x050000
+#if (QT_VERSION < 0x050000)
     QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
 #else
     QString saveDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #endif
+
     QString filename = QFileDialog::getSaveFileName(this, tr("Clone Wallet"), saveDir, tr("Wallet Data (*.dat)"));
     if(!filename.isEmpty()) {
         if(walletModel->cloneWallet(filename)) {
@@ -939,11 +946,12 @@ void BitcoinGUI::exportWallet() {
    if(!ctx.isValid())
      return;
 
-#if QT_VERSION < 0x050000
+#if (QT_VERSION < 0x050000)
     QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
 #else
     QString saveDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #endif
+
     QString filename = QFileDialog::getSaveFileName(this, tr("Export Wallet Keys"), saveDir, tr("Wallet Text (*.txt)"));
     if(!filename.isEmpty()) {
         if(walletModel->exportWallet(filename)) {
@@ -968,11 +976,12 @@ void BitcoinGUI::importWallet() {
    if(!ctx.isValid())
      return;
 
-#if QT_VERSION < 0x050000
+#if (QT_VERSION < 0x050000)
     QString openDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
 #else
     QString openDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #endif
+
     QString filename = QFileDialog::getOpenFileName(this, tr("Import Wallet Keys"), openDir, tr("Wallet Text (*.txt)"));
     if(!filename.isEmpty()) {
         if(walletModel->importWallet(filename)) {

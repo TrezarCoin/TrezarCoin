@@ -81,9 +81,8 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
       return(NULL);
 
     // Create new block
-    auto_ptr<CBlock> pblock(new CBlock());
-    if (!pblock.get())
-        return NULL;
+    CBlock *pblock = new CBlock();
+    if(!pblock) return(NULL);
 
     // Create coinbase tx
     CTransaction txNew;
@@ -329,8 +328,8 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
         nLastBlockTx = nBlockTx;
         nLastBlockSize = nBlockSize;
 
-        if (fDebug && GetBoolArg("-printpriority"))
-            printf("CreateNewBlock(): total size %"PRI64u"\n", nBlockSize);
+        if(fDebug && GetBoolArg("-printpriority"))
+          printf("CreateNewBlock(): total size %" PRI64u "\n", nBlockSize);
 
         if(fProofOfStake) *pStakeReward = GetProofOfStakeReward(pindexPrev->nHeight+1, nFees);
         else pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, nFees);
@@ -344,7 +343,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
         pblock->nNonce         = 0;
     }
 
-    return pblock.release();
+    return(pblock);
 }
 
 
@@ -526,17 +525,19 @@ void StakeMiner(CWallet *pwallet) {
 
         /* Create a new block and receive a stake reward expected */
         CBlockIndex* pindexPrev = pindexBest;
-        auto_ptr<CBlock> pblock(CreateNewBlock(pwallet, true, &nStakeReward));
-        if(!pblock.get()) return;
-        IncrementExtraNonce(pblock.get(), pindexPrev, nExtraNonce);
+        CBlock *pblock = CreateNewBlock(pwallet, true, &nStakeReward);
+        if(!pblock) return;
+        IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
         /* Try to sign the block with the stake reward obtained previously */ 
         if(pblock->SignBlock(*pwallet, nStakeReward)) {
             strMintWarning = _("Stake generation: new block found!");
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
-            CheckStake(pblock.get(), *pwallet);
+            CheckStake(pblock, *pwallet);
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
         }
+
+        delete(pblock);
 
         Sleep(nMinerSleep);
 

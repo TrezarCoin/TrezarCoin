@@ -188,7 +188,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
     }
     else
     {
-        if(status.depth >= NumConfirmations)
+        if(status.depth >= TX_MATURITY)
           status.status = TransactionStatus::HaveConfirmations;
         else {
             if(status.depth > 0)
