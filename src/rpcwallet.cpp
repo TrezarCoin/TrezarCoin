@@ -780,75 +780,90 @@ Value sendmany(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
-Value addmultisigaddress(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() < 2 || params.size() > 3)
-    {
-        string msg = "addmultisigaddress <nrequired> <'[\"key\",\"key\"]'> [account]\n"
-            "Add a nrequired-to-sign multisignature address to the wallet\"\n"
-            "each key is a Orbitcoin address or hex-encoded public key\n"
-            "If [account] is specified, assign address to [account].";
-        throw runtime_error(msg);
-    }
-
+static CScript add_create_multisig(const Array &params) {
     int nRequired = params[0].get_int();
     const Array& keys = params[1].get_array();
-    string strAccount;
-    if (params.size() > 2)
-        strAccount = AccountFromValue(params[2]);
+    uint i;
 
-    // Gather public keys
-    if (nRequired < 1)
-        throw runtime_error("a multisignature address must require at least one key to redeem");
+    /* Gather public keys */
+    if(nRequired < 1)
+      throw(runtime_error("a multisignature address requires at least one key to redeem"));
 
     if((int)keys.size() < nRequired)
-      throw(runtime_error(strprintf("not enough keys supplied "
+      throw(runtime_error(strprintf("not enough keys supplied " \
         "(got %" PRIszu " keys, but need at least %d to redeem)",
         keys.size(), nRequired)));
 
     std::vector<CKey> pubkeys;
     pubkeys.resize(keys.size());
-    for (unsigned int i = 0; i < keys.size(); i++)
-    {
+    for(i = 0; i < keys.size(); i++) {
         const std::string& ks = keys[i].get_str();
 
-        // Case 1: Bitcoin address and we have full public key:
         CBitcoinAddress address(ks);
-        if (address.IsValid())
-        {
+        if(address.IsValid()) {
+            /* Single signature address; the public key must be obtainable */
             CKeyID keyID;
-            if (!address.GetKeyID(keyID))
-                throw runtime_error(
-                    strprintf("%s does not refer to a key",ks.c_str()));
+            if(!address.GetKeyID(keyID))
+              throw(runtime_error(strprintf("%s does not refer to a key", ks.c_str())));
             CPubKey vchPubKey;
-            if (!pwalletMain->GetPubKey(keyID, vchPubKey))
-                throw runtime_error(
-                    strprintf("no full public key for address %s",ks.c_str()));
-            if (!vchPubKey.IsValid() || !pubkeys[i].SetPubKey(vchPubKey))
-                throw runtime_error(" Invalid public key: "+ks);
-        }
-
-        // Case 2: hex public key
-        else if (IsHex(ks))
-        {
+            if(!pwalletMain->GetPubKey(keyID, vchPubKey))
+              throw(runtime_error(strprintf("no full public key for address %s", ks.c_str())));
+            if(!vchPubKey.IsValid() || !pubkeys[i].SetPubKey(vchPubKey))
+              throw(runtime_error("invalid public key: " + ks));
+        } else if(IsHex(ks)) {
+            /* Hexadecimal public key */
             CPubKey vchPubKey(ParseHex(ks));
-            if (!vchPubKey.IsValid() || !pubkeys[i].SetPubKey(vchPubKey))
-                throw runtime_error(" Invalid public key: "+ks);
-        }
-        else
-        {
-            throw runtime_error(" Invalid public key: "+ks);
+            if(!vchPubKey.IsValid() || !pubkeys[i].SetPubKey(vchPubKey))
+              throw(runtime_error("invalid public key: " + ks));
+        } else {
+            throw(runtime_error("invalid public key: " + ks));
         }
     }
+    CScript result;
+    result.SetMultisig(nRequired, pubkeys);
+    return(result);
+}
 
-    // Construct using pay-to-script-hash:
-    CScript inner;
-    inner.SetMultisig(nRequired, pubkeys);
+Value addmultisigaddress(const Array &params, bool fHelp) {
+
+    if(fHelp || (params.size() < 2) || (params.size() > 3)) {
+        string msg = "addmultisigaddress <nrequired> <'[\"key\",\"key\"]'> [account]\n"
+          "Add a nrequired-to-sign multisignature address to the wallet\"\n"
+          "each key is a single signature address or hex-encoded public key;\n"
+          "if [account] is specified, assign address to [account]";
+        throw(runtime_error(msg));
+    }
+
+    string strAccount;
+    if(params.size() > 2)
+      strAccount = AccountFromValue(params[2]);
+
+    CScript inner = add_create_multisig(params);
     CScriptID innerID = inner.GetID();
     pwalletMain->AddCScript(inner);
 
     pwalletMain->SetAddressBookName(innerID, strAccount);
-    return CBitcoinAddress(innerID).ToString();
+    return(CBitcoinAddress(innerID).ToString());
+}
+
+Value createmultisig(const Array &params, bool fHelp) {
+
+    if(fHelp || (params.size() < 2) || (params.size() > 2)) {
+      string msg = "createmultisig <nrequired> <'[\"key\",\"key\"]'>\n"
+        "Creates a multisignature address and returns a JSON object\n"
+        "with a multisignature address and hex encoded redemption script";
+        throw(runtime_error(msg));
+    }
+
+    CScript inner = add_create_multisig(params);
+    CScriptID innerID = inner.GetID();
+    CBitcoinAddress address(innerID);
+
+    Object result;
+    result.push_back(Pair("address", address.ToString()));
+    result.push_back(Pair("redeemScript", HexStr(inner.begin(), inner.end())));
+
+    return(result);
 }
 
 Value addredeemscript(const Array& params, bool fHelp)
