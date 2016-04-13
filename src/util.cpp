@@ -392,7 +392,7 @@ string FormatMoney(int64 n, bool fPlus)
     int64 n_abs = (n > 0 ? n : -n);
     int64 quotient = n_abs/COIN;
     int64 remainder = n_abs%COIN;
-    string str = strprintf("%" PRI64d ".%08" PRI64d, quotient, remainder);
+    string str = strprintf("%" PRI64d ".%06" PRI64d, quotient, remainder);
 
     // Right-trim excess zeros before the decimal point:
     int nTrim = 0;
@@ -1369,6 +1369,27 @@ boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate)
     return fs::path("");
 }
 #endif
+
+boost::filesystem::path GetTempPath() {
+#if (BOOST_FILESYSTEM_VERSION >= 3)
+    return(boost::filesystem::temp_directory_path());
+#else
+    /* Obsolete; for Boost < 1.45 */
+    boost::filesystem::path path;
+#ifdef WIN32
+    char pszPath[MAX_PATH] = "";
+    if(GetTempPathA(MAX_PATH, pszPath))
+      path = boost::filesystem::path(pszPath);
+#else
+    path = boost::filesystem::path("/tmp");
+#endif
+    if(path.empty() || !boost::filesystem::is_directory(path)) {
+        printf("GetTempPath() : not found\n");
+        return(boost::filesystem::path(""));
+    }
+    return(path);
+#endif
+}
 
 void runCommand(std::string strCommand)
 {
