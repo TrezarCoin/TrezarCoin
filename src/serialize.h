@@ -154,15 +154,6 @@ template<typename Stream> inline void Serialize(Stream& s, bool a, int, int=0)  
 template<typename Stream> inline void Unserialize(Stream& s, bool& a, int, int=0) { char f; READDATA(s, f); a=f; }
 
 
-#ifndef THROW_WITH_STACKTRACE
-#define THROW_WITH_STACKTRACE(exception)  \
-{                                         \
-    LogStackTrace();                      \
-    throw (exception);                    \
-}
-void LogStackTrace();
-#endif
-
 //
 // Compact size
 //  size <  253        -- 1 byte
@@ -225,21 +216,27 @@ uint64 ReadCompactSize(Stream& is)
         unsigned short xSize;
         READDATA(is, xSize);
         nSizeRet = xSize;
+        if(nSizeRet < 253)
+          throw(std::ios_base::failure("non-canonical ReadCompactSize()"));
     }
     else if (chSize == 254)
     {
         unsigned int xSize;
         READDATA(is, xSize);
         nSizeRet = xSize;
+        if(nSizeRet < 0x10000U)
+          throw(std::ios_base::failure("non-canonical ReadCompactSize()"));
     }
     else
     {
         uint64 xSize;
         READDATA(is, xSize);
         nSizeRet = xSize;
+        if(nSizeRet < 0x100000000LLU)
+          throw(std::ios_base::failure("non-canonical ReadCompactSize()"));
     }
     if (nSizeRet > (uint64)MAX_SIZE)
-        THROW_WITH_STACKTRACE(std::ios_base::failure("ReadCompactSize() : size too large"));
+      throw(std::ios_base::failure("ReadCompactSize() : size too large"));
     return nSizeRet;
 }
 
@@ -993,7 +990,7 @@ public:
     {
         state |= bits;
         if (state & exceptmask)
-            THROW_WITH_STACKTRACE(std::ios_base::failure(psz));
+           throw(std::ios_base::failure(psz));
     }
 
     bool eof() const             { return size() == 0; }
@@ -1019,9 +1016,9 @@ public:
         unsigned int nReadPosNext = nReadPos + nSize;
         if (nReadPosNext >= vch.size())
         {
-            if (nReadPosNext > vch.size())
-            {
-                setstate(std::ios::failbit, "CDataStream::read() : end of data");
+            if(nReadPosNext > vch.size()) {
+                /* Don't trigger an exception here with setstate(std::ios::failbit) */
+                printf("ERROR: CDataStream::read() : end of data\n");
                 memset(pch, 0, nSize);
                 nSize = vch.size() - nReadPos;
             }
@@ -1042,10 +1039,9 @@ public:
         unsigned int nReadPosNext = nReadPos + nSize;
         if (nReadPosNext >= vch.size())
         {
-            if (nReadPosNext > vch.size())
-            {
-                setstate(std::ios::failbit, "CDataStream::ignore() : end of data");
-                nSize = vch.size() - nReadPos;
+            if(nReadPosNext > vch.size()) {
+                /* Don't trigger an exception here with setstate(std::ios::failbit) */
+                printf("ERROR: CDataStream::ignore() : end of data\n");
             }
             nReadPos = 0;
             vch.clear();
@@ -1157,7 +1153,7 @@ public:
     {
         state |= bits;
         if (state & exceptmask)
-            THROW_WITH_STACKTRACE(std::ios_base::failure(psz));
+          throw(std::ios_base::failure(psz));
     }
 
     bool fail() const            { return state & (std::ios::badbit | std::ios::failbit); }

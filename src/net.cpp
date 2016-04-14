@@ -561,6 +561,9 @@ void CNode::CloseSocketDisconnect()
         printf("disconnecting node %s\n", addrName.c_str());
         closesocket(hSocket);
         hSocket = INVALID_SOCKET;
+        /* Don't try to lock the buffer, just hold on for a while to make sure
+         * all messages received from the node being disconnected have been processed */
+        Sleep(1000);
         vRecv.clear();
     }
 }
