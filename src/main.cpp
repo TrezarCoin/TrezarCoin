@@ -93,7 +93,7 @@ const string strMessageMagic = "Orbitcoin Signed Message:\n";
 // Settings
 int64 nTransactionFee = MIN_TX_FEE;
 int64 nMinimumInputValue = TX_DUST;
-int64 nMinStakingInputValue = 1 * COIN;
+int64 nStakeMinValue = 1 * COIN;
 
 extern enum Checkpoints::CPMode CheckpointsMode;
 

@@ -36,8 +36,8 @@ unsigned int nNodeLifespan;
 unsigned int nDerivationMethodIndex;
 unsigned int nMsgSleep;
 unsigned int nMinerSleep;
-unsigned int nStakeMinDepth;
-bool fUseFastStakeMiner;
+uint nStakeMinTime;
+uint nStakeMinDepth;
 enum Checkpoints::CPMode CheckpointsMode;
 
 /* Assembly level processor optimisation features */
@@ -331,10 +331,11 @@ std::string HelpMessage()
 
         "\n" + _("Staking options:") + "\n" +
         "  -stakegen=<n>          "   + _("Generate coin stakes (default: 1 = enabled)") + "\n" +
-        "  -stakemindepth=<n>     "   + _("Set the min. stake input depth value in confirmations (default: 10000 or testnet: 100)") + "\n" +
-        "  -minstakinginput=<n>   "   + _("Set the min. stake input amount in coins (default: 1.0)") + "\n" +
-        "  -stakecombine=<n>      "   + _("Try to combine inputs while staking up to this limit in coins (20 < n < 50; default: 20)") + "\n";
-        "  -stakesplit=<n>        "   + _("Don't split outputs while staking below this limit in coins (40 < n < 100; default: 40)") + "\n";
+        "  -stakemintime=<n>      "   + _("Set the min. stake input block chain time in hours (default: 48 or testnet: 1)") + "\n" +
+        "  -stakemindepth=<n>     "   + _("Set the min. stake input block chain depth in confirmations (default: follow -stakeminage)") + "\n" +
+        "  -stakeminvalue=<n>     "   + _("Set the min. stake input value in coins (default: 1.0)") + "\n" +
+        "  -stakecombine=<n>      "   + _("Try to combine inputs while staking up to this limit in coins (20 < n < 200; default: 20)") + "\n";
+        "  -stakesplit=<n>        "   + _("Don't split outputs while staking below this limit in coins (40 < n < 400; default: 80)") + "\n";
 
     return strUsage;
 }
@@ -414,10 +415,17 @@ bool AppInit2()
     /* Polling delay for message handling, in milliseconds */
     nMsgSleep = GetArg("-msgsleep", 20);
     /* Polling delay for stake mining, in milliseconds */
-    nMinerSleep = GetArg("-minersleep", 500);
-    /* Minimal input depth (age) for stake mining, in confirmations */
-    if(fTestNet) nStakeMinDepth = GetArg("-stakemindepth", 100);
-    else nStakeMinDepth = GetArg("-stakemindepth", 10000);
+    nMinerSleep = GetArg("-minersleep", 2000);
+    /* Minimal input time or depth in block chain for stake mining, in hours or confirmations */
+    if(fTestNet) {
+        nStakeMinTime = GetArg("-stakemintime", 1);
+        nStakeMinDepth = GetArg("-stakemindepth", 0);
+    } else {
+        nStakeMinTime = GetArg("-stakemintime", 48);
+        nStakeMinDepth = GetArg("-stakemindepth", 0);
+    }
+    /* Reset time if depth is specified */
+    if(nStakeMinDepth) nStakeMinTime = 0;
 
     CheckpointsMode = Checkpoints::STRICT;
     std::string strCpMode = GetArg("-cppolicy", "strict");
@@ -523,10 +531,10 @@ bool AppInit2()
     }
 
     /* Inputs below this limit in value don't participate in staking */
-    if(mapArgs.count("-minstakinginput")) {
-        if(!ParseMoney(mapArgs["-minstakinginput"], nMinStakingInputValue))
-          return(InitError(strprintf(_("Invalid amount for -minstakinginput=<amount>: '%s'"),
-            mapArgs["-minstakinginput"].c_str())));
+    if(mapArgs.count("-stakeminvalue")) {
+        if(!ParseMoney(mapArgs["-stakeminvalue"], nStakeMinValue))
+          return(InitError(strprintf(_("Invalid amount for -stakeminvalue=<amount>: '%s'"),
+            mapArgs["-stakeminvalue"].c_str())));
     }
 
     /* Try to combine inputs while staking up to this limit */
@@ -536,8 +544,8 @@ bool AppInit2()
             mapArgs["-stakecombine"].c_str())));
         if(nCombineThreshold < MIN_STAKE_AMOUNT)
           nCombineThreshold = MIN_STAKE_AMOUNT;
-        if(nCombineThreshold > 2.5 * MIN_STAKE_AMOUNT)
-          nCombineThreshold = 2.5 * MIN_STAKE_AMOUNT;
+        if(nCombineThreshold > 10 * MIN_STAKE_AMOUNT)
+          nCombineThreshold = 10 * MIN_STAKE_AMOUNT;
     }
 
     /* Don't split outputs while staking below this limit */
@@ -547,8 +555,8 @@ bool AppInit2()
             mapArgs["-stakesplit"].c_str())));
         if(nSplitThreshold < 2 * MIN_STAKE_AMOUNT)
           nSplitThreshold = 2 * MIN_STAKE_AMOUNT;
-        if(nSplitThreshold > 5 * MIN_STAKE_AMOUNT)
-          nSplitThreshold = 5 * MIN_STAKE_AMOUNT;
+        if(nSplitThreshold > 20 * MIN_STAKE_AMOUNT)
+          nSplitThreshold = 20 * MIN_STAKE_AMOUNT;
     }
 
     /* Controls proof-of-stake generation */

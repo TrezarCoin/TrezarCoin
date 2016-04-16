@@ -161,6 +161,7 @@ extern uint64 nModifierCacheMisses;
 extern uint64 nInputCacheHits;
 extern uint64 nInputCacheMisses;
 
+extern uint nStakeMinTime;
 extern uint nStakeMinDepth;
 extern long long nLastWalletStakeTime;
 extern unsigned long long nMinWeightInputs;

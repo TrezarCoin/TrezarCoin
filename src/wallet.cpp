@@ -1212,9 +1212,9 @@ int64 nCoinsCacheValue = 0;
 uint  nCoinsCacheTime  = 0;
 const uint nCoinsCacheInterval = 600;  /* 10 minutes */
 
-/* Quick cacheable selection of inputs for staking at the depth specified */
-bool CWallet::SelectCoinsStaking(int64 nTargetValue, int nStakeMinDepth,
-  set<pair<const CWalletTx*, uint> >& setCoinsRet, int64& nValueRet) const {
+/* Quick cacheable selection of inputs for staking */
+bool CWallet::SelectCoinsStaking(int64 nTargetValue, 
+  set<pair<const CWalletTx *, uint> > &setCoinsRet, int64 &nValueRet) const {
 
     uint nCurrentTime = GetTime();
     if(nCurrentTime < (nCoinsCacheTime + nCoinsCacheInterval)) {
@@ -1245,14 +1245,16 @@ bool CWallet::SelectCoinsStaking(int64 nTargetValue, int nStakeMinDepth,
             /* May be negative (failed transactions) */
             nDepth = pcoin->GetDepthInMainChain();
 
-            /* Discard if the depth requirement is unmet */
-            if(nDepth < nStakeMinDepth)
+            /* Discard if the time (depth) requirement is unmet */
+            if(nStakeMinTime && ((nCurrentTime - nStakeMinTime * 60 * 60) < pcoin->nTime))
+              continue;
+            if(!nStakeMinTime && (nDepth < (int)nStakeMinDepth))
               continue;
 
             for(i = 0; i < pcoin->vout.size(); i++) {
               /* Must be unspent and above the limit in value */
               if(!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i])
-                && (pcoin->vout[i].nValue >= nMinStakingInputValue))
+                && (pcoin->vout[i].nValue >= nStakeMinValue))
                 vCoins.push_back(COutput(pcoin, i, nDepth));
             }
         }
@@ -1468,8 +1470,8 @@ bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeightInputs
     set<pair<const CWalletTx*,unsigned int> > setCoins;
     int64 nValueIn = 0;
 
-    /* Select aged coins by depth in the main chain */
-    if(!SelectCoinsStaking(nBalance - nReserveBalance, nStakeMinDepth, setCoins, nValueIn))
+    /* Select aged coins */
+    if(!SelectCoinsStaking(nBalance - nReserveBalance, setCoins, nValueIn))
       return(false);
 
     if(setCoins.empty()) return(false);
@@ -1540,8 +1542,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, uint nBits, int64 nSear
     set<pair<const CWalletTx*, uint> > setCoins;
     int64 nValueIn = 0;
 
-    /* Select aged coins by depth in the main chain */
-    if(!SelectCoinsStaking(nBalance - nReserveBalance, nStakeMinDepth, setCoins, nValueIn))
+    /* Select aged coins */
+    if(!SelectCoinsStaking(nBalance - nReserveBalance, setCoins, nValueIn))
       return(false);
 
     if(setCoins.empty()) return(false);

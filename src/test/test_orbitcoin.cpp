@@ -10,7 +10,8 @@
 /* All unresolved externs of init.cpp */
 unsigned int nMsgSleep = 20;
 unsigned int nMinerSleep = 2000;
-unsigned int nStakeMinDepth = 5000;
+uint nStakeMinTime = 48;
+uint nStakeMinDepth = 0;
 unsigned int nNodeLifespan = 7;
 unsigned int nDerivationMethodIndex = 0;
 

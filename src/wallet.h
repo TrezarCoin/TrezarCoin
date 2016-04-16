@@ -71,9 +71,9 @@ private:
     bool SelectCoins(int64 nTargetValue, uint nSpendTime,
       std::set<std::pair<const CWalletTx*, uint> >& setCoinsRet, int64& nValueRet,
       const CCoinControl *coinControl=NULL) const;
-    /* Quick cacheable selection of inputs for staking at the depth specified */
-    bool SelectCoinsStaking(int64 nTargetValue, int nStakeMinDepth,
-      std::set<std::pair<const CWalletTx*, uint> >& setCoinsRet, int64& nValueRet) const;
+    /* Quick cacheable selection of inputs for staking */
+    bool SelectCoinsStaking(int64 nTargetValue,
+      std::set<std::pair<const CWalletTx *, uint> > &setCoinsRet, int64 &nValueRet) const;
 
     CWalletDB *pwalletdbEncryption;
 

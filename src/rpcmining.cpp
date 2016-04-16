@@ -38,8 +38,11 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("minweightinputs", (boost::uint64_t)nMinWeightInputs));
     obj.push_back(Pair("avgweightinputs", (boost::uint64_t)nAvgWeightInputs));
     obj.push_back(Pair("maxweightinputs", (boost::uint64_t)nMaxWeightInputs));
-    obj.push_back(Pair("stakemindepth", (int)nStakeMinDepth));
-    obj.push_back(Pair("minstakinginput", ValueFromAmount(nMinStakingInputValue)));
+    if(nStakeMinTime)
+      obj.push_back(Pair("stakemintime",  (int)nStakeMinTime));
+    else
+      obj.push_back(Pair("stakemindepth", (int)nStakeMinDepth));
+    obj.push_back(Pair("stakeminvalue", ValueFromAmount(nStakeMinValue)));
     obj.push_back(Pair("stakecombine",  ValueFromAmount(nCombineThreshold)));
     obj.push_back(Pair("stakesplit",    ValueFromAmount(nSplitThreshold)));
     obj.push_back(Pair("pooledtx",      (boost::uint64_t)mempool.size()));

@@ -120,7 +120,7 @@ extern std::map<uint256, CBlock*> mapOrphanBlocks;
 // Settings
 extern int64 nTransactionFee;
 extern int64 nMinimumInputValue;
-extern int64 nMinStakingInputValue;
+extern int64 nStakeMinValue;
 extern int64 nCombineThreshold;
 extern int64 nSplitThreshold;
 extern uint nStakeMinAgeOne;
