@@ -3554,9 +3554,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         cPeerBlockCounts.input(pfrom->nStartingHeight);
 
-        // ppcoin: ask for pending sync-checkpoint if any
-        if (!IsInitialBlockDownload())
+        if(IsInitialBlockDownload()) {
+            /* Aggressive synchronisation:
+             * ask this peer for inventory if nothing received in the last 10 seconds */
+            if((pfrom->nStartingHeight > nBestHeight) && ((GetTime() - nTimeBestReceived) > 10LL))
+              pfrom->PushGetBlocks(pindexBest, uint256(0));
+        } else {
             Checkpoints::AskForPendingSyncCheckpoint(pfrom);
+        }
     }
 
 
@@ -3763,6 +3768,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         uint256 hashStop;
         vRecv >> locator >> hashStop;
 
+        /* Time limit for responding to a particular peer */
+        uint nCurrentTime = (uint)GetTime();
+        if((nCurrentTime - 10U) < pfrom->nLastGetblocksReceived) {
+            return(error("message getblocks spam"));
+        } else {
+            pfrom->nLastGetblocksReceived = nCurrentTime;
+        }
+
         // Find the last block the caller has in the main chain
         CBlockIndex* pindex = locator.GetBlockIndex();
 
@@ -3922,6 +3935,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             /* Discard this block because cannot verify it any time soon */
             printf("received and discarded distant block %s height %d\n",
               hashBlock.ToString().substr(0,20).c_str(), nBlockHeight);
+            /* Aggressive synchronisation:
+             * ask this peer for inventory if nothing received in the last 10 seconds */
+            if((pfrom->nStartingHeight > nBestHeight) && ((GetTime() - nTimeBestReceived) > 10LL))
+              pfrom->PushGetBlocks(pindexBest, uint256(0));
         } else {
             printf("received block %s height %d\n",
               hashBlock.ToString().substr(0,20).c_str(), nBlockHeight);

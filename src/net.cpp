@@ -92,13 +92,14 @@ unsigned short GetListenPort()
     return (unsigned short)(GetArg("-port", GetDefaultPort()));
 }
 
-void CNode::PushGetBlocks(CBlockIndex* pindexBegin, uint256 hashEnd)
-{
-    // Filter out duplicate requests
-    if (pindexBegin == pindexLastGetBlocksBegin && hashEnd == hashLastGetBlocksEnd)
-        return;
-    pindexLastGetBlocksBegin = pindexBegin;
-    hashLastGetBlocksEnd = hashEnd;
+void CNode::PushGetBlocks(CBlockIndex *pindexBegin, uint256 hashEnd) {
+    uint nCurrentTime = (uint)GetTime();
+
+    /* Time limit for asking a particular peer */
+    if((nCurrentTime - 10U) < nLastGetblocksAsked)
+      return;
+    else
+      nLastGetblocksAsked = nCurrentTime;
 
     PushMessage("getblocks", CBlockLocator(pindexBegin), hashEnd);
 }
