@@ -461,7 +461,7 @@ bool CheckProofOfStake(const CTransaction& tx, unsigned int nBits, uint256& hash
         tx.GetHash().ToString().c_str()));
 
     // Verify script
-    if(!VerifyScript(txin.scriptSig, txout.scriptPubKey, tx, 0, true, false, 0))
+    if(!VerifyScript(txin.scriptSig, txout.scriptPubKey, tx, 0, SCRIPT_VERIFY_P2SH, 0))
       return(error("CheckProofOfStake() : coin stake %s script verification failed",
         tx.GetHash().ToString().c_str()));
 

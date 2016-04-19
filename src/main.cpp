@@ -477,8 +477,8 @@ bool CTransaction::AreInputsStandard(CCoinsViewCache& mapInputs) const
         // beside "push data" in the scriptSig the
         // IsStandard() call returns false
         vector<vector<unsigned char> > stack;
-        if (!EvalScript(stack, vin[i].scriptSig, *this, i, false, 0))
-            return false;
+        if(!EvalScript(stack, vin[i].scriptSig, *this, i, SCRIPT_VERIFY_NONE, 0))
+          return(false);
 
         if (whichType == TX_SCRIPTHASH)
         {
@@ -810,8 +810,8 @@ bool CTxMemPool::accept(CTransaction &tx, bool fCheckInputs, bool* pfMissingInpu
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
-        if (!tx.CheckInputs(view, CS_ALWAYS, true, false))
-        {
+        if(!tx.CheckInputs(view, CS_ALWAYS,
+          SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_VERIFY_DERSIG)) {
             return error("CTxMemPool::accept() : ConnectInputs failed %s", hash.ToString().substr(0,10).c_str());
         }
     }
@@ -1472,8 +1472,8 @@ bool CTransaction::HaveInputs(CCoinsViewCache &inputs) const
     return true;
 }
 
-bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmode, bool fStrictPayToScriptHash, bool fStrictEncodings, CBlock *pblock) const
-{
+bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmode, uint flags) const {
+
     if (!IsCoinBase())
     {
         // This doesn't trigger the DoS code on purpose; if it did, it would make it easier
@@ -1547,14 +1547,10 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
                 const CCoins &coins = inputs.GetCoins(prevout.hash);
 
                 /* ECDSA signature verification */
-                if(!VerifySignature(coins, *this, i, fStrictPayToScriptHash, fStrictEncodings, 0)) {
+                if(!VerifySignature(coins, *this, i, flags, 0)) {
 
-                    if(fStrictPayToScriptHash && VerifySignature(coins, *this, i, false, fStrictEncodings, 0))
-                      return DoS(100,error("CheckInputs() : transaction %s P2SH signature verification failed",
-                        GetHash().ToString().substr(0,10).c_str()));
-
-                    return DoS(100,error("CheckInputs() : transaction %s signature verificaton failed",
-                      GetHash().ToString().substr(0,10).c_str()));
+                    return(DoS(100, error("CheckInputs() : transaction %s signature verification failed",
+                      GetHash().ToString().substr(0,10).c_str())));
 
                 }
             }
@@ -1593,7 +1589,8 @@ bool CTransaction::ClientCheckInputs() const {
             GetHash().ToString().substr(0,10).c_str());
 
         /* ECDSA signature verification */
-        if(!VerifySignature(CCoins(txPrev, -1, -1), *this, i, true, false, 0))
+        if(!VerifySignature(CCoins(txPrev, -1, -1), *this, i,
+          SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_VERIFY_DERSIG, 0))
           return error("ClientCheckInputs() : transaction %s signature verificaton failed",
             GetHash().ToString().substr(0,10).c_str());
 
@@ -1772,7 +1769,7 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view) {
                 nActualStakeReward = nTxValueOut - nTxValueIn;
             } else nFees += nTxValueIn - nTxValueOut;
 
-            if(!tx.CheckInputs(view, CS_AFTER_CHECKPOINT, true, false, this))
+            if(!tx.CheckInputs(view, CS_AFTER_CHECKPOINT, SCRIPT_VERIFY_P2SH))
                 return false;
         }
 

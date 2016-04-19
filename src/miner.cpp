@@ -270,7 +270,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
                 std::make_heap(vecPriority.begin(), vecPriority.end(), comparer);
             }
 
-            if (!tx.CheckInputs(viewTemp, CS_ALWAYS, true, false))
+            if(!tx.CheckInputs(viewTemp, CS_ALWAYS, SCRIPT_VERIFY_P2SH))
                 continue;
 
             int64 nTxFees = tx.GetValueIn(viewTemp)-tx.GetValueOut();

@@ -667,7 +667,7 @@ public:
 
     // Check whether all inputs of this transaction are valid (no double spends, scripts & sigs, amounts)
     // This does not modify the UTXO set
-    bool CheckInputs(CCoinsViewCache &view, enum CheckSig_mode csmode, bool fStrictPayToScriptHash=true, bool fStrictEncodings=true, CBlock *pblock=NULL) const;
+    bool CheckInputs(CCoinsViewCache &view, enum CheckSig_mode csmode, uint flags) const;
 
     // Apply the effects of this transaction on the UTXO set represented by view
     bool UpdateCoins(CCoinsViewCache &view, CTxUndo &txundo, int nHeight, unsigned int nBlockTime, const uint256 &txhash) const;
