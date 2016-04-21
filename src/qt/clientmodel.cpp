@@ -63,6 +63,14 @@ QDateTime ClientModel::getLastBlockDate() const
         return QDateTime::fromTime_t(1360105017); // Genesis block's time
 }
 
+quint64 ClientModel::getTotalBytesRx() const {
+    return CNode::GetTotalBytesRx();
+}
+
+quint64 ClientModel::getTotalBytesTx() const {
+    return CNode::GetTotalBytesTx();
+}
+
 void ClientModel::updateTimer()
 {
     // Some quantities (such as number of blocks) change so fast that we don't want to be notified for each change.
@@ -77,6 +85,8 @@ void ClientModel::updateTimer()
 
         emit numBlocksChanged(newNumBlocks, newNumBlocksOfPeers);
     }
+
+    emit bytesChanged(getTotalBytesRx(), getTotalBytesTx());
 }
 
 void ClientModel::updateNumConnections(int numConnections)

@@ -455,9 +455,10 @@ void AddressCurrentlyConnected(const CService& addr)
 
 
 
-
-
-
+uint64 CNode::nTotalBytesRx = 0;
+uint64 CNode::nTotalBytesTx = 0;
+CCriticalSection CNode::cs_totalBytesRx;
+CCriticalSection CNode::cs_totalBytesTx;
 
 CNode* FindNode(const CNetAddr& ip)
 {
@@ -930,6 +931,7 @@ void ThreadSocketHandler2(void* parg)
                             memcpy(&vRecv[nPos], pchBuf, nBytes);
                             pnode->nLastRecv = GetTime();
                             pnode->nRxBytes += nBytes;
+                            pnode->RecordBytesRx(nBytes);
                         }
                         else if (nBytes == 0)
                         {
@@ -972,6 +974,7 @@ void ThreadSocketHandler2(void* parg)
                             vSend.erase(vSend.begin(), vSend.begin() + nBytes);
                             pnode->nLastSend = GetTime();
                             pnode->nTxBytes += nBytes;
+                            pnode->RecordBytesTx(nBytes);
                         }
                         else if (nBytes < 0)
                         {
@@ -2034,4 +2037,22 @@ void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataSt
     }
 
     RelayInventory(inv);
+}
+
+void CNode::RecordBytesRx(uint64 nBytes) {
+    LOCK(cs_totalBytesRx);
+    nTotalBytesRx += nBytes;
+}
+
+void CNode::RecordBytesTx(uint64 nBytes) {
+    LOCK(cs_totalBytesTx);
+    nTotalBytesTx += nBytes;
+}
+
+uint64 CNode::GetTotalBytesRx() {
+    return(nTotalBytesRx);
+}
+
+uint64 CNode::GetTotalBytesTx() {
+    return(nTotalBytesTx);
 }

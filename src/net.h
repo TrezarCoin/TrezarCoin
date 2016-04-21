@@ -264,6 +264,12 @@ public:
     }
 
 private:
+    /* Traffic counters */
+    static CCriticalSection cs_totalBytesRx;
+    static CCriticalSection cs_totalBytesTx;
+    static uint64 nTotalBytesRx;
+    static uint64 nTotalBytesTx;
+
     CNode(const CNode&);
     void operator=(const CNode&);
 public:
@@ -649,6 +655,12 @@ public:
     static bool IsBanned(CNetAddr ip);
     bool Misbehaving(int howmuch); // 1 == a little, 100 == a lot
     void copyStats(CNodeStats &stats);
+
+    /* Traffic counters */
+    static void RecordBytesRx(uint64 nBytes);
+    static void RecordBytesTx(uint64 nBytes);
+    static uint64 GetTotalBytesRx();
+    static uint64 GetTotalBytesTx();
 };
 
 inline void RelayInventory(const CInv& inv)

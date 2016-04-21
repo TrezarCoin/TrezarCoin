@@ -48,6 +48,7 @@
         <file alias="staking_off">res/icons/staking_off.png</file>
         <file alias="inspect">res/icons/inspect.png</file>
         <file alias="repair">res/icons/repair.png</file>
+        <file alias="traffic">res/icons/traffic.png</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="about">res/images/about.png</file>

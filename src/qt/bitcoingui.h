@@ -86,6 +86,7 @@ private:
     QAction *historyAction;
     QAction *addressBookAction;
     QAction *consoleAction;
+    QAction *trafficAction;
     QAction *toggleHideAction;
     QAction *cloneWalletAction;
     QAction *exportWalletAction;

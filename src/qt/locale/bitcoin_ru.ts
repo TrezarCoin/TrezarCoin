@@ -421,6 +421,11 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line=""/>
+        <source>&amp;Network activity</source>
+        <translation>&amp;Сетевая активность</translation>
+    </message>
+    <message>
+        <location line=""/>
         <source>&amp;Enable PoS mining</source>
         <translation>&amp;Включить PoS добычу</translation>
     </message>
@@ -1713,6 +1718,31 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <location line=""/>
         <source>Use up and down arrows to navigate history, Ctrl-L to clear screen. Type help for an overview of available commands.</source>
         <translation>Используйте стрелки вверх и вниз для просмотра истории, &lt;b&gt;Ctrl-L&lt;/b&gt; для очистки экрана. Наберите &lt;b&gt;help&lt;/b&gt; для просмотра доступных команд.</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Network activity</source>
+        <translation>&amp;Сетевая активность</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Data</source>
+        <translation>Данные</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>In:</source>
+        <translation>Получено:</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Out:</source>
+        <translation>Отправлено:</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Clear</source>
+        <translation>&amp;Очистить</translation>
     </message>
 </context>
 <context>

@@ -176,6 +176,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     rpcConsole = new RPCConsole(this);
     connect(consoleAction, SIGNAL(triggered()), rpcConsole, SLOT(show()));
+    connect(trafficAction, SIGNAL(triggered()), rpcConsole, SLOT(showTabStats()));
 
     // Clicking on "Verify Message" in the address book sends you to the verify message tab
     connect(addressBookPage, SIGNAL(verifyMessage(QString)), this, SLOT(gotoVerifyMessageTab(QString)));
@@ -267,6 +268,8 @@ void BitcoinGUI::createActions() {
     quitAction->setMenuRole(QAction::QuitRole);
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 
+    trafficAction = new QAction(QIcon(":/icons/traffic"), tr("&Network activity"), this);
+
     stakeMinerToggleAction = new QAction(this);
     stakeMinerToggle(true);
     connect(stakeMinerToggleAction, SIGNAL(triggered()), this, SLOT(stakeMinerToggle()));
@@ -326,6 +329,7 @@ void BitcoinGUI::createMenuBar()
 
     QMenu *tools = appMenuBar->addMenu(tr("&Tools"));
     tools->addAction(consoleAction);
+    tools->addAction(trafficAction);
     tools->addSeparator();
     tools->addAction(stakeMinerToggleAction);
     tools->addSeparator();
