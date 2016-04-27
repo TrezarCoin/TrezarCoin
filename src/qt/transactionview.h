@@ -66,9 +66,11 @@ private slots:
     void copyLabel();
     void copyAmount();
     void copyTxID();
+    void showExplorer();
 
 signals:
     void doubleClicked(const QModelIndex&);
+    void blockExplorerSignal(QString TxID);
 
 public slots:
     void chooseDate(int idx);

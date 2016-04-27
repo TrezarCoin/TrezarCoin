@@ -485,6 +485,14 @@ This product includes software developed by the OpenSSL Project for use in the O
         <translation>Открыть консоль RPC</translation>
     </message>
     <message>
+        <source>&amp;Explorer</source>
+        <translation>&amp;Исследователь</translation>
+    </message>
+    <message>
+        <source>Open the block explorer</source>
+        <translation>Открыть исследователь блоков</translation>
+    </message>
+    <message>
         <location line=""/>
         <source>&amp;Inspect wallet</source>
         <translation>&amp;Обследовать кошелёк</translation>
@@ -1746,6 +1754,81 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
 </context>
 <context>
+    <name>BlockExplorer</name>
+    <message>
+        <source>Block Explorer</source>
+        <translation>Исследователь блоков</translation>
+    </message>
+    <message>
+        <source>Decode block</source>
+        <translation>Декодировать блок</translation>
+    </message>
+    <message>
+        <source>Decode payment</source>
+        <translation>Декодировать платёж</translation>
+    </message>
+    <message>
+        <source>General data:</source>
+        <translation>Общие данные:</translation>
+    </message>
+    <message>
+        <source>Hash:</source>
+        <translation>Хэш:</translation>
+    </message>
+    <message>
+        <source>Merkle root:</source>
+        <translation>Корень платежей:</translation>
+    </message>
+    <message>
+        <source>Coin base:</source>
+        <translation>Базовый PoW-платёж:</translation>
+    </message>
+    <message>
+        <source>Coin stake:</source>
+        <translation>Базовый PoS-платёж:</translation>
+    </message>
+    <message>
+        <source>Difficulty, target, nonce:</source>
+        <translation>Сложность, цель, нонс:</translation>
+    </message>
+    <message>
+        <source>Difficulty, target:</source>
+        <translation>Сложность, цель:</translation>
+    </message>
+    <message>
+        <source>Coin supply:</source>
+        <translation>Монет в обороте:</translation>
+    </message>
+    <message>
+        <source>Payments:</source>
+        <translation>Платежи:</translation>
+    </message>
+    <message>
+        <source>Payment ID:</source>
+        <translation>ID платежа:</translation>
+    </message>
+    <message>
+        <source>Value:</source>
+        <translation>Сумма:</translation>
+    </message>
+    <message>
+        <source>Fee paid:</source>
+        <translation>Комиссия уплачена:</translation>
+    </message>
+    <message>
+        <source>Reward + fees:</source>
+        <translation>Награда + комиссии:</translation>
+    </message>
+    <message>
+        <source>Inputs:</source>
+        <translation>Входы:</translation>
+    </message>
+    <message>
+        <source>Outputs:</source>
+        <translation>Выходы:</translation>
+    </message>
+</context>
+<context>
     <name>SendCoinsDialog</name>
     <message>
         <location filename="../forms/sendcoinsdialog.ui" line="+14"/>
@@ -2696,6 +2779,10 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <location line="+1"/>
         <source>Show transaction details</source>
         <translation>Показать подробности платежа</translation>
+    </message>
+    <message>
+        <source>Show payment in block explorer</source>
+        <translation>Показать платёж в исследователе блоков</translation>
     </message>
     <message>
         <location line="+144"/>

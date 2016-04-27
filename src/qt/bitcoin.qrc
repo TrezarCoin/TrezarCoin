@@ -49,6 +49,7 @@
         <file alias="inspect">res/icons/inspect.png</file>
         <file alias="repair">res/icons/repair.png</file>
         <file alias="traffic">res/icons/traffic.png</file>
+        <file alias="explorer">res/icons/explorer.png</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="about">res/images/about.png</file>

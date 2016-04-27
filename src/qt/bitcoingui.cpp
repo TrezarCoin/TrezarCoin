@@ -25,6 +25,7 @@
 #include "notificator.h"
 #include "guiutil.h"
 #include "rpcconsole.h"
+#include "blockexplorer.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -178,10 +179,17 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     connect(consoleAction, SIGNAL(triggered()), rpcConsole, SLOT(show()));
     connect(trafficAction, SIGNAL(triggered()), rpcConsole, SLOT(showTabStats()));
 
+    blockExplorer = new BlockExplorer(this);
+    connect(explorerAction, SIGNAL(triggered()), blockExplorer, SLOT(gotoBlockExplorer()));
+
     // Clicking on "Verify Message" in the address book sends you to the verify message tab
     connect(addressBookPage, SIGNAL(verifyMessage(QString)), this, SLOT(gotoVerifyMessageTab(QString)));
     // Clicking on "Sign Message" in the receive coins page sends you to the sign message tab
     connect(receiveCoinsPage, SIGNAL(signMessage(QString)), this, SLOT(gotoSignMessageTab(QString)));
+
+    /* Selecting block explorer in the transaction page menu redirects to the block explorer */ 
+    connect(transactionView, SIGNAL(blockExplorerSignal(QString)), blockExplorer,
+      SLOT(gotoBlockExplorer(QString)));
 
     gotoOverviewPage();
 }
@@ -241,8 +249,16 @@ void BitcoinGUI::createActions() {
     consoleAction = new QAction(QIcon(":/icons/debugwindow"), tr("&Console"), this);
     consoleAction->setToolTip(tr("Open the RPC console"));
     consoleAction->setCheckable(false);
+    consoleAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     tabGroup->addAction(consoleAction);
     /* RPC console action connected already */
+
+    explorerAction = new QAction(QIcon(":/icons/explorer"), tr("&Explorer"), this);
+    explorerAction->setToolTip(tr("Open the block explorer"));
+    explorerAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
+    explorerAction->setCheckable(false);
+    tabGroup->addAction(explorerAction);
+    /* Block explorer action connected already */
 
     toggleHideAction = new QAction(QIcon(":/icons/orbitcoin"), tr("&Show / Hide"), this);
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
@@ -329,6 +345,7 @@ void BitcoinGUI::createMenuBar()
 
     QMenu *tools = appMenuBar->addMenu(tr("&Tools"));
     tools->addAction(consoleAction);
+    tools->addAction(explorerAction);
     tools->addAction(trafficAction);
     tools->addSeparator();
     tools->addAction(stakeMinerToggleAction);
@@ -359,10 +376,11 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
     toolbar->addAction(consoleAction);
+    toolbar->addAction(explorerAction);
 
-    QToolBar *toolbar2 = addToolBar(tr("Actions toolbar"));
-    toolbar2->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    toolbar2->addAction(exportAction);
+//    QToolBar *toolbar2 = addToolBar(tr("Actions toolbar"));
+//    toolbar2->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+//    toolbar2->addAction(exportAction);
 }
 
 void BitcoinGUI::setClientModel(ClientModel *clientModel)
@@ -465,6 +483,7 @@ void BitcoinGUI::createTrayIcon()
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(optionsAction);
     trayIconMenu->addAction(consoleAction);
+    trayIconMenu->addAction(explorerAction);
 #ifndef Q_OS_MAC // This is built-in on Mac
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
