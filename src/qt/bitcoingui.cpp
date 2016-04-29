@@ -79,7 +79,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     prevBlocks(0),
     spinnerFrame(0)
 {
-    resize(850, 550);
     setWindowTitle(tr("Orbitcoin") + " - " + tr("Wallet"));
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/orbitcoin"));
@@ -88,17 +87,49 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     setUnifiedTitleAndToolBarOnMac(true);
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
 #endif
+
+    int nQtStyle = GetArg("-qtstyle", 0);
+    if(nQtStyle < 0) nQtStyle = 0;
+
+    if(!nQtStyle) {
+        qApp->setStyleSheet("QToolBar QToolButton { text-align: left; \
+          padding-left: 0px; padding-right: 0px; padding-top: 3px; padding-bottom: 3px; }");
+    } else if(nQtStyle == 1) {
+        qApp->setStyleSheet("QToolBar QToolButton { text-align: center; width: 100%; \
+          padding-left: 5px; padding-right: 5px; padding-top: 2px; padding-bottom: 2px; } \
+          QToolBar QToolButton:hover { font-weight: bold; } \
+          #toolbar { border: none; height: 100%; min-width: 150px; max-width: 150px; }");
+    } else {
+        qApp->setStyleSheet("QToolBar QToolButton { text-align: center; width: 100%; \
+          color: white; background-color: darkgreen; padding-left: 5px; padding-right: 5px; \
+          padding-top: 2px; padding-bottom: 2px; } \
+          QToolBar QToolButton:hover { font-weight: bold; \
+          background-color: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 2, \
+          stop: 0 #006400, stop: 1 #FFDF5F); } \
+          #toolbar { border: none; height: 100%; min-width: 150px; max-width: 150px; \
+          background-color: darkgreen; } \
+          QMenuBar { color: white; background-color: darkgreen; } \
+          QMenuBar::item { color: white; background-color: transparent; \
+          padding-top: 6px; padding-bottom: 6px; \
+          padding-left: 10px; padding-right: 10px; } \
+          QMenuBar::item:selected { background-color: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 2, \
+          stop: 0 #006400, stop: 1 #FFDF5F); } \
+          QMenu { border: 1px solid; background-color: ivory; color: black; } \
+          QMenu::item { background-color: transparent; } \
+          QMenu::item:selected { color: white; background-color: green; }");
+    }
+
     // Accept D&D of URIs
     setAcceptDrops(true);
 
     // Create actions for the toolbar, menu bar and tray/dock icon
-    createActions();
+    createActions(nQtStyle);
 
     // Create application menu bar
     createMenuBar();
 
     // Create the toolbars
-    createToolBars();
+    createToolBars(nQtStyle);
 
     // Create the tray icon (or setup the dock icon)
     createTrayIcon();
@@ -203,7 +234,7 @@ BitcoinGUI::~BitcoinGUI()
 #endif
 }
 
-void BitcoinGUI::createActions() {
+void BitcoinGUI::createActions(int nQtStyle) {
     QActionGroup *tabGroup = new QActionGroup(this);
 
     overviewAction = new QAction(QIcon(":/icons/overview"), tr("&Overview"), this);
@@ -366,10 +397,22 @@ void BitcoinGUI::createMenuBar()
     help->addAction(aboutQtAction);
 }
 
-void BitcoinGUI::createToolBars()
+void BitcoinGUI::createToolBars(int nQtStyle)
 {
-    QToolBar *toolbar = addToolBar(tr("Tabs toolbar"));
-    toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    QToolBar *toolbar = addToolBar(tr("Primary tool bar"));
+    toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    toolbar->setMovable(false);
+    toolbar->setIconSize(QSize(32, 32));
+
+    if(!nQtStyle) {
+        toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    } else {
+        toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        toolbar->setObjectName("toolbar");
+        addToolBar(Qt::LeftToolBarArea, toolbar);
+        toolbar->setOrientation(Qt::Vertical);
+    }
+
     toolbar->addAction(overviewAction);
     toolbar->addAction(sendCoinsAction);
     toolbar->addAction(receiveCoinsAction);
