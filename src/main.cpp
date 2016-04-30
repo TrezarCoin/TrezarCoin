@@ -3553,8 +3553,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         if(IsInitialBlockDownload()) {
             /* Aggressive synchronisation:
-             * ask this peer for inventory if nothing received in the last 10 seconds */
-            if((pfrom->nStartingHeight > nBestHeight) && ((GetTime() - nTimeBestReceived) > 10LL))
+             * ask this peer for inventory if nothing received in the last 5 seconds */
+            if((pfrom->nStartingHeight > nBestHeight) && ((GetTime() - nTimeBestReceived) > 5LL))
               pfrom->PushGetBlocks(pindexBest, uint256(0));
         } else {
             Checkpoints::AskForPendingSyncCheckpoint(pfrom);
@@ -3767,7 +3767,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         /* Time limit for responding to a particular peer */
         uint nCurrentTime = (uint)GetTime();
-        if((nCurrentTime - 10U) < pfrom->nLastGetblocksReceived) {
+        if((nCurrentTime - 5U) < pfrom->nLastGetblocksReceived) {
             return(error("message getblocks spam"));
         } else {
             pfrom->nLastGetblocksReceived = nCurrentTime;
@@ -3933,8 +3933,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             printf("received and discarded distant block %s height %d\n",
               hashBlock.ToString().substr(0,20).c_str(), nBlockHeight);
             /* Aggressive synchronisation:
-             * ask this peer for inventory if nothing received in the last 10 seconds */
-            if((pfrom->nStartingHeight > nBestHeight) && ((GetTime() - nTimeBestReceived) > 10LL))
+             * ask this peer for inventory if nothing received in the last 5 seconds */
+            if((pfrom->nStartingHeight > nBestHeight) && ((GetTime() - nTimeBestReceived) > 5LL))
               pfrom->PushGetBlocks(pindexBest, uint256(0));
         } else {
             printf("received block %s height %d\n",

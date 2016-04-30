@@ -1734,17 +1734,12 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line=""/>
-        <source>Data</source>
-        <translation>Данные</translation>
-    </message>
-    <message>
-        <location line=""/>
-        <source>In:</source>
+        <source>Received:</source>
         <translation>Получено:</translation>
     </message>
     <message>
         <location line=""/>
-        <source>Out:</source>
+        <source>Transmitted:</source>
         <translation>Отправлено:</translation>
     </message>
     <message>
@@ -1766,6 +1761,10 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <source>Decode payment</source>
         <translation>Декодировать платёж</translation>
+    </message>
+    <message>
+        <source>Payment ID</source>
+        <translation>ID платежа</translation>
     </message>
     <message>
         <source>General data:</source>

@@ -1728,18 +1728,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line=""/>
-        <source>Data</source>
-        <translation>Data</translation>
+        <source>Received:</source>
+        <translation>Received:</translation>
     </message>
     <message>
         <location line=""/>
-        <source>In:</source>
-        <translation>In:</translation>
-    </message>
-    <message>
-        <location line=""/>
-        <source>Out:</source>
-        <translation>Out:</translation>
+        <source>Transmitted:</source>
+        <translation>Transmitted:</translation>
     </message>
     <message>
         <location line=""/>
@@ -1760,6 +1755,10 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <source>Decode payment</source>
         <translation>Decode payment</translation>
+    </message>
+    <message>
+        <source>Payment ID</source>
+        <translation>Payment ID</translation>
     </message>
     <message>
         <source>General data:</source>

@@ -96,7 +96,7 @@ void CNode::PushGetBlocks(CBlockIndex *pindexBegin, uint256 hashEnd) {
     uint nCurrentTime = (uint)GetTime();
 
     /* Time limit for asking a particular peer */
-    if((nCurrentTime - 10U) < nLastGetblocksAsked)
+    if((nCurrentTime - 5U) < nLastGetblocksAsked)
       return;
     else
       nLastGetblocksAsked = nCurrentTime;

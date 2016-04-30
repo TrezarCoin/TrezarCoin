@@ -463,12 +463,12 @@ QString RPCConsole::FormatBytes(quint64 nBytes) {
       return(QString(tr("%1 b")).arg(nBytes));
 
     if(nBytes < 1048576)
-      return(QString(tr("%1 Kb")).arg(nBytes >> 10));
+      return(QString(tr("%1 Kb")).arg(QString::number((double)nBytes / 1024.0, 'f', 2)));
 
     if(nBytes < 1073741824)
-      return(QString(tr("%1 Mb")).arg(nBytes >> 20));
+      return(QString(tr("%1 Mb")).arg(QString::number((double)nBytes / 1048576.0, 'f', 2)));
 
-    return(QString(tr("%1 Gb")).arg(nBytes >> 30));
+    return(QString(tr("%1 Gb")).arg(QString::number((double)nBytes / 1073741824.0, 'f', 2)));
 }
 
 void RPCConsole::setTrafficGraphRange(int nMinutes) {
@@ -494,7 +494,12 @@ void RPCConsole::on_btnClearTrafficGraph_clicked() {
     ui->trafficGraph->clear();
 }
 
-void RPCConsole::showTabStats() {
+void RPCConsole::showConsole() {
+    ui->tabWidget->setCurrentIndex(1);
+    this->show();
+}
+
+void RPCConsole::showTraffic() {
     ui->tabWidget->setCurrentIndex(2);
     this->show();
 }
