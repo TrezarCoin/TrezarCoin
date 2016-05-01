@@ -74,9 +74,6 @@ obj/version_set.o:
 obj/write_batch.o:
 	$(CXX) $(CXXFLAGS) -c db/write_batch.cc -o $@ $<
 
-obj/write_batch.o:
-	$(CXX) $(CXXFLAGS) -c db/write_batch.cc -o $@ $<
-
 obj/port_win.o:
 	$(CXX) $(CXXFLAGS) -c port/port_win.cc -o $@ $<
 

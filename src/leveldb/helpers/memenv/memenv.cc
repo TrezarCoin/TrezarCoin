@@ -8,10 +8,18 @@
 #include "leveldb/status.h"
 #include "port/port.h"
 #include "util/mutexlock.h"
+#include <stdint.h>
 #include <map>
 #include <string.h>
 #include <string>
 #include <vector>
+
+#if defined(__MINGW32__) && !defined(__MINGW64__)
+/* Should be declared in stdint.h */
+#ifndef SIZE_MAX
+#define SIZE_MAX 0xffffffffffffffffULL /* 18446744073709551615ULL */
+#endif
+#endif
 
 namespace leveldb {
 
