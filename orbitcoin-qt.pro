@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = orbitcoin-qt
-VERSION = 1.5.0.0
+VERSION = 1.5.1.0
 INCLUDEPATH += src src/json src/qt
 QT += core gui network
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
@@ -352,7 +352,7 @@ OTHER_FILES += \
 # platform specific defaults, if not overridden on command line
 isEmpty(BOOST_LIB_SUFFIX) {
     macx:BOOST_LIB_SUFFIX = -mt
-    windows:BOOST_LIB_SUFFIX = -mgw44-mt-1_53
+    windows:BOOST_LIB_SUFFIX = -mgw46-mt-1_59
 }
 
 isEmpty(BOOST_THREAD_LIB_SUFFIX) {

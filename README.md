@@ -26,10 +26,11 @@ Orbitcoin (ORB) is a decentralised open source digital currency.
 Download
 --------
 
-Please visit http://orbitcoin.org if you need pre-compiled binaries.
+Please visit https://github.com/ghostlander/Orbitcoin/releases or
+http://orbitcoin.org if you need pre-compiled binaries.
 
 
 Support
 -------
 
-See https://cryptocointalk.com/forum/325-orbitcoin-orb/ if you need advice.
+See https://bitcointalk.org/index.php?topic=586674.0 if you need advice.
