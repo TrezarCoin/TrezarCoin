@@ -92,14 +92,17 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     if(nQtStyle < 0) nQtStyle = 0;
 
     if(!nQtStyle) {
+        resize(850, 575);
         qApp->setStyleSheet("QToolBar QToolButton { text-align: left; \
           padding-left: 0px; padding-right: 0px; padding-top: 3px; padding-bottom: 3px; }");
     } else if(nQtStyle == 1) {
+        resize(1000, 525);
         qApp->setStyleSheet("QToolBar QToolButton { text-align: center; width: 100%; \
           padding-left: 5px; padding-right: 5px; padding-top: 2px; padding-bottom: 2px; } \
           QToolBar QToolButton:hover { font-weight: bold; } \
           #toolbar { border: none; height: 100%; min-width: 150px; max-width: 150px; }");
     } else {
+        resize(1000, 525);
         qApp->setStyleSheet("QToolBar QToolButton { text-align: center; width: 100%; \
           color: white; background-color: darkgreen; padding-left: 5px; padding-right: 5px; \
           padding-top: 2px; padding-bottom: 2px; } \
