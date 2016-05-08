@@ -1741,56 +1741,60 @@ Value reservebalance(const Array& params, bool fHelp)
     return result;
 }
 
+/* Wallet integrity check */
+Value checkwallet(const Array &params, bool fHelp) {
 
-// check wallet integrity
-Value checkwallet(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() > 0)
-        throw runtime_error(
-            "checkwallet\n"
-            "Check wallet for integrity.\n");
+    if(fHelp || (params.size() > 0)) throw(runtime_error(
+      "checkwallet\n"
+      "Wallet integrity check.\n"));
 
     int nMismatchSpent;
     int nOrphansFound;
     int64 nBalanceInQuestion;
+
     pwalletMain->FixSpentCoins(nMismatchSpent, nOrphansFound, nBalanceInQuestion, true);
+
     Object result;
-    if (nMismatchSpent == 0)
+    if(!nMismatchSpent && !nOrphansFound) {
         result.push_back(Pair("wallet check passed", true));
-    else
-    {
-        result.push_back(Pair("mismatched spent coins", nMismatchSpent));
+    } else {
+        if(nOrphansFound) {
+            result.push_back(Pair("orphans found", nOrphansFound));
+        }
+        if(nMismatchSpent) {
+            result.push_back(Pair("mismatched outputs detected", nMismatchSpent));
+        }
         result.push_back(Pair("amount in question", ValueFromAmount(nBalanceInQuestion)));
-        if(!nOrphansFound)
-          result.push_back(Pair("orphans found", nOrphansFound));
     }
-    return result;
+    return(result);
 }
 
+/* Wallet repair (removal of failed and orphaned transactions) */
+Value repairwallet(const Array &params, bool fHelp) {
 
-// repair wallet
-Value repairwallet(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() > 0)
-        throw runtime_error(
-            "repairwallet\n"
-            "Repair wallet if checkwallet reports any problem.\n");
+    if(fHelp || (params.size() > 0)) throw(runtime_error(
+      "repairwallet\n"
+      "Wallet repair if any mismatches found.\n"));
 
     int nMismatchSpent;
     int nOrphansFound;
     int64 nBalanceInQuestion;
+
     pwalletMain->FixSpentCoins(nMismatchSpent, nOrphansFound, nBalanceInQuestion, false);
+
     Object result;
-    if (nMismatchSpent == 0)
+    if(!nMismatchSpent && !nOrphansFound) {
         result.push_back(Pair("wallet check passed", true));
-    else
-    {
-        result.push_back(Pair("mismatched spent coins", nMismatchSpent));
+    } else {
+        if(nOrphansFound) {
+            result.push_back(Pair("orphans removed", nOrphansFound));
+        }
+        if(nMismatchSpent) {
+            result.push_back(Pair("mismatched outputs corrected", nMismatchSpent));
+        }
         result.push_back(Pair("amount affected by repair", ValueFromAmount(nBalanceInQuestion)));
-        if(!nOrphansFound)
-          result.push_back(Pair("orphans removed", nOrphansFound));
     }
-    return result;
+    return(result);
 }
 
 // resend unconfirmed wallet transactions

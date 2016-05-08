@@ -1160,7 +1160,7 @@ void BitcoinGUI::inspectWallet() {
 
     walletModel->repairWallet(nMismatchSpent, nOrphansFound, nBalanceInQuestion, true);
 
-    if(!nMismatchSpent)
+    if(!nMismatchSpent && !nOrphansFound)
       notificator->notify(Notificator::Warning,
         tr("Wallet Inspection Report"),
         tr("Integrity test passed, nothing to fix.\n"));
@@ -1168,13 +1168,14 @@ void BitcoinGUI::inspectWallet() {
       notificator->notify(Notificator::Warning,
         tr("Wallet Inspection Report"),
         tr("Integrity test failed!\n\n"
-           "Mismatched coins found: %1\n"
-           "Amount in question: %2\n"
-           "Orphans found: %3\n\n"
+           "Orphans found: %1\n"
+           "Mismatched outputs detected: %2\n"
+           "Amount in question: %3\n\n"
            "Please clone your wallet and repair it.\n")
+        .arg(nOrphansFound)
         .arg(nMismatchSpent)
-        .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(), nBalanceInQuestion, true))
-        .arg(nOrphansFound));
+        .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(),
+          nBalanceInQuestion, true)));
 }
 
 void BitcoinGUI::repairWallet() {
@@ -1187,7 +1188,7 @@ void BitcoinGUI::repairWallet() {
 
     walletModel->repairWallet(nMismatchSpent, nOrphansFound, nBalanceInQuestion, false);
 
-    if(!nMismatchSpent)
+    if(!nMismatchSpent && !nOrphansFound)
       notificator->notify(Notificator::Warning,
         tr("Wallet Repair Report"),
         tr("Integrity test passed, nothing to fix.\n"));
@@ -1195,11 +1196,12 @@ void BitcoinGUI::repairWallet() {
       notificator->notify(Notificator::Warning,
         tr("Wallet Repair Report"),
         tr("Wallet repaired successfully!\n\n"
-           "Mismatched coins found: %1\n"
-           "Amount affected by repair: %2\n"
-           "Orphans removed: %3\n")
+           "Orphans removed: %1\n"
+           "Mismatched outputs corrected: %2\n"
+           "Amount affected by repair: %3\n")
+        .arg(nOrphansFound)
         .arg(nMismatchSpent)
-        .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(), nBalanceInQuestion, true))
-        .arg(nOrphansFound));
+        .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(),
+          nBalanceInQuestion, true)));
 }
 

@@ -418,11 +418,11 @@ bool AppInit2()
     nMinerSleep = GetArg("-minersleep", 2000);
     /* Minimal input time or depth in block chain for stake mining, in hours or confirmations */
     if(fTestNet) {
-        nStakeMinTime = GetArg("-stakemintime", 1);
-        nStakeMinDepth = GetArg("-stakemindepth", 0);
+        nStakeMinTime = (uint)GetArg("-stakemintime", 1);
+        nStakeMinDepth = (uint)GetArg("-stakemindepth", 0);
     } else {
-        nStakeMinTime = GetArg("-stakemintime", 48);
-        nStakeMinDepth = GetArg("-stakemindepth", 0);
+        nStakeMinTime = (uint)GetArg("-stakemintime", 48);
+        nStakeMinDepth = (uint)GetArg("-stakemindepth", 0);
     }
     /* Reset time if depth is specified */
     if(nStakeMinDepth) nStakeMinTime = 0;

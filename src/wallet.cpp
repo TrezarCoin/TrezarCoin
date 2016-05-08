@@ -1246,10 +1246,15 @@ bool CWallet::SelectCoinsStaking(int64 nTargetValue,
             nDepth = pcoin->GetDepthInMainChain();
 
             /* Discard if the time (depth) requirement is unmet */
-            if(nStakeMinTime && ((nCurrentTime - nStakeMinTime * 60 * 60) < pcoin->nTime))
-              continue;
-            if(!nStakeMinTime && (nDepth < (int)nStakeMinDepth))
-              continue;
+            if(nStakeMinTime) {
+                if(nDepth < nBaseMaturity)
+                  continue;
+                if(nCurrentTime < (pcoin->nTime + nStakeMinTime * 60 * 60))
+                  continue;
+            } else {
+                if(nDepth < (int)nStakeMinDepth)
+                  continue;
+            }
 
             for(i = 0; i < pcoin->vout.size(); i++) {
               /* Must be unspent and above the limit in value */
@@ -2274,12 +2279,16 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int& nOrphansFound, int64& nBal
     nBalanceInQuestion = 0;
     nOrphansFound = 0;
 
+    /* If repairing, don't bother to put the stake miner on hold and invalidate its cache
+     * as there shouldn't be any failed transactions by design */
+
     LOCK(cs_wallet);
     vector<CWalletTx*> vCoins;
     vCoins.reserve(mapWallet.size());
     for (map<uint256, CWalletTx>::iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
         vCoins.push_back(&(*it).second);
 
+    uint n;
     CCoinsViewCache &view = *pcoinsTip;
     BOOST_FOREACH(CWalletTx* pcoin, vCoins)
     {
@@ -2287,18 +2296,43 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int& nOrphansFound, int64& nBal
         if(!view.HaveCoins(hash))
             continue;
 
+        if((pcoin->IsCoinBase() || pcoin->IsCoinStake()) &&
+          (pcoin->GetDepthInMainChain() < 0)) {
+            int64 nCurrentValue = 0;
+
+            nOrphansFound++;
+
+            for(n = 0; n < pcoin->vout.size(); n++)
+              nCurrentValue += pcoin->vout[n].nValue;
+            nBalanceInQuestion += nCurrentValue;
+
+            printf("FixSpentCoins() : %s orphaned coin %s %s of value %s\n",
+              fCheckOnly ? "found" : "removed",
+              pcoin->IsCoinBase() ? "base" : "stake",
+              hash.ToString().c_str(),
+              FormatMoney(nCurrentValue).c_str());
+
+            if(!fCheckOnly) {
+                EraseFromWallet(hash);
+                NotifyTransactionChanged(this, hash, CT_DELETED);
+            }
+
+            continue;
+        }
+
         // Find the corresponding transaction index
         CCoins &coins = view.GetCoins(hash);
 
-        for (unsigned int n=0; n < pcoin->vout.size(); n++)
-        {
+        for(n = 0; n < pcoin->vout.size(); n++) {
             bool fUpdated = false;
             if (IsMine(pcoin->vout[n]))
             {
                 if (pcoin->IsSpent(n) && coins.IsAvailable(n))
                 {
-                    printf("FixSpentCoins found lost coin %sorb %s[%d], %s\n",
-                        FormatMoney(pcoin->vout[n].nValue).c_str(), hash.ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
+                    printf("FixSpentCoins() : %s lost output %s-%u of value %s\n",
+                      fCheckOnly ? "found" : "added",
+                      hash.ToString().c_str(), n,
+                      FormatMoney(pcoin->vout[n].nValue).c_str());
                     nMismatchFound++;
                     nBalanceInQuestion += pcoin->vout[n].nValue;
                     if (!fCheckOnly)
@@ -2310,8 +2344,10 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int& nOrphansFound, int64& nBal
                 }
                 else if (!pcoin->IsSpent(n) && !coins.IsAvailable(n))
                 {
-                    printf("FixSpentCoins found spent coin %sorb %s[%d], %s\n",
-                        FormatMoney(pcoin->vout[n].nValue).c_str(), hash.ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
+                    printf("FixSpentCoins() : %s spent output %s-%u of value %s\n",
+                      fCheckOnly ? "found" : "removed",
+                      hash.ToString().c_str(), n,
+                      FormatMoney(pcoin->vout[n].nValue).c_str());
                     nMismatchFound++;
                     nBalanceInQuestion += pcoin->vout[n].nValue;
                     if (!fCheckOnly)
@@ -2325,18 +2361,6 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int& nOrphansFound, int64& nBal
                 if (fUpdated)
                     NotifyTransactionChanged(this, hash, CT_UPDATED);
             }
-        }
-
-        if((pcoin->IsCoinBase() || pcoin->IsCoinStake()) && (pcoin->GetDepthInMainChain() < 0)) {
-            nOrphansFound++;
-
-            if (!fCheckOnly)
-            {
-                EraseFromWallet(hash);
-                NotifyTransactionChanged(this, hash, CT_DELETED);
-            }
-
-            printf("FixSpentCoins %s orphaned generation tx %s\n", fCheckOnly ? "found" : "removed", hash.ToString().c_str());
         }
     }
 }
