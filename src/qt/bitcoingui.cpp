@@ -88,7 +88,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
 #endif
 
-    int nQtStyle = GetArg("-qtstyle", 0);
+    int nQtStyle = GetArg("-qtstyle", 2);
     if(nQtStyle < 0) nQtStyle = 0;
 
     if(!nQtStyle) {
@@ -97,15 +97,26 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
           padding-left: 0px; padding-right: 0px; padding-top: 3px; padding-bottom: 3px; }");
     } else if(nQtStyle == 1) {
         resize(1000, 525);
+#ifndef Q_OS_MAC
         qApp->setStyleSheet("QToolBar QToolButton { text-align: center; width: 100%; \
-          padding-left: 5px; padding-right: 5px; padding-top: 2px; padding-bottom: 2px; } \
+          padding-left: 5px; padding-right: 5px; padding-top: 2px; padding-bottom: 2px; \
+          margin-top: 2px; } \
           QToolBar QToolButton:hover { font-weight: bold; } \
+          #toolbar { border: none; height: 100%; min-width: 150px; max-width: 150px; } \
+          QMenuBar { min-height: 20px; }");
+#else
+        qApp->setStyleSheet("QToolBar QToolButton { text-align: center; width: 100%; \
+          padding-left: 5px; padding-right: 5px; padding-top: 2px; padding-bottom: 2px; \
+          margin-top: 2px; } \
+          QToolBar QToolButton:hover { font-weight: bold; background-color: transparent; } \
           #toolbar { border: none; height: 100%; min-width: 150px; max-width: 150px; }");
+#endif
     } else {
         resize(1000, 525);
+#ifndef Q_OS_MAC
         qApp->setStyleSheet("QToolBar QToolButton { text-align: center; width: 100%; \
           color: white; background-color: darkgreen; padding-left: 5px; padding-right: 5px; \
-          padding-top: 2px; padding-bottom: 2px; } \
+          padding-top: 2px; padding-bottom: 2px; margin-top: 2px; } \
           QToolBar QToolButton:hover { font-weight: bold; \
           background-color: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 2, \
           stop: 0 #006400, stop: 1 #FFDF5F); } \
@@ -117,9 +128,21 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
           padding-left: 10px; padding-right: 10px; } \
           QMenuBar::item:selected { background-color: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 2, \
           stop: 0 #006400, stop: 1 #FFDF5F); } \
-          QMenu { border: 1px solid; background-color: ivory; color: black; } \
+          QMenu { border: 1px solid; color: black; background-color: ivory; } \
           QMenu::item { background-color: transparent; } \
-          QMenu::item:selected { color: white; background-color: green; }");
+          QMenu::item:disabled { color: gray; } \
+          QMenu::item:enabled:selected { color: white; background-color: green; } \
+          QMenu::separator { height: 4px; }");
+#else
+        qApp->setStyleSheet("QToolBar QToolButton { text-align: center; width: 100%; \
+          color: white; padding-left: 5px; padding-right: 5px; \
+          padding-top: 2px; padding-bottom: 2px; margin-top: 2px; } \
+          QToolBar QToolButton:hover { font-weight: bold; \
+          background-color: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 2, \
+          stop: 0 #006400, stop: 1 #FFDF5F); } \
+          #toolbar { border: none; height: 100%; min-width: 150px; max-width: 150px; \
+          background-color: darkgreen; }");
+#endif
     }
 
     // Accept D&D of URIs
