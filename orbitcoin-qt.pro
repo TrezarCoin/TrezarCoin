@@ -30,21 +30,36 @@ OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
 
-# use: qmake "RELEASE=1"
-contains(RELEASE, 1) {
-    # Mac: compile for maximum compatibility (10.5, 32-bit)
-    macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.5 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk
-    macx:QMAKE_CFLAGS += -mmacosx-version-min=10.5 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk
-    macx:QMAKE_LFLAGS += -mmacosx-version-min=10.5 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk
+# use: qmake RELEASE_I386=1
+contains(RELEASE_I386, 1) {
+    # Mac: optimised 32-bit x86
+    macx:QMAKE_CFLAGS += -arch i386 -fomit-frame-pointer -msse2 -mdynamic-no-pic -I/usr/local/i386/include
+    macx:QMAKE_CXXFLAGS += -arch i386 -fomit-frame-pointer -msse2 -mdynamic-no-pic -I/usr/local/i386/include
+    macx:QMAKE_LFLAGS += -arch i386 -L/usr/local/i386/lib
+    # Mac: 10.5+ compatibility; Qt with Cocoa is broken on 10.4
+    macx:QMAKE_CFLAGS += -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk
+    macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk
+    macx:QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.5
+    # Windows: optimised 32-bit x86
+    win32:QMAKE_CFLAGS += -march=i686 -fomit-frame-pointer
+    win32:QMAKE_CXXFLAGS += -march=i686 -fomit-frame-pointer
+}
 
-    !windows:!macx {
-        # Linux: static link
-        LIBS += -Wl,-Bstatic
-    }
+# use: qmake RELEASE_AMD64=1
+contains(RELEASE_AMD64, 1) {
+    # Mac: optimised 64-bit x86
+    macx:QMAKE_CFLAGS += -DMOVQ_FIX -arch x86_64 -fomit-frame-pointer -mdynamic-no-pic -I/usr/local/amd64/include
+    macx:QMAKE_CXXFLAGS += -arch x86_64 -fomit-frame-pointer -mdynamic-no-pic -I/usr/local/amd64/include
+    macx:QMAKE_LFLAGS += -arch x86_64 -L/usr/local/amd64/lib
+    # Mac: 10.8+ compatibility
+    macx:QMAKE_CFLAGS += -mmacosx-version-min=10.8 -isysroot /Developer/SDKs/MacOSX10.8.sdk
+    macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.8 -isysroot /Developer/SDKs/MacOSX10.8.sdk
+    macx:QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8
 }
 
 # strip symbols
-QMAKE_LFLAGS += -Wl,-s
+!macx:QMAKE_LFLAGS += -Wl,-s
+macx:QMAKE_LFLAGS += -dead_strip
 # disable debug builds on Windows
 win32:CONFIG -= debug_and_release debug_and_release_target
 # for extra security on Windows: enable ASLR and DEP via GCC linker flags
@@ -129,14 +144,6 @@ QMAKE_EXTRA_TARGETS += genleveldb
     PRE_TARGETDEPS += $$OUT_PWD/build/build.h
     QMAKE_EXTRA_TARGETS += genbuild
     DEFINES += HAVE_BUILD_INFO
-}
-
-contains(USE_O3, 1) {
-    message(Building O3 optimization flag)
-    QMAKE_CXXFLAGS_RELEASE -= -O2 -fomit-frame-pointer -fno-stack-protector
-    QMAKE_CFLAGS_RELEASE -= -O2 -fomit-frame-pointer -fno-stack-protector
-    QMAKE_CXXFLAGS += -O3 -fomit-frame-pointer -fno-stack-protector
-    QMAKE_CFLAGS += -O3 -fomit-frame-pointer -fno-stack-protector
 }
 
 QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter
@@ -359,24 +366,8 @@ isEmpty(BOOST_THREAD_LIB_SUFFIX) {
     BOOST_THREAD_LIB_SUFFIX = $$BOOST_LIB_SUFFIX
 }
 
-isEmpty(BDB_LIB_PATH) {
-    macx:BDB_LIB_PATH = /usr/local/lib
-}
-
 isEmpty(BDB_LIB_SUFFIX) {
     macx:BDB_LIB_SUFFIX = -5.3
-}
-
-isEmpty(BDB_INCLUDE_PATH) {
-    macx:BDB_INCLUDE_PATH = /usr/local/include
-}
-
-isEmpty(BOOST_LIB_PATH) {
-    macx:BOOST_LIB_PATH = /opt/local/lib
-}
-
-isEmpty(BOOST_INCLUDE_PATH) {
-    macx:BOOST_INCLUDE_PATH = /opt/local/include
 }
 
 windows:DEFINES += WIN32
@@ -398,8 +389,8 @@ windows:!contains(MINGW_THREAD_BUGFIX, 0) {
     LIBS += -lrt
 }
 
-macx:HEADERS += src/qt/macdockiconhandler.h
-macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm
+macx:HEADERS += src/qt/macdockiconhandler.h src/qt/macnotificationhandler.h
+macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm src/qt/macnotificationhandler.mm
 macx:LIBS += -framework Foundation -framework ApplicationServices -framework AppKit
 macx:DEFINES += MAC_OSX MSG_NOSIGNAL=0
 macx:ICON = src/qt/res/icons/orbitcoin.icns
@@ -416,12 +407,5 @@ LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX
 windows:LIBS += -lws2_32 -lshlwapi -lmswsock -lole32 -loleaut32 -luuid -lgdi32
 LIBS += -lboost_system$$BOOST_LIB_SUFFIX -lboost_filesystem$$BOOST_LIB_SUFFIX -lboost_program_options$$BOOST_LIB_SUFFIX -lboost_thread$$BOOST_THREAD_LIB_SUFFIX
 windows:LIBS += -lboost_chrono$$BOOST_LIB_SUFFIX
-
-contains(RELEASE, 1) {
-    !windows:!macx {
-        # Linux: turn dynamic linking back on for c/c++ runtime libraries
-        LIBS += -Wl,-Bdynamic
-    }
-}
 
 system($$QMAKE_LRELEASE -silent $$_PRO_FILE_)

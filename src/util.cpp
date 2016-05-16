@@ -53,6 +53,8 @@ namespace boost {
 #include "shlobj.h"
 #elif defined(__linux__)
 #include <sys/prctl.h>
+#elif defined(__APPLE__)
+#include <AvailabilityMacros.h>
 #endif
 
 #ifndef WIN32
@@ -1385,23 +1387,22 @@ void runCommand(std::string strCommand)
         printf("runCommand error: system(%s) returned %d\n", strCommand.c_str(), nErr);
 }
 
-void RenameThread(const char* name)
-{
-#if defined(PR_SET_NAME)
-    // Only the first 15 characters are used (16 - NUL terminator)
-    ::prctl(PR_SET_NAME, name, 0, 0, 0);
-#elif 0 && (defined(__FreeBSD__) || defined(__OpenBSD__))
-    // TODO: This is currently disabled because it needs to be verified to work
-    //       on FreeBSD or OpenBSD first. When verified the '0 &&' part can be
-    //       removed.
+void RenameThread(const char *name) {
+    /* Thread name can be up to 16 bytes (characters) including NULL terminator */
+#if defined(__linux__) && defined(PR_SET_NAME)
+    /* Available since kernel 2.6.9; pthread_setname_np() also uses prctl() in GLIBC */
+    prctl(PR_SET_NAME, name, 0, 0, 0);
+#elif defined(__NetBSD__)
+    pthread_setname_np(pthread_self(), "%s", name);
+#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
     pthread_set_name_np(pthread_self(), name);
-
-// This is XCode 10.6-and-later; bring back if we drop 10.5 support:
-// #elif defined(MAC_OSX)
-//    pthread_setname_np(name);
-
+#elif defined(__APPLE__)
+#if (MAC_OS_X_VERSION_MIN_REQUIRED >= 1060)
+    /* MacOS X 10.6+ only */
+    pthread_setname_np(name);
+#endif
 #else
-    // Prevent warnings for unused parameters...
+    /* Threads on Windows have no names */
     (void)name;
 #endif
 }
