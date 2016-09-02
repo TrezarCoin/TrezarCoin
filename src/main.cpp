@@ -2140,40 +2140,65 @@ bool CBlock::AddToBlockIndex(const CDiskBlockPos &pos)
     return true;
 }
 
-bool FindBlockPos(CDiskBlockPos &pos, unsigned int nAddSize, unsigned int nHeight, uint64 nTime)
-{
+bool FindBlockPos(CDiskBlockPos &pos, unsigned int nAddSize, unsigned int nHeight,
+  uint64 nTime, bool fKnown = false) {
     bool fUpdatedLast = false;
 
     LOCK(cs_LastBlockFile);
 
-    while (infoLastBlockFile.nSize + nAddSize >= MAX_BLOCKFILE_SIZE) {
-        printf("Leaving block file %i: %s\n", nLastBlockFile, infoLastBlockFile.ToString().c_str());
-        FILE *file = OpenBlockFile(pos);
-        FileCommit(file);
-        fclose(file);
-        file = OpenUndoFile(pos);
-        FileCommit(file);
-        fclose(file);
-        nLastBlockFile++;
-        infoLastBlockFile.SetNull();
-        pblocktree->ReadBlockFileInfo(nLastBlockFile, infoLastBlockFile); // check whether data for the new file somehow already exist; can fail just fine
-        fUpdatedLast = true;
+    if(fKnown) {
+        if(nLastBlockFile != pos.nFile) {
+            nLastBlockFile = pos.nFile;
+            infoLastBlockFile.SetNull();
+            pblocktree->ReadBlockFileInfo(nLastBlockFile, infoLastBlockFile);
+            fUpdatedLast = true;
+        }
+    } else {
+        while((infoLastBlockFile.nSize + nAddSize) >= MAX_BLOCKFILE_SIZE) {
+            printf("Leaving block file %i: %s\n",
+              nLastBlockFile, infoLastBlockFile.ToString().c_str());
+            /* Flush the last block file to disk */
+            CDiskBlockPos posOld(nLastBlockFile, 0);
+            FILE *fileOld = OpenBlockFile(posOld);
+            if(fileOld) {
+                FileTruncate(fileOld, infoLastBlockFile.nSize);
+                fflush(fileOld);
+                if(FileCommit(fileOld))
+                  return(error("FindBlockPos() : FileCommit() on block file failed"));
+                fclose(fileOld);
+            } else return(error("FindBlockPos() : OpenBlockFile() on block file failed"));
+            fileOld = OpenUndoFile(posOld);
+            if(fileOld) {
+                FileTruncate(fileOld, infoLastBlockFile.nUndoSize);
+                fflush(fileOld);
+                if(FileCommit(fileOld))
+                  return(error("FindBlockPos() : FileCommit() on undo file failed"));
+                fclose(fileOld);
+            } else return(error("FindBlockPos() : OpenBlockFile() on undo file failed"));
+            nLastBlockFile++;
+            infoLastBlockFile.SetNull();
+            pblocktree->ReadBlockFileInfo(nLastBlockFile, infoLastBlockFile);
+            fUpdatedLast = true;
+        }
+        pos.nFile = nLastBlockFile;
+        pos.nPos = infoLastBlockFile.nSize;
     }
 
-    pos.nFile = nLastBlockFile;
-    pos.nPos = infoLastBlockFile.nSize;
     infoLastBlockFile.nSize += nAddSize;
     infoLastBlockFile.AddBlock(nHeight, nTime);
 
-    unsigned int nOldChunks = (pos.nPos + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
-    unsigned int nNewChunks = (infoLastBlockFile.nSize + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
-    if (nNewChunks > nOldChunks) {
-        FILE *file = OpenBlockFile(pos);
-        if (file) {
-            printf("Pre-allocating up to position 0x%x in blk%05u.dat\n", nNewChunks * BLOCKFILE_CHUNK_SIZE, pos.nFile);
-            AllocateFileRange(file, pos.nPos, nNewChunks * BLOCKFILE_CHUNK_SIZE - pos.nPos);
+    if(!fKnown) {
+        uint nOldChunks = (pos.nPos + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
+        uint nNewChunks = (infoLastBlockFile.nSize + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
+        if(nNewChunks > nOldChunks) {
+            FILE *file = OpenBlockFile(pos);
+            if(file) {
+                printf("Pre-allocating up to position 0x%x in blk%05u.dat\n",
+                  nNewChunks * BLOCKFILE_CHUNK_SIZE, pos.nFile);
+                AllocateFileRange(file, pos.nPos, nNewChunks * BLOCKFILE_CHUNK_SIZE - pos.nPos);
+            }
+            fclose(file);
         }
-        fclose(file);
     }
 
     if (!pblocktree->WriteBlockFileInfo(nLastBlockFile, infoLastBlockFile))
@@ -2221,6 +2246,13 @@ bool FindUndoPos(int nFile, CDiskBlockPos &pos, unsigned int nAddSize)
 }
 
 bool CBlock::CheckBlock() const {
+
+    if(fReindex) {
+        /* Merkle root verification */
+        if(hashMerkleRoot != BuildMerkleTree()) return(false);
+        return(true);
+    }
+
     uint nAdjTime = GetAdjustedTime();
 
     // These are checks that are independent of context
@@ -2313,8 +2345,8 @@ bool CBlock::CheckBlock() const {
 }
 
 
-bool CBlock::AcceptBlock()
-{
+bool CBlock::AcceptBlock(CDiskBlockPos *dbp) {
+
     // Check for duplicate
     uint256 hash = GetHash();
     if (mapBlockIndex.count(hash))
@@ -2326,6 +2358,17 @@ bool CBlock::AcceptBlock()
         return DoS(10, error("AcceptBlock() : prev block not found"));
     CBlockIndex* pindexPrev = (*mi).second;
     int nHeight = pindexPrev->nHeight+1;
+
+    if(fReindex && (dbp != NULL)) {
+        /* Skip all remaining checks and actions, add the block to the index */
+        uint nBlockSize = ::GetSerializeSize(*this, SER_DISK, CLIENT_VERSION);
+        CDiskBlockPos blockPos = *dbp;
+        if(!FindBlockPos(blockPos, nBlockSize + 8, nHeight, nTime, 1))
+          return(error("AcceptBlock() : FindBlockPos() failed while reindexing"));
+        if(!AddToBlockIndex(blockPos))
+          return(error("AcceptBlock() : AddToBlockIndex() failed while reindexing"));
+        return(true);
+    }
 
     // Check proof-of-work or proof-of-stake
     if(nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake(), false))
@@ -2521,7 +2564,7 @@ uint256 CBlockIndex::GetBlockTrust() const
 }
 
 
-bool ProcessBlock(CNode* pfrom, CBlock* pblock) {
+bool ProcessBlock(CNode* pfrom, CBlock* pblock, CDiskBlockPos *dbp) {
     uint256 hash = pblock->GetHash();
 
     /* Duplicate block check */
@@ -2538,7 +2581,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock) {
 
     /* DDoS protection: duplicate stakes are allowed only if referenced
      * by an orphan child block and a pending advanced checkpoint */
-    if(pblock->IsProofOfStake()) {
+    if(!fReindex && pblock->IsProofOfStake()) {
         if(setStakeSeen.count(pblock->GetProofOfStake()) &&
           !mapOrphanBlocksByPrev.count(hash) &&
           !Checkpoints::WantedByPendingSyncCheckpoint(hash)) {
@@ -2616,8 +2659,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock) {
     }
 
     // Store to disk
-    if (!pblock->AcceptBlock())
-        return error("ProcessBlock() : AcceptBlock FAILED");
+    if(!pblock->AcceptBlock(dbp))
+      return(error("ProcessBlock() : AcceptBlock() FAILED"));
 
     // Recursively process any orphan blocks that depended on this one
     vector<uint256> vWorkQueue;
@@ -2900,6 +2943,31 @@ CBlockIndex * InsertBlockIndex(uint256 hash)
     return pindexNew;
 }
 
+/* Testnet related chain settings */
+void InitTestnet() {
+
+    if(!fTestNet) return;
+
+    pchMessageStart[0] = 0xFD;
+    pchMessageStart[1] = 0xF2;
+    pchMessageStart[2] = 0xF0;
+    pchMessageStart[3] = 0xEF;
+
+    bnProofOfStakeLimit = bnProofOfStakeLimitTestNet;
+    bnProofOfWorkLimit  = bnProofOfWorkLimitTestNet;
+
+    /* Positive time weight after 20 minutes */
+    nStakeMinAgeOne = 20 * 60;
+    nStakeMinAgeTwo = 20 * 60;
+    /* Full time weight at 20 hours (+20 minutes) */
+    nStakeMaxAge = 20 * 60 * 60;
+    /* [Initial] interval of 1 minute between stake modifiers */
+    nModifierIntervalOne = 60;
+    /* [Current] interval of 30 seconds between stake modifiers */
+    nModifierIntervalTwo = 30;
+    nBaseMaturity = BASE_MATURITY_TESTNET;
+}
+
 bool static LoadBlockIndexDB()
 {
     if (!pblocktree->LoadBlockIndexGuts())
@@ -3004,28 +3072,7 @@ bool static LoadBlockIndexDB()
     return true;
 }
 
-bool LoadBlockIndex(bool fAllowNew)
-{
-    if(fTestNet) {
-        pchMessageStart[0] = 0xfd;
-        pchMessageStart[1] = 0xf2;
-        pchMessageStart[2] = 0xf0;
-        pchMessageStart[3] = 0xef;
-
-        bnProofOfStakeLimit = bnProofOfStakeLimitTestNet;
-        bnProofOfWorkLimit  = bnProofOfWorkLimitTestNet;
-
-        /* Positive time weight after 20 minutes */
-        nStakeMinAgeOne = 20 * 60;
-        nStakeMinAgeTwo = 20 * 60;
-        /* Full time weight at 20 hours (+20 minutes) */
-        nStakeMaxAge = 20 * 60 * 60;
-        /* [Initial] interval of 1 minute between stake modifiers */
-        nModifierIntervalOne = 60;
-        /* [Current] interval of 30 seconds between stake modifiers */
-        nModifierIntervalTwo = 30;
-        nBaseMaturity = BASE_MATURITY_TESTNET;
-    }
+bool LoadBlockIndex(bool fAllowNew) {
 
     //
     // Init with genesis block
@@ -3232,68 +3279,151 @@ void PrintBlockTree()
     }
 }
 
-bool LoadExternalBlockFile(FILE* fileIn)
-{
-    int64 nStart = GetTimeMillis();
+bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos) {
+    block.SetNull();
 
-    int nLoaded = 0;
-    {
-        LOCK(cs_main);
-        try {
-            CAutoFile blkdat(fileIn, SER_DISK, CLIENT_VERSION);
-            unsigned int nPos = 0;
-            while (nPos != (unsigned int)-1 && blkdat.good() && !fRequestShutdown)
-            {
-                unsigned char pchData[65536];
-                do {
-                    fseek(blkdat, nPos, SEEK_SET);
-                    int nRead = fread(pchData, 1, sizeof(pchData), blkdat);
-                    if (nRead <= 8)
-                    {
-                        nPos = (unsigned int)-1;
-                        break;
-                    }
-                    void* nFind = memchr(pchData, pchMessageStart[0], nRead+1-sizeof(pchMessageStart));
-                    if (nFind)
-                    {
-                        if (memcmp(nFind, pchMessageStart, sizeof(pchMessageStart))==0)
-                        {
-                            nPos += ((unsigned char*)nFind - pchData) + sizeof(pchMessageStart);
-                            break;
-                        }
-                        nPos += ((unsigned char*)nFind - pchData) + 1;
-                    }
-                    else
-                        nPos += sizeof(pchData) - sizeof(pchMessageStart) + 1;
-                } while(!fRequestShutdown);
-                if (nPos == (unsigned int)-1)
-                    break;
-                fseek(blkdat, nPos, SEEK_SET);
-                unsigned int nSize;
-                blkdat >> nSize;
-                if (nSize > 0 && nSize <= MAX_BLOCK_SIZE)
-                {
-                    CBlock block;
-                    blkdat >> block;
-                    if (ProcessBlock(NULL,&block))
-                    {
-                        nLoaded++;
-                        nPos += 4 + nSize;
-                    }
-                }
-            }
-        }
-        catch (std::exception &e) {
-            printf("%s() : Deserialize or I/O error caught during load\n",
-                   __PRETTY_FUNCTION__);
-        }
+    // Open history file to read
+    CAutoFile filein(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
+    if(filein.IsNull())
+      return(error("ReadBlockFromDisk() : OpenBlockFile() failed for %s", pos.ToString().c_str()));
+
+    // Read block
+    try {
+        filein >> block;
+    } catch(const std::exception& e) {
+        return(error("ReadBlockFromDisk(): deserialise or I/O error at %s", pos.ToString().c_str()));
     }
 
-    printf("Loaded %i blocks from external file in %" PRI64d "ms\n",
-      nLoaded, GetTimeMillis() - nStart);
-
-    return nLoaded > 0;
+    return(true);
 }
+
+bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp) {
+    int64 nStart = GetTimeMillis();
+
+    // Map of disk positions for blocks with unknown parent (only used for reindex)
+    static std::multimap<uint256, CDiskBlockPos> mapBlocksUnknownParent;
+
+    uint nLoaded = 0;
+    try {
+        // This takes over fileIn and calls fclose() on it in the CBufferedFile destructor
+        CBufferedFile blkdat(fileIn, 2 * MAX_BLOCK_SIZE, MAX_BLOCK_SIZE + 8,
+          SER_DISK, CLIENT_VERSION);
+        uint64 nRewind = blkdat.GetPos();
+
+        while(!blkdat.eof()) {
+            boost::this_thread::interruption_point();
+            blkdat.SetPos(nRewind);
+            nRewind++; // start one byte further next time, in case of failure
+            blkdat.SetLimit(); // remove former limit
+            uint nSize = 0;
+            try {
+                // locate a header
+                uchar buf[4];
+                blkdat.FindByte(pchMessageStart[0]);
+                nRewind = blkdat.GetPos() + 1;
+                blkdat >> FLATDATA(buf);
+                if(memcmp(buf, pchMessageStart, 4))
+                  continue;
+                // read size
+                blkdat >> nSize;
+                if((nSize < 80) || (nSize > MAX_BLOCK_SIZE))
+                  continue;
+            } catch(const std::exception &) {
+                // no valid block header found; don't complain
+                break;
+            }
+            try {
+                // read block
+                uint64 nBlockPos = blkdat.GetPos();
+                if(dbp)
+                  dbp->nPos = nBlockPos;
+                blkdat.SetLimit(nBlockPos + nSize);
+                blkdat.SetPos(nBlockPos);
+                CBlock block;
+                blkdat >> block;
+                nRewind = blkdat.GetPos();
+
+                uint256 hash = block.GetHash();
+
+                /* Genesis block requires special processing */
+                if(hash == (fTestNet ? hashGenesisBlockTestNet : hashGenesisBlock)) {
+                    if(!fReindex) continue; /* already in the index if bootstrapping */
+                    block.BuildMerkleTree();
+                    block.print();
+                    uint nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
+                    CDiskBlockPos blockPos;
+                    if(dbp != NULL) blockPos = *dbp;
+                    else break;
+                    if(!FindBlockPos(blockPos, nBlockSize + 8, 0, block.nTime, 1)) {
+                        printf("FindBlockPos() failed on the genesis block\n");
+                        break;
+                    }
+                    if(!block.AddToBlockIndex(blockPos)) {
+                        printf("AddToBlockIndex() failed on the genesis block\n");
+                        break;
+                    }
+                    Checkpoints::WriteSyncCheckpoint(fTestNet ? hashGenesisBlockTestNet : hashGenesisBlock);
+                    nLoaded = 1;
+                    continue;
+                }
+
+                // detect out of order blocks, and store them for later
+                if(mapBlockIndex.find(block.hashPrevBlock) == mapBlockIndex.end()) {
+                    printf("LoadExternalBlockFile() : out of order block %s, parent %s not known\n",
+                      hash.ToString().c_str(), block.hashPrevBlock.ToString().c_str());
+                    if(dbp)
+                      mapBlocksUnknownParent.insert(std::make_pair(block.hashPrevBlock, *dbp));
+                    continue;
+                }
+
+                // process in case the block isn't known yet
+                if((mapBlockIndex.count(hash) == 0) ||
+                  ((mapBlockIndex[hash]->nStatus & BLOCK_HAVE_DATA) == 0)) {
+                    if(ProcessBlock(NULL, &block, dbp))
+                      nLoaded++;
+                    else
+                      break;
+                }
+
+                // Recursively process earlier encountered successors of this block
+                deque<uint256> queue;
+                queue.push_back(hash);
+                while(!queue.empty()) {
+                    uint256 head = queue.front();
+                    queue.pop_front();
+                    std::pair<std::multimap<uint256, CDiskBlockPos>::iterator, std::multimap<uint256, CDiskBlockPos>::iterator> range = mapBlocksUnknownParent.equal_range(head);
+                    while(range.first != range.second) {
+                        std::multimap<uint256, CDiskBlockPos>::iterator it = range.first;
+                        if(ReadBlockFromDisk(block, it->second)) {
+                            printf("LoadExternalBlockFile() : processing out of order child %s of %s\n",
+                              block.GetHash().ToString().c_str(), head.ToString().c_str());
+                            if(ProcessBlock(NULL, &block, &it->second)) {
+                                nLoaded++;
+                                queue.push_back(block.GetHash());
+                            }
+                        }
+                        range.first++;
+                        mapBlocksUnknownParent.erase(it);
+                    }
+                }
+            } catch(std::exception &e) {
+                printf("LoadExternalBlockFile() : deserialise or I/O error caught while loading blocks\n");
+            }
+        }
+    } catch(std::runtime_error &e) {
+        printf("LoadExternalBlockFile() : system error caught while loading blocks\n");
+        return(false);
+    }
+
+    if(nLoaded > 0) {
+        printf("Loaded %u blocks from external file in %" PRI64d "ms\n",
+          nLoaded, GetTimeMillis() - nStart);
+        return(true);
+    }
+
+    return(false);
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 //

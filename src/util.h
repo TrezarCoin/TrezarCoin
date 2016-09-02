@@ -150,6 +150,7 @@ extern bool fLogTimestamps;
 extern bool fReopenDebugLog;
 extern bool fStakeGen;
 extern bool fStakingOnly;
+extern bool fReindex;
 
 extern bool fNeoScrypt;
 extern uint nNeoScryptOptions;
@@ -220,6 +221,7 @@ std::string EncodeBase32(const std::string& str);
 void ParseParameters(int argc, const char*const argv[]);
 bool WildcardMatch(const char* psz, const char* mask);
 bool WildcardMatch(const std::string& str, const std::string& mask);
+int FileTruncate(FILE *fileout, uint length);
 int FileCommit(FILE *fileout);
 int GetFilesize(FILE* file);
 void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length);

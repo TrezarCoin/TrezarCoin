@@ -135,16 +135,17 @@ static const uint64 nMinDiskSpace = 52428800;
 class CReserveKey;
 class CCoinsDB;
 class CBlockTreeDB;
-class CDiskBlockPos;
+struct CDiskBlockPos;
 class CCoins;
 class CTxUndo;
 class CCoinsView;
 class CCoinsViewCache;
 
+void InitTestnet();
 void RegisterWallet(CWallet* pwalletIn);
 void UnregisterWallet(CWallet* pwalletIn);
 void SyncWithWallets(const uint256 &hash, const CTransaction& tx, const CBlock* pblock = NULL, bool fUpdate = false, bool fConnect = true);
-bool ProcessBlock(CNode* pfrom, CBlock* pblock);
+bool ProcessBlock(CNode* pfrom, CBlock* pblock, CDiskBlockPos *dbp = NULL);
 bool CheckDiskSpace(uint64 nAdditionalBytes=0);
 FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 FILE* OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
@@ -153,7 +154,7 @@ void PrintBlockTree();
 CBlockIndex* FindBlockByHeight(int nHeight);
 bool ProcessMessages(CNode* pfrom);
 bool SendMessages(CNode* pto, bool fSendTrickle);
-bool LoadExternalBlockFile(FILE* fileIn);
+bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp = NULL);
 
 bool CheckProofOfWork(uint256 hashPoW, uint nBits);
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake, bool fPrettyPrint);
@@ -175,9 +176,7 @@ void ResendWalletTransactions(bool fForce=false);
 
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
-class CDiskBlockPos
-{
-public:
+struct CDiskBlockPos {
     int nFile;
     unsigned int nPos;
 
@@ -185,6 +184,15 @@ public:
         READWRITE(VARINT(nFile));
         READWRITE(VARINT(nPos));
     )
+
+    CDiskBlockPos() {
+        SetNull();
+    }
+
+    CDiskBlockPos(int nFileIn, uint nPosIn) {
+        nFile = nFileIn;
+        nPos = nPosIn;
+    }
 
     friend bool operator==(const CDiskBlockPos &a, const CDiskBlockPos &b) {
         return (a.nFile == b.nFile && a.nPos == b.nPos);
@@ -196,6 +204,10 @@ public:
 
     void SetNull() { nFile = -1; nPos = 0; }
     bool IsNull() const { return (nFile == -1); }
+
+    std::string ToString() const {
+        return(strprintf("CBlockDiskPos(nFile=%i, nPos=%i)", nFile, nPos));
+    }
 };
 
 
@@ -1581,7 +1593,7 @@ public:
     bool CheckBlock() const;
 
     // Store block on disk
-    bool AcceptBlock();
+    bool AcceptBlock(CDiskBlockPos *dbp = NULL);
 
     /* Calculates block coin age related information */
     bool GetCoinAge(uint64 *pCoinAge=NULL, uint64 *pCoinAgeFails=NULL) const;

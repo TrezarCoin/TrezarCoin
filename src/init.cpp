@@ -316,7 +316,7 @@ std::string HelpMessage()
         "  -salvagewallet         " + _("Attempt to recover private keys from a corrupt wallet.dat") + "\n" +
         "  -checkblocks=<n>       " + _("How many blocks to check at startup (default: 2500, 0 = all)") + "\n" +
         "  -checklevel=<n>        " + _("How thorough the block verification is (0-6, default: 1)") + "\n" +
-        "  -loadblock=<file>      " + _("Imports blocks from external blk000?.dat file") + "\n" +
+        "  -reindex               " + _("Rebuild block chain index from existing block chain files") + "\n" +
 
         "\n" + _("Block creation options:") + "\n" +
         "  -blockminsize=<n>      "   + _("Set minimum block size in bytes (default: 0)") + "\n" +
@@ -779,6 +779,10 @@ bool AppInit2()
 
     // ********************************************************* Step 7: load blockchain
 
+    InitTestnet();
+
+    fReindex = GetBoolArg("-reindex", false);
+
     if (!bitdb.Open(GetDataDir()))
     {
         string msg = strprintf(_("Error initializing database environment %s!"
@@ -787,24 +791,58 @@ bool AppInit2()
         return InitError(msg);
     }
 
-    uiInterface.InitMessage(_("Loading block index..."));
-    printf("Loading block index...\n");
     nStart = GetTimeMillis();
     pblocktree = new CBlockTreeDB();
     pcoinsdbview = new CCoinsViewDB();
     pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
 
-    if (!LoadBlockIndex())
-        return InitError(_("Error loading block index, see debug.log for details"));
-
-    // as LoadBlockIndex can take several minutes, it's possible the user
-    // requested to kill bitcoin-qt during the last operation. If so, exit.
-    // As the program has not fully started yet, Shutdown() is possibly overkill.
-    if (fRequestShutdown)
-    {
-        printf("Shutdown requested. Exiting.\n");
-        return false;
+    if(!fReindex) {
+        uiInterface.InitMessage(_("Loading the block index..."));
+        printf("Loading the block index...\n");
+        if(!LoadBlockIndex()) {
+            fReindex = true;
+            mapBlockIndex.clear();
+        }
     }
+
+    if(fReindex) {
+        /* Destroy the old block index and UTXO DB */
+        delete(pblocktree);
+        delete(pcoinsdbview);
+        delete(pcoinsTip);
+        DestroyDB(strDataDir + "/blktree", leveldb::Options());
+        DestroyDB(strDataDir + "/coins", leveldb::Options());
+        /* Initialise the new block index and UTXO DB */
+        pblocktree = new CBlockTreeDB();
+        pcoinsdbview = new CCoinsViewDB();
+        pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
+        /* Proceed to reindexing */
+        uiInterface.InitMessage(_("Reindexing the block chain..."));
+        int nFile = 0;
+        while(1) {
+            CDiskBlockPos pos(nFile, 0);
+            FILE *file = OpenBlockFile(pos, true);
+            if(!file) break;
+            printf("Reindexing the block file blk%05d.dat...\n", nFile);
+            LoadExternalBlockFile(file, &pos);
+            nFile++;
+        }
+        fReindex = false;
+        printf("Reindexing completed in %" PRI64d "ms\n", GetTimeMillis() - nStart);
+        /* Attempt to load the block index */
+        nStart = GetTimeMillis();
+        uiInterface.InitMessage(_("Loading the block index..."));
+        if(!LoadBlockIndex()) {
+            InitError(_("Error loading the block index, reindexing failed"));
+            return(false);
+        }
+    }
+
+    if(fRequestShutdown) {
+        printf("Shutting down...\n");
+        return(false);
+    }
+
     printf(" block index %15" PRI64d "ms\n", GetTimeMillis() - nStart);
 
     if (GetBoolArg("-printblockindex") || GetBoolArg("-printblocktree"))
@@ -922,27 +960,12 @@ bool AppInit2()
     // ********************************************************* Step 9: import blocks
 
     // scan for better chains in the block chain database, that are not yet connected in the active best chain
-    uiInterface.InitMessage(_("Importing blocks from block database..."));
     if (!ConnectBestBlock())
         strErrors << "Failed to connect best block";
 
-    if (mapArgs.count("-loadblock"))
-    {
-        uiInterface.InitMessage(_("Importing blockchain data file."));
-
-        BOOST_FOREACH(string strFile, mapMultiArgs["-loadblock"])
-        {
-            FILE *file = fopen(strFile.c_str(), "rb");
-            if (file)
-                LoadExternalBlockFile(file);
-        }
-        exit(0);
-    }
-
     filesystem::path pathBootstrap = GetDataDir() / "bootstrap.dat";
-    if (filesystem::exists(pathBootstrap)) {
-        uiInterface.InitMessage(_("Importing bootstrap blockchain data file."));
-
+    if((mapBlockIndex.size() == 1) && filesystem::exists(pathBootstrap)) {
+        uiInterface.InitMessage(_("Bootstrapping from a block chain data file..."));
         FILE *file = fopen(pathBootstrap.string().c_str(), "rb");
         if (file) {
             filesystem::path pathBootstrapOld = GetDataDir() / "bootstrap.dat.old";

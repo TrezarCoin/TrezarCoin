@@ -83,6 +83,7 @@ CMedianFilter<int64> vTimeOffsets(200,0);
 bool fReopenDebugLog = false;
 bool fStakeGen = true;
 bool fStakingOnly = false;
+bool fReindex = false;
 
 /* NeoScrypt related */
 bool fNeoScrypt = false;
@@ -1145,25 +1146,46 @@ bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest)
 #endif /* WIN32 */
 }
 
-/* Returns zero on success and -1 on failure */
+/* Truncates a file to a length specified;
+ * returns zero on success and -1 on failure */
+int FileTruncate(FILE *fileout, uint length) {
+    int ret, fd;
+
+#if defined(WIN32)
+    fd = _fileno(fileout);
+    ret = _chsize(fd, length);
+#else
+    fd = fileno(fileout);
+    ret = ftruncate(fd, length);
+#endif
+    return(ret);
+}
+
+/* Syncronises a file with a medium;
+ * returns zero on success and -1 on failure */
 int FileCommit(FILE *fileout) {
     int ret, fd;
 
     /* fflush() is a caller's responsibility */
 
     /* Get a file descriptor and perform the synchronisation */
-#if (WIN32)
+#if defined(WIN32)
     fd = _fileno(fileout);
     ret = _commit(fd);
 #else
     fd = fileno(fileout);
-#if (__linux__)
-    ret = fdatasync(fd);
-#elif (__APPLE__) && (F_FULLFSYNC)
+#if defined(__APPLE__)
+#if defined(F_FULLFSYNC)
     /* F_FULLFSYNC means fsync with device flush to medium;
      * works with HFS only as of 10.4, so fail over to fsync */
     ret = fcntl(fd, F_FULLFSYNC, 0);
-    if(!ret) ret = fsync(fd);
+    if(ret) ret = fsync(fd);
+#else
+    ret = fsync(fd);
+#endif /* __APPLE__ */
+#elif defined(HAVE_FDATASYNC)
+    /* IEEE Std 1003.1b-1993 aka POSIX.1b; not for MacOS X though */
+    ret = fdatasync(fd);
 #else
     ret = fsync(fd);
 #endif
