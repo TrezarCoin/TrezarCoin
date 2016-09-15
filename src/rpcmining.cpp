@@ -344,7 +344,7 @@ Value getblocktemplate(const Array& params, bool fHelp) {
     result.push_back(Pair("coinbaseaux", aux));
     result.push_back(Pair("coinbasevalue", (boost::int64_t)pblock->vtx[0].vout[0].nValue));
     result.push_back(Pair("target", hashTarget.GetHex()));
-    result.push_back(Pair("mintime", (boost::int64_t)(pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1)));
+    result.push_back(Pair("mintime", (boost::int64_t)(pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME_NEW + 1)));
     result.push_back(Pair("mutable", aMutable));
     result.push_back(Pair("noncerange", "00000000ffffffff"));
     result.push_back(Pair("sigoplimit", (boost::int64_t)MAX_BLOCK_SIGOPS));

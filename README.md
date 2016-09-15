@@ -8,7 +8,7 @@ Orbitcoin (ORB) is a decentralised open source digital currency.
  - block hashing is BLAKE2s
  - PoW hashing is NeoScrypt
  - PoS hashing is SHA-256d
- - 1 minute combined block target (3 minutes for PoW, 1.5 minutes for PoS)
+ - 2 minutes combined block target (6 minutes for PoW, 3 minutes for PoS)
  - retargets every block using Orbitcoin Super Shield (OSS)
  - time warp and instamining protection
  - advanced checkpointing against 51% attacks

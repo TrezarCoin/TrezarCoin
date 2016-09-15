@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = orbitcoin-qt
-VERSION = 1.5.1.1
+VERSION = 1.6.0.0
 INCLUDEPATH += src src/json src/qt
 QT += core gui network
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE

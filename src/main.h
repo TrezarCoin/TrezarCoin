@@ -47,7 +47,8 @@ static const unsigned int BLOCKFILE_CHUNK_SIZE = 0x1000000; // 16 MiB
 static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 static const unsigned int MEMPOOL_HEIGHT = 0x7FFFFFFF;
 
-static const uint BLOCK_LIMITER_TIME = 90;
+static const uint BLOCK_LIMITER_TIME_OLD = 90;
+static const uint BLOCK_LIMITER_TIME_NEW = 240;
 
 static const int64 MIN_TX_FEE = 0.1 * CENT;
 static const int64 MIN_RELAY_TX_FEE = 0.1 * CENT;
@@ -69,6 +70,8 @@ static const int nBonanzaOne            = 660000;
 static const int nBonanzaTwo            = 760000;
 static const int nForkSix               = 1010000;
 static const uint nStakeMinAgeForkTime  = 1419076800;  /* 20 Dec 2014 12:00:00 GMT */
+static const int nForkSeven             = 2000000;
+static const uint nForkThreeTime        = 1475323200;  /*  1 Oct 2016 12:00:00 GMT */
 
 /* Testnet hard forks */
 static const uint nTestnetForkOneTime   = 1393473600;  /* 27 Feb 2014 04:00:00 GMT */
@@ -76,6 +79,8 @@ static const int nTestnetForkTwo        = 1850;
 static const int nTestnetForkThree      = 2000;
 static const int nTestnetForkFour       = 3400;
 static const int nTestnetForkFive       = 4000;
+static const int nTestnetForkSix        = 4100;
+static const uint nTestnetForkTwoTime   = 1473811200;  /* 14 Sep 2016 00:00:00 GMT */
 
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }

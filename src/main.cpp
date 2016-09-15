@@ -1073,7 +1073,7 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees) {
     } else {
         if(nHeight >  nForkFour)   nSubsidy = 2 * COIN;
         if(nHeight >  nBonanzaOne) nSubsidy = 1 * COIN;
-        if(nHeight >  2000000)     nSubsidy >>= ((nHeight / 1000000) - 1);
+        if(nHeight >  2000000)     nSubsidy >>= (((nHeight - 1) / 500000) - 4);
     }
 
     return(nSubsidy + nFees);
@@ -1090,7 +1090,7 @@ int64 GetProofOfStakeReward(int nHeight, int64 nFees) {
         if(nHeight >  nForkFour)   nSubsidy = 10 * COIN;
         if(nHeight >  nBonanzaOne) nSubsidy = 5 * COIN;
         if(nHeight >  nBonanzaTwo) nSubsidy = 1 * COIN;
-        if(nHeight >  2000000)     nSubsidy >>= ((nHeight / 1000000) - 1);
+        if(nHeight >  2000000)     nSubsidy >>= (((nHeight - 1) / 500000) - 4);
     }
 
     return(nSubsidy + nFees);
@@ -1191,18 +1191,33 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 
         /* Orbitcoin Super Shield (OSS);
          * retargets every block using two averaging windows of 5 and 20 blocks,
-         * 0.25 damping and +1% to -2% limiting */
+         * 0.25 damping and further oscillation limiting */
 
         int64 nIntervalShort = 5, nIntervalLong = 20, nTargetSpacing, nTargetTimespan,
               nActualTimespan, nActualTimespanShort, nActualTimespanLong, nActualTimespanAvg,
               nActualTimespanMax, nActualTimespanMin;
 
-        if(fProofOfStake) {
-          if(nHeight > nBonanzaTwo) nTargetSpacing = 3 * nBaseTargetSpacing;
-          else nTargetSpacing = 4 * nBaseTargetSpacing;
+        if(fTestNet) {
+            if(nHeight > nTestnetForkSix) {
+                if(fProofOfStake) nTargetSpacing = 6 * nBaseTargetSpacing;
+                else nTargetSpacing = 12 * nBaseTargetSpacing;
+            } else {
+                if(fProofOfStake) nTargetSpacing = 4 * nBaseTargetSpacing;
+                else nTargetSpacing = 2 * nBaseTargetSpacing;
+            }
         } else {
-          if(nHeight > nBonanzaTwo) nTargetSpacing = 6 * nBaseTargetSpacing;
-          else nTargetSpacing = 2 * nBaseTargetSpacing;
+            if(nHeight > nForkSeven) {
+                if(fProofOfStake) nTargetSpacing = 6 * nBaseTargetSpacing;
+                else nTargetSpacing = 12 * nBaseTargetSpacing;
+            } else {
+                if(fProofOfStake) {
+                    if(nHeight > nBonanzaTwo) nTargetSpacing = 3 * nBaseTargetSpacing;
+                    else nTargetSpacing = 4 * nBaseTargetSpacing;
+                } else {
+                    if(nHeight > nBonanzaTwo) nTargetSpacing = 6 * nBaseTargetSpacing;
+                    else nTargetSpacing = 2 * nBaseTargetSpacing;
+                }
+            }
         }
 
         nTargetTimespan = nTargetSpacing * nIntervalLong;
@@ -1220,10 +1235,18 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
         nActualTimespanLong = (int64)pindexPrev->nTime - (int64)pindexLong->nTime;
 
         /* Time warp protection */
-        nActualTimespanShort = max(nActualTimespanShort, (nTargetSpacing * nIntervalShort * 3 / 4));
-        nActualTimespanShort = min(nActualTimespanShort, (nTargetSpacing * nIntervalShort * 4 / 3));
-        nActualTimespanLong  = max(nActualTimespanLong,  (nTargetSpacing * nIntervalLong  * 3 / 4));
-        nActualTimespanLong  = min(nActualTimespanLong,  (nTargetSpacing * nIntervalLong  * 4 / 3));
+        if((fTestNet && (nHeight > nTestnetForkSix)) ||
+          (!fTestNet && (nHeight > nForkSeven))) {
+            nActualTimespanShort = max(nActualTimespanShort, (nTargetSpacing * nIntervalShort / 2));
+            nActualTimespanShort = min(nActualTimespanShort, (nTargetSpacing * nIntervalShort * 2));
+            nActualTimespanLong  = max(nActualTimespanLong,  (nTargetSpacing * nIntervalLong  / 2));
+            nActualTimespanLong  = min(nActualTimespanLong,  (nTargetSpacing * nIntervalLong  * 2));
+        } else {
+            nActualTimespanShort = max(nActualTimespanShort, (nTargetSpacing * nIntervalShort * 3 / 4));
+            nActualTimespanShort = min(nActualTimespanShort, (nTargetSpacing * nIntervalShort * 4 / 3));
+            nActualTimespanLong  = max(nActualTimespanLong,  (nTargetSpacing * nIntervalLong  * 3 / 4));
+            nActualTimespanLong  = min(nActualTimespanLong,  (nTargetSpacing * nIntervalLong  * 4 / 3));
+        }
 
         /* The average of both windows */
         nActualTimespanAvg = (nActualTimespanShort * (nIntervalLong / nIntervalShort) + nActualTimespanLong) / 2;
@@ -1244,9 +1267,17 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
               nActualTimespanLong, nActualTimespanAvg, nActualTimespan);
         }
 
-        /* Difficulty limiters */
-        nActualTimespanMax = nTargetTimespan * 102 / 100;
-        nActualTimespanMin = nTargetTimespan * 100 / 101;
+        /* Oscillation limiters */
+        if((fTestNet && (nHeight > nTestnetForkSix)) ||
+          (!fTestNet && (nHeight > nForkSeven))) {
+            /* +5% to -10% */
+            nActualTimespanMin = nTargetTimespan * 100 / 105;
+            nActualTimespanMax = nTargetTimespan * 110 / 100;
+        } else {
+            /* +1% to -2% */
+            nActualTimespanMin = nTargetTimespan * 100 / 101;
+            nActualTimespanMax = nTargetTimespan * 102 / 100;
+        }
         if(nActualTimespan < nActualTimespanMin) nActualTimespan = nActualTimespanMin;
         if(nActualTimespan > nActualTimespanMax) nActualTimespan = nActualTimespanMax;
 
@@ -2388,11 +2419,6 @@ bool CBlock::AcceptBlock(CDiskBlockPos *dbp) {
           return(DoS(5, error("AcceptBlock() : block %s height %d has a time stamp too far in the future",
             hash.ToString().substr(0,20).c_str(), nHeight)));
 
-        /* Basic block limiter */
-        if(nTime <= ((uint)pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME))
-          return(DoS(5, error("AcceptBlock() : block %s height %d rejected by the block limiter",
-            hash.ToString().substr(0,20).c_str(), nHeight)));
-
         /* Check for time stamp (past limit #2) */
         if(nTime <= (pindexPrev->nTime - 5 * 60))
           return(DoS(20, error("AcceptBlock() : block %s height %d has a time stamp too far in the past",
@@ -2400,13 +2426,37 @@ bool CBlock::AcceptBlock(CDiskBlockPos *dbp) {
 
     }
 
-    if((nHeight > nForkFive) && !IsInitialBlockDownload()) {
+    if(!IsInitialBlockDownload()) {
 
-        /* Future travel detector for the block limiter */
-        if((nTime > (nOurTime + 60)) &&
-          ((pindexPrev->GetAverageTimePast(5, 20) + BLOCK_LIMITER_TIME) > nOurTime))
-          return(DoS(5, error("AcceptBlock() : block %s height %d rejected by the future travel detector",
-            hash.ToString().substr(0,20).c_str(), nHeight)));
+        /* Old block limiter; to be disabled after nForkSeven */
+        if((nHeight > nForkThree) &&
+          (nTime <= ((uint)pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME_OLD))) {
+            return(DoS(5, error("AcceptBlock() : block %s height %d rejected by the block limiter (old)",
+              hash.ToString().substr(0,20).c_str(), nHeight)));
+        }
+
+        /* Old future travel detector for the block limiter; to be disabled after nForkSeven */
+        if((nHeight > nForkFive) &&
+          (nTime > (nOurTime + 60)) &&
+          ((pindexPrev->GetAverageTimePast(5, 20) + BLOCK_LIMITER_TIME_OLD) > nOurTime)) {
+            return(DoS(5, error("AcceptBlock() : block %s height %d rejected by the future travel detector (old)",
+              hash.ToString().substr(0,20).c_str(), nHeight)));
+        }
+
+        /* New block limiter */
+        if((nHeight > nForkSeven) &&
+          (nTime <= ((uint)pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME_NEW))) {
+            return(DoS(5, error("AcceptBlock() : block %s height %d rejected by the block limiter",
+              hash.ToString().substr(0,20).c_str(), nHeight)));
+        }
+
+        /* New future travel detector for the block limiter */
+        if((nHeight > nForkSeven) &&
+          (nTime > (nOurTime + 60)) &&
+          ((pindexPrev->GetAverageTimePast(5, 40) + BLOCK_LIMITER_TIME_NEW) > nOurTime)) {
+            return(DoS(5, error("AcceptBlock() : block %s height %d rejected by the future travel detector",
+              hash.ToString().substr(0,20).c_str(), nHeight)));
+        }
 
     }
 
@@ -2485,13 +2535,102 @@ uint256 CBlockIndex::GetBlockTrust() const
 
     int64 time = GetBlockTime();
 
-    /* Old protocol */
+    /* First protocol (PPC style) */
 
     if((fTestNet && (time < nTestnetForkOneTime)) ||
       (!fTestNet && (time < nForkTwoTime)))
         return (IsProofOfStake()? ((CBigNum(1)<<256) / (bnTarget+1)).getuint256() : 1);
 
-    /* New protocol */
+    /* Third protocol (ORB style) */
+
+    if((fTestNet && (time >= nTestnetForkTwoTime)) ||
+      (!fTestNet && (time >= nForkThreeTime))) {
+
+        uint256 nBlockTrust;
+
+        if(IsProofOfWork()) {
+
+            /* Difficulty is the trust base for PoW */
+            uint256 nBaseTrust = ((bnProofOfWorkLimit + 1) / (bnTarget + 1)).getuint256();
+
+            /* Simple trust for the first 10 blocks */
+            if(!pprev || (pprev->nHeight < 10))
+              return(nBaseTrust);
+
+            const CBlockIndex *pindexP1 = pprev;
+            const CBlockIndex *pindexP2 = pindexP1->pprev;
+
+            if(pindexP1->IsProofOfStake()) {
+                /* 100% trust for PoW following PoS */
+                nBlockTrust = nBaseTrust;
+            } else {
+                if(pindexP2->IsProofOfStake()) {
+                    /* 50% trust for PoS->PoW->[PoW] */
+                    nBlockTrust = (nBaseTrust >> 1);
+                } else {
+                    /* 25% trust for PoW->PoW->[PoW] and so on */
+                    nBlockTrust = (nBaseTrust >> 2);
+                }
+            }
+
+        } else {
+
+            const CBlockIndex *pindexP1 = pprev;
+            const CBlockIndex *pindexP2 = pindexP1->pprev;
+            const CBlockIndex *pindexP3 = pindexP2->pprev;
+
+            /* PoS difficulty is an unreliable source for trust scoring;
+             * use the full trust of the previous PoW block as a basis instead */
+
+            uint256 nPrevTrust = pindexP1->nChainTrust - pindexP2->nChainTrust;
+
+            if(pindexP1->IsProofOfWork()) {
+                /* 200% trust for PoS following PoW */
+                if(pindexP2->IsProofOfStake()) {
+                    /* PoS->PoW->[PoS]: 100% to 200% */
+                    nBlockTrust = (nPrevTrust << 1);
+                } else {
+                    if(pindexP3->IsProofOfStake()) {
+                        /* PoS->PoW->PoW->[PoS]: 50% to 200% */
+                        nBlockTrust = (nPrevTrust << 2);
+                    } else {
+                        /* PoW->PoW->PoW->PoS: 25% to 200% */
+                        nBlockTrust = (nPrevTrust << 3);
+                    }
+                }
+            } else {
+                /* PoS following at least one PoS */
+                if(pindexP2->IsProofOfWork()) {
+                    /* 150% of trust for PoW->PoS->[PoS] */
+                    nBlockTrust = (CBigNum(nPrevTrust) * 3 / 4).getuint256();
+                } else {
+                    /* PoS following at least two PoS */
+                    if(pindexP3->IsProofOfWork()) {
+                        /* 100% of trust for PoW->PoS->PoS->[PoS] */
+                        nBlockTrust = (CBigNum(nPrevTrust) * 2 / 3).getuint256();
+                    } else {
+                        /* PoS following at least three PoS */
+                        const CBlockIndex *pindexP4 = pindexP3->pprev;
+                        if(pindexP4->IsProofOfWork()) {
+                            /* 50% of trust for PoW->PoS->PoS->PoS->[PoS] */
+                            nBlockTrust = (nPrevTrust >> 1);
+                        } else {
+                            /* 50% of trust for PoS->PoS->PoS->PoS->[PoS] */
+                            nBlockTrust = nPrevTrust;
+                        }
+                    }
+                }
+            }
+
+        }
+
+        if(nBlockTrust < (uint256)1) nBlockTrust = (uint256)1;
+
+        return(nBlockTrust);
+
+    }
+
+    /* Second protocol (NVC style) */
 
     // Calculate work amount for block
     uint256 nPoWTrust = (CBigNum(nPoWBase) / (bnTarget+1)).getuint256();
@@ -2715,13 +2854,13 @@ bool CBlock::SignBlock(CWallet& wallet, int64 nStakeReward) {
     {
         if (wallet.CreateCoinStake(wallet, nBits, nSearchTime-nLastCoinStakeSearchTime, txCoinStake, key, nStakeReward))
         {
-            if(txCoinStake.nTime >= max((pindexBest->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1),
+            if(txCoinStake.nTime >= max((pindexBest->GetMedianTimePast() + BLOCK_LIMITER_TIME_NEW + 1),
               PastDrift(pindexBest->GetBlockTime()))) {
 
                 // make sure coinstake would meet timestamp protocol
                 //    as it would be the same as the block timestamp
                 vtx[0].nTime = nTime = txCoinStake.nTime;
-                nTime = max((pindexBest->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1), GetMaxTransactionTime());
+                nTime = max((pindexBest->GetMedianTimePast() + BLOCK_LIMITER_TIME_NEW + 1), GetMaxTransactionTime());
                 nTime = max(GetBlockTime(), PastDrift(pindexBest->GetBlockTime()));
 
                 // we have to make sure that we have no future timestamps in
@@ -3601,9 +3740,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return true;
         }
 
-        /* Disconnect all obsolete clients after 16 May 2014 12:00:00 GMT */
+        /* Disconnect all obsolete clients after 1 Oct 2016 12:00:00 GMT */
         uint nAdjTime = GetAdjustedTime();
-        if(nAdjTime > 1400241600) {
+        if(nAdjTime > nForkThreeTime) {
             if(pfrom->nVersion < MIN_PROTOCOL_VERSION) {
                 printf("obsolete node %s with client %d, disconnecting\n",
                   pfrom->addr.ToString().c_str(), pfrom->nVersion);
