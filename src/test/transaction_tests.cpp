@@ -1,6 +1,10 @@
 #include <map>
 #include <string>
+
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/test/unit_test.hpp>
+
 #include "json/json_spirit_writer_template.h"
 
 #include "wallet.h"
@@ -10,17 +14,40 @@ using namespace json_spirit;
 
 // In script_tests.cpp
 extern Array read_json(const std::string& filename);
-extern CScript ParseScript(string s);
+extern bool ParseScript(const std::string &s, CScript &r);
+
+uint ParseScriptFlags(string strFlags){
+    uint flags = 0;
+    vector<string> words;
+
+    boost::algorithm::split(words, strFlags, boost::algorithm::is_any_of(","));
+
+    static map<string, uint> mapFlagNames;
+    if(mapFlagNames.size() == 0) {
+        mapFlagNames["NONE"] = SCRIPT_VERIFY_NONE;
+        mapFlagNames["P2SH"] = SCRIPT_VERIFY_P2SH;
+        mapFlagNames["STRICTENC"] = SCRIPT_VERIFY_STRICTENC;
+        mapFlagNames["LOCKTIME"] = SCRIPT_VERIFY_LOCKTIME;
+    }
+
+    BOOST_FOREACH(string word, words) {
+        if(!mapFlagNames.count(word))
+          BOOST_ERROR("Bad test: unknown verification flag '" << word << "'");
+        flags |= mapFlagNames[word];
+    }
+
+    return(flags);
+}
 
 BOOST_AUTO_TEST_SUITE(transaction_tests)
 
-#if (0)
 BOOST_AUTO_TEST_CASE(tx_valid)
 {
     // Read tests from test/data/tx_valid.json
     // Format is an array of arrays
     // Inner arrays are either [ "comment" ]
-    // or [[[prevout hash, prevout index, prevout scriptPubKey], [input 2], ...],"], serializedTransaction, enforceP2SH
+    // or [[[prevout hash, prevout index, prevout scriptPubKey], [input 2], ...],"],
+    // serialised transaction, verbose verification flags
     // ... where all scripts are stringified scripts.
     Array tests = read_json("tx_valid.json");
 
@@ -30,8 +57,7 @@ BOOST_AUTO_TEST_CASE(tx_valid)
         string strTest = write_string(tv, false);
         if (test[0].type() == array_type)
         {
-            if (test.size() != 3 || test[1].type() != str_type || test[2].type() != bool_type)
-            {
+            if((test.size() != 3) || (test[1].type() != str_type) || (test[2].type() != str_type)) {
                 BOOST_ERROR("Bad test: " << strTest);
                 continue;
             }
@@ -53,7 +79,12 @@ BOOST_AUTO_TEST_CASE(tx_valid)
                     break;
                 }
 
-                mapprevOutScriptPubKeys[COutPoint(uint256(vinput[0].get_str()), vinput[1].get_int())] = ParseScript(vinput[2].get_str());
+                CScript scriptPubKey = CScript();
+                std::string scriptPubKeyString = vinput[2].get_str();
+                if(!ParseScript(scriptPubKeyString, scriptPubKey))
+                  BOOST_ERROR("scriptPubKey parse error: " << scriptPubKeyString);
+                mapprevOutScriptPubKeys[COutPoint(uint256(vinput[0].get_str()),
+                  vinput[1].get_int())] = scriptPubKey;
             }
             if (!fValid)
             {
@@ -76,8 +107,9 @@ BOOST_AUTO_TEST_CASE(tx_valid)
                     break;
                 }
 
+                uint flags = ParseScriptFlags(test[2].get_str());
                 BOOST_CHECK_MESSAGE(VerifyScript(tx.vin[i].scriptSig,
-                  mapprevOutScriptPubKeys[tx.vin[i].prevout], tx, i, test[2].get_bool(), false, 0), strTest);
+                  mapprevOutScriptPubKeys[tx.vin[i].prevout], tx, i, flags, 0), strTest);
             }
         }
     }
@@ -98,8 +130,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid)
         string strTest = write_string(tv, false);
         if (test[0].type() == array_type)
         {
-            if (test.size() != 3 || test[1].type() != str_type || test[2].type() != bool_type)
-            {
+            if((test.size() != 3) || (test[1].type() != str_type) || (test[2].type() != str_type)) {
                 BOOST_ERROR("Bad test: " << strTest);
                 continue;
             }
@@ -121,7 +152,12 @@ BOOST_AUTO_TEST_CASE(tx_invalid)
                     break;
                 }
 
-                mapprevOutScriptPubKeys[COutPoint(uint256(vinput[0].get_str()), vinput[1].get_int())] = ParseScript(vinput[2].get_str());
+                CScript scriptPubKey = CScript();
+                std::string scriptPubKeyString = vinput[2].get_str();
+                if(!ParseScript(scriptPubKeyString, scriptPubKey))
+                  BOOST_ERROR("scriptPubKey parse error: " << scriptPubKeyString);
+                mapprevOutScriptPubKeys[COutPoint(uint256(vinput[0].get_str()),
+                  vinput[1].get_int())] = scriptPubKey;
             }
             if (!fValid)
             {
@@ -144,15 +180,15 @@ BOOST_AUTO_TEST_CASE(tx_invalid)
                     break;
                 }
 
-                fValid = VerifyScript(tx.vin[i].scriptSig, mapprevOutScriptPubKeys[tx.vin[i].prevout],
-                  tx, i, test[2].get_bool(), false, 0);
+                uint flags = ParseScriptFlags(test[2].get_str());
+                fValid = VerifyScript(tx.vin[i].scriptSig,
+                  mapprevOutScriptPubKeys[tx.vin[i].prevout], tx, i, flags, 0);
             }
 
             BOOST_CHECK_MESSAGE(!fValid, strTest);
         }
     }
 }
-#endif
 
 BOOST_AUTO_TEST_CASE(basic_transaction_tests) {
 

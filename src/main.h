@@ -84,8 +84,6 @@ static const uint nTestnetForkTwoTime   = 1473811200;  /* 14 Sep 2016 00:00:00 G
 
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
-// Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
-static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;

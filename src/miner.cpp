@@ -246,15 +246,10 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
             if ((tx.nTime > nAdjTime) || (fProofOfStake && tx.nTime > pblock->vtx[0].nTime))
                 continue;
 
-            // Use advanced fee calculation after the chain switch
-            if(fTestNet || (nAdjTime > nForkTwoTime)) {
-               // Orbitcoin: low priority transactions up to 500 bytes in size
-               // are free unless they get caught by the dust spam filter
-               bool fAllowFree = ((nBlockSize + nTxSize < 1500) || CTransaction::AllowFree(dPriority));
-               nMinFee = tx.GetMinFee(nBlockSize, fAllowFree, GMF_BLOCK);
-             } else {
-               nMinFee = tx.GetMinFee(nBlockSize, false, GMF_BLOCK);
-             }
+            /* Low priority transactions up to 500 bytes in size
+             * are free unless they get caught by the dust spam filter */
+            bool fAllowFree = ((nBlockSize + nTxSize < 1500) || CTransaction::AllowFree(dPriority));
+            nMinFee = tx.GetMinFee(nBlockSize, fAllowFree, GMF_BLOCK);
 
             // Skip free transactions if we're past the minimum block size:
             if (fSortedByFee && (dFeePerKb < nMinTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
@@ -270,8 +265,10 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
                 std::make_heap(vecPriority.begin(), vecPriority.end(), comparer);
             }
 
-            if(!tx.CheckInputs(viewTemp, CS_ALWAYS, SCRIPT_VERIFY_P2SH))
-                continue;
+            /* Script verification has been passed already while accepting
+             * transactions to the memory pool */
+            if(!tx.CheckInputs(viewTemp, CS_ALWAYS, SCRIPT_VERIFY_NONE))
+              continue;
 
             int64 nTxFees = tx.GetValueIn(viewTemp)-tx.GetValueOut();
             if (nTxFees < nMinFee)
@@ -341,6 +338,11 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
         pblock->nTime          = max(pblock->GetBlockTime(), PastDrift(pindexPrev->GetBlockTime()));
         if(!fProofOfStake) pblock->UpdateTime(pindexPrev);
         pblock->nNonce         = 0;
+
+        if((fTestNet && (pindexPrev->nHeight >= nTestnetForkSix)) ||
+          (!fTestNet && (pindexPrev->nHeight >= nForkSeven))) {
+            pblock->nVersion = 3;
+        }
     }
 
     return(pblock);

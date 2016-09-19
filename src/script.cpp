@@ -28,11 +28,11 @@ static const CBigNum bnZero(0);
 static const CBigNum bnOne(1);
 static const CBigNum bnFalse(0);
 static const CBigNum bnTrue(1);
-static const size_t nMaxNumSize = 4;
+static const size_t nDefaultMaxNumSize = 4;
 
 
-CBigNum CastToBigNum(const valtype& vch)
-{
+CBigNum CastToBigNum(const valtype &vch, const size_t nMaxNumSize = nDefaultMaxNumSize) {
+
     if (vch.size() > nMaxNumSize)
         throw runtime_error("CastToBigNum() : overflow");
     // Get rid of extra leading zeros
@@ -228,10 +228,10 @@ const char* GetOpName(opcodetype opcode)
     case OP_CHECKSIGVERIFY         : return "OP_CHECKSIGVERIFY";
     case OP_CHECKMULTISIG          : return "OP_CHECKMULTISIG";
     case OP_CHECKMULTISIGVERIFY    : return "OP_CHECKMULTISIGVERIFY";
+    case OP_CHECKLOCKTIMEVERIFY    : return "OP_CHECKLOCKTIMEVERIFY";  /* former OP_NOP2 */
 
     // expanson
     case OP_NOP1                   : return "OP_NOP1";
-    case OP_NOP2                   : return "OP_NOP2";
     case OP_NOP3                   : return "OP_NOP3";
     case OP_NOP4                   : return "OP_NOP4";
     case OP_NOP5                   : return "OP_NOP5";
@@ -480,10 +480,79 @@ bool EvalScript(vector<vector<uchar> > &stack, const CScript &script, const CTra
                 //
                 // Control
                 //
-                case OP_NOP:
-                case OP_NOP1: case OP_NOP2: case OP_NOP3: case OP_NOP4: case OP_NOP5:
-                case OP_NOP6: case OP_NOP7: case OP_NOP8: case OP_NOP9: case OP_NOP10:
-                break;
+                case(OP_NOP):
+                    break;
+
+                case(OP_CHECKLOCKTIMEVERIFY): {
+                    /* Treat as OP_NOP2 if disabled */
+                    if(!(flags & SCRIPT_VERIFY_LOCKTIME))
+                      break;
+
+                    if(stack.size() < 1)
+                      return(false);
+
+                    // Note that elsewhere numeric opcodes are limited to
+                    // operands in the range -2**31+1 to 2**31-1, however it is
+                    // legal for opcodes to produce results exceeding that
+                    // range. This limitation is implemented by CScriptNum's
+                    // default 4-byte limit.
+                    //
+                    // If we kept to that limit we'd have a year 2038 problem,
+                    // even though the nLockTime field in transactions
+                    // themselves is uint32 which only becomes meaningless
+                    // after the year 2106.
+                    //
+                    // Thus as a special case we tell CastToBigNum to accept up
+                    // to 5-byte bignums, which are good until 2**39-1, well
+                    // beyond the 2**32-1 limit of the nLockTime field itself.
+                    const CBigNum nLockTime = CastToBigNum(stacktop(-1), 5);
+
+                    // In the rare event that the argument may be < 0 due to
+                    // some arithmetic being done first, you can always use
+                    // 0 MAX CHECKLOCKTIMEVERIFY.
+                    if(nLockTime < 0)
+                      return(false);
+
+                    // There are two times of nLockTime: lock-by-blockheight
+                    // and lock-by-blocktime, distinguished by whether
+                    // nLockTime < LOCKTIME_THRESHOLD.
+                    //
+                    // We want to compare apples to apples, so fail the script
+                    // unless the type of nLockTime being tested is the same as
+                    // the nLockTime in the transaction.
+                    if(!(((txTo.nLockTime <  LOCKTIME_THRESHOLD) && (nLockTime < LOCKTIME_THRESHOLD)) ||
+                      ((txTo.nLockTime >= LOCKTIME_THRESHOLD) && (nLockTime >= LOCKTIME_THRESHOLD))))
+                      return(false);
+
+                    // Now that we know we're comparing apples-to-apples,
+                    // the comparison is a simple numeric one.
+                    if(nLockTime > (int64_t)txTo.nLockTime)
+                      return(false);
+
+                    // Finally the nLockTime feature can be disabled and thus
+                    // CHECKLOCKTIMEVERIFY bypassed if every txin has been
+                    // finalized by setting nSequence to maxint. The
+                    // transaction would be allowed into the blockchain, making
+                    // the opcode ineffective.
+                    //
+                    // Testing if this vin is not final is sufficient to
+                    // prevent this condition. Alternatively we could test all
+                    // inputs, but testing just this input minimizes the data
+                    // required to prove correct CHECKLOCKTIMEVERIFY execution.
+                    if(txTo.vin[nIn].IsFinal())
+                      return(false);
+                } break;
+
+                case(OP_NOP1):
+                case(OP_NOP3):
+                case(OP_NOP4):
+                case(OP_NOP5):
+                case(OP_NOP6):
+                case(OP_NOP7):
+                case(OP_NOP8):
+                case(OP_NOP9):
+                case(OP_NOP10):
+                    break;
 
                 case OP_IF:
                 case OP_NOTIF:
@@ -2200,4 +2269,147 @@ bool CScriptCompressor::Decompress(unsigned int nSize, const std::vector<unsigne
         return true;
     }
     return false;
+}
+
+
+#include <boost/assign/list_of.hpp>
+
+const map<uchar, string> mapSigHashTypes = boost::assign::map_list_of
+  (static_cast<uchar>(SIGHASH_ALL), string("ALL"))
+  (static_cast<uchar>(SIGHASH_ALL|SIGHASH_ANYONECANPAY), string("ALL|ANYONECANPAY"))
+  (static_cast<uchar>(SIGHASH_NONE), string("NONE"))
+  (static_cast<uchar>(SIGHASH_NONE|SIGHASH_ANYONECANPAY), string("NONE|ANYONECANPAY"))
+  (static_cast<uchar>(SIGHASH_SINGLE), string("SINGLE"))
+  (static_cast<unsigned char>(SIGHASH_SINGLE|SIGHASH_ANYONECANPAY), string("SINGLE|ANYONECANPAY"));
+
+/**
+ * Create the assembly string representation of a CScript object.
+ * @param[in] script    CScript object to convert into the asm string representation.
+ * @param[in] fAttemptSighashDecode    Whether to attempt to decode sighash types on data within the script that matches the format
+ *                                     of a signature. Only pass true for scripts you believe could contain signatures. For example,
+ *                                     pass false, or omit the this argument (defaults to false), for scriptPubKeys.
+ */
+std::string ScriptToAsmStr(const CScript &script, const bool fAttemptSighashDecode) {
+    std::string str;
+    opcodetype opcode;
+    vector<uchar> vch;
+
+    CScript::const_iterator pc = script.begin();
+    while(pc < script.end()) {
+        if(!str.empty()) {
+            str += " ";
+        }
+        if(!script.GetOp(pc, opcode, vch)) {
+            str += "[error]";
+            return(str);
+        }
+        if((0 <= opcode) && (opcode <= OP_PUSHDATA4)) {
+            if(vch.size() <= static_cast<vector<uchar>::size_type>(4)) {
+                str += strprintf("%d", CBigNum(vch).getint());
+            } else {
+                // the IsUnspendable check makes sure not to try to decode OP_RETURN data that may match the format of a signature
+                if(fAttemptSighashDecode && !script.IsUnspendable()) {
+                    string strSigHashDecode;
+                    // goal: only attempt to decode a defined sighash type from data that looks like a signature within a scriptSig.
+                    // this won't decode correctly formatted public keys in Pubkey or Multisig scripts due to
+                    // the restrictions on the pubkey formats (see IsCompressedOrUncompressedPubKey) being incongruous with the
+                    // checks in CheckSignatureEncoding.
+                    if(CheckSignatureEncoding(vch, SCRIPT_VERIFY_STRICTENC)) {
+                        const uchar chSigHashType = vch.back();
+                        if(mapSigHashTypes.count(chSigHashType)) {
+                            strSigHashDecode = "[" + mapSigHashTypes.find(chSigHashType)->second + "]";
+                            vch.pop_back(); // remove the sighash type byte. it will be replaced by the decode.
+                        }
+                    }
+                    str += HexStr(vch) + strSigHashDecode;
+                } else {
+                    str += HexStr(vch);
+                }
+            }
+        } else {
+            str += GetOpName(opcode);
+        }
+    }
+    return(str);
+}
+
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/split.hpp>
+
+static map<std::string, opcodetype> mapOpNames;
+
+/* Script parser for unit tests;
+ * fills out CScript from std:string, returns 1 on success or 0 on failure */ 
+bool ParseScript(const std::string &source, CScript &result) {
+    uint op;
+
+    /* One time action */
+    if(mapOpNames.empty()) {
+        const char *name;
+        std::string strName;
+
+        /* Process opcode range [0x61:0xB9] */
+        for(op = OP_NOP; op <= OP_NOP10; op++) {
+            name = GetOpName((opcodetype)op);
+            if(!strcmp(name, "OP_UNKNOWN"))
+              continue;
+
+            strName = std::string(name);
+            mapOpNames[strName] = (opcodetype)op;
+
+            /* Opcodes are recognised with or without OP_ */
+            boost::algorithm::replace_first(strName, "OP_", "");
+            mapOpNames[strName] = (opcodetype)op;
+        }
+        /* Insert OP_RESERVED (0x50) */
+        mapOpNames[std::string("OP_RESERVED")] = (opcodetype)0x50;
+        mapOpNames[std::string("RESERVED")] = (opcodetype)0x50;
+        /* Insert OP_NOP2 (0xB1); upgraded to OP_CHECKLOCKTIMEVERIFY */
+        mapOpNames[std::string("OP_NOP2")] = (opcodetype)0xB1;
+        mapOpNames[std::string("NOP2")] = (opcodetype)0xB1;
+    }
+
+    vector<string> words;
+    boost::algorithm::split(words, source, boost::algorithm::is_any_of(" \t\n"),
+      boost::algorithm::token_compress_on);
+
+    for(std::vector<std::string>::const_iterator w = words.begin(); w != words.end(); w++) {
+        if(w->empty()) {
+            /* Empty string, ignore; boost::split given '' will return one word */
+            continue;
+        }
+        if(all(*w, boost::algorithm::is_digit()) ||
+          ((boost::algorithm::starts_with(*w, "-") &&
+          all(string(w->begin() + 1, w->end()), boost::algorithm::is_digit())))) {
+            /* Number */
+            int64 n = atoi64(*w);
+            result << n;
+            continue;
+        }
+        if(boost::algorithm::starts_with(*w, "0x") && ((w->begin() + 2) != w->end()) &&
+          IsHex(string(w->begin() + 2, w->end()))) {
+            /* Raw hex data, inserted NOT pushed into stack */
+            std::vector<uchar> raw = ParseHex(string(w->begin() + 2, w->end()));
+            result.insert(result.end(), raw.begin(), raw.end());
+            continue;
+        }
+        if((w->size() >= 2) && boost::algorithm::starts_with(*w, "'") &&
+          boost::algorithm::ends_with(*w, "'")) {
+            /* Single-quoted string, pushed as data. NOTE: this is poor-man's
+             * parsing, spaces/tabs/newlines in single-quoted strings won't work */
+            std::vector<uchar> value(w->begin() + 1, w->end() - 1);
+            result << value;
+            continue;
+        }
+        if(mapOpNames.count(*w)) {
+            /* Opcode */
+            result << mapOpNames[*w];
+            continue;
+        }
+        return(false);
+    }
+
+    return(true);
 }

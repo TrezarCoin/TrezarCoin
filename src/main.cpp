@@ -811,7 +811,7 @@ bool CTxMemPool::accept(CTransaction &tx, bool fCheckInputs, bool* pfMissingInpu
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
         if(!tx.CheckInputs(view, CS_ALWAYS,
-          SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_VERIFY_DERSIG)) {
+          SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_VERIFY_DERSIG | SCRIPT_VERIFY_LOCKTIME)) {
             return error("CTxMemPool::accept() : ConnectInputs failed %s", hash.ToString().substr(0,10).c_str());
         }
     }
@@ -1726,6 +1726,7 @@ bool CBlock::DisconnectBlock(CBlockIndex *pindex, CCoinsViewCache &view) {
 bool FindUndoPos(int nFile, CDiskBlockPos &pos, unsigned int nAddSize);
 
 bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view) {
+    uint flags = SCRIPT_VERIFY_P2SH;
     uint i;
 
     /* Make sure the block index and coins DB are synchronised;
@@ -1757,6 +1758,14 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view) {
         uint256 hash = GetTxHash(i);
         if(view.HaveCoins(hash) && !view.GetCoins(hash).IsPruned())
           return(error("ConnectBlock() : transaction overwrite attempt detected"));
+    }
+
+    /* Enforce strict encoding, BIP66 (Strict DER), BIP65 (Lock Time) */
+    if((fTestNet && (pindex->nHeight > nTestnetForkSix)) ||
+      (!fTestNet && (pindex->nHeight > nForkSeven))) {
+        flags |= SCRIPT_VERIFY_STRICTENC;
+        flags |= SCRIPT_VERIFY_DERSIG;
+        flags |= SCRIPT_VERIFY_LOCKTIME;
     }
 
     CBlockUndo blockundo;
@@ -1800,8 +1809,8 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view) {
                 nActualStakeReward = nTxValueOut - nTxValueIn;
             } else nFees += nTxValueIn - nTxValueOut;
 
-            if(!tx.CheckInputs(view, CS_AFTER_CHECKPOINT, SCRIPT_VERIFY_P2SH))
-                return false;
+            if(!tx.CheckInputs(view, CS_AFTER_CHECKPOINT, flags))
+              return(false);
         }
 
         // don't create coinbase coins for proof-of-stake block
@@ -2484,14 +2493,15 @@ bool CBlock::AcceptBlock(CDiskBlockPos *dbp) {
     }
 
     /* Don't accept v1 blocks after this point */
-    if(!fTestNet && (nTime > nForkTwoTime)) {
+    if(fTestNet || (!fTestNet && (nTime > nForkTwoTime))) {
         CScript expect = CScript() << nHeight;
         if(!std::equal(expect.begin(), expect.end(), vtx[0].vin[0].scriptSig.begin()))
           return(DoS(100, error("AcceptBlock() : incorrect block height in coin base")));
     }
 
-    /* Don't accept blocks with bogus version numbers after this point */
-    if((nHeight >= nForkSix) || (fTestNet && (nHeight >= nTestnetForkFive))) {
+    /* Don't accept blocks with bogus version numbers */
+    if((fTestNet && (nHeight >= nTestnetForkFive) && (nHeight <= nTestnetForkSix)) ||
+      (!fTestNet && (nHeight >= nForkSix) && (nHeight <= nForkSeven))) {
         if(nVersion != 2)
           return(DoS(100, error("AcceptBlock() : incorrect block version %u", nVersion)));
     }
