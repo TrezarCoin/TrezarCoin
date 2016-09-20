@@ -21,8 +21,8 @@ extern const std::string CLIENT_NAME;
 extern const std::string CLIENT_BUILD;
 extern const std::string CLIENT_DATE;
 
-static const int PROTOCOL_VERSION = 60014;
-static const int MIN_PROTOCOL_VERSION = 60013;
+static const int PROTOCOL_VERSION = 60016;
+static const int MIN_PROTOCOL_VERSION = 60016;
 
 // earlier versions not supported as of Feb 2012, and are disconnected
 static const int MIN_PROTO_VERSION = 209;

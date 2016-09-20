@@ -28,6 +28,9 @@ public:
     int getNumBlocks() const;
     int getNumBlocksAtStartup();
 
+    quint64 getTotalBytesRx() const;
+    quint64 getTotalBytesTx() const;
+
     QDateTime getLastBlockDate() const;
 
     //! Return true if client connected to testnet
@@ -59,6 +62,7 @@ private:
 signals:
     void numConnectionsChanged(int count);
     void numBlocksChanged(int count, int countOfPeers);
+    void bytesChanged(quint64 totalBytesRx, quint64 totalBytesTx);
 
     //! Asynchronous error notification
     void error(const QString &title, const QString &message, bool modal);

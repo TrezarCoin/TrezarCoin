@@ -4,6 +4,7 @@
         <file alias="toolbar">res/icons/toolbar.png</file>
         <file alias="orbitcoin_testnet">res/icons/orbitcoin_testnet.png</file>
         <file alias="toolbar_testnet">res/icons/toolbar_testnet.png</file>
+        <file alias="qt">res/icons/qt.png</file>
         <file alias="address-book">res/icons/address-book.png</file>
         <file alias="quit">res/icons/quit.png</file>
         <file alias="send">res/icons/send.png</file>
@@ -47,6 +48,8 @@
         <file alias="staking_off">res/icons/staking_off.png</file>
         <file alias="inspect">res/icons/inspect.png</file>
         <file alias="repair">res/icons/repair.png</file>
+        <file alias="traffic">res/icons/traffic.png</file>
+        <file alias="explorer">res/icons/explorer.png</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="about">res/images/about.png</file>

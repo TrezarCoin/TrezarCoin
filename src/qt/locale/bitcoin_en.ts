@@ -421,6 +421,11 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line=""/>
+        <source>&amp;Network activity</source>
+        <translation>&amp;Network activity</translation>
+    </message>
+    <message>
+        <location line=""/>
         <source>&amp;Enable PoS mining</source>
         <translation>&amp;Enable PoS mining</translation>
     </message>
@@ -478,6 +483,14 @@ This product includes software developed by the OpenSSL Project for use in the O
         <location line="+1"/>
         <source>Open the RPC console</source>
         <translation>Open the RPC console</translation>
+    </message>
+    <message>
+        <source>&amp;Explorer</source>
+        <translation>&amp;Explorer</translation>
+    </message>
+    <message>
+        <source>Open the block explorer</source>
+        <translation>Open the block explorer</translation>
     </message>
     <message>
         <location line=""/>
@@ -1708,6 +1721,105 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <source>Use up and down arrows to navigate history, Ctrl-L to clear screen. Type help for an overview of available commands.</source>
         <translation>Use up and down arrows to navigate history, &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen. Type &lt;b&gt;help&lt;/b&gt; for an overview of available commands.</translation>
     </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Network activity</source>
+        <translation>&amp;Network activity</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Received:</source>
+        <translation>Received:</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Transmitted:</source>
+        <translation>Transmitted:</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Clear</source>
+        <translation>&amp;Clear</translation>
+    </message>
+</context>
+<context>
+    <name>BlockExplorer</name>
+    <message>
+        <source>Block Explorer</source>
+        <translation>Block Explorer</translation>
+    </message>
+    <message>
+        <source>Decode block</source>
+        <translation>Decode block</translation>
+    </message>
+    <message>
+        <source>Decode payment</source>
+        <translation>Decode payment</translation>
+    </message>
+    <message>
+        <source>Payment ID</source>
+        <translation>Payment ID</translation>
+    </message>
+    <message>
+        <source>General data:</source>
+        <translation>General data:</translation>
+    </message>
+    <message>
+        <source>Hash:</source>
+        <translation>Hash:</translation>
+    </message>
+    <message>
+        <source>Merkle root:</source>
+        <translation>Merkle root:</translation>
+    </message>
+    <message>
+        <source>Coin base:</source>
+        <translation>Coin base:</translation>
+    </message>
+    <message>
+        <source>Coin stake:</source>
+        <translation>Coin stake:</translation>
+    </message>
+    <message>
+        <source>Difficulty, target, nonce:</source>
+        <translation>Difficulty, target, nonce:</translation>
+    </message>
+    <message>
+        <source>Difficulty, target:</source>
+        <translation>Difficulty, target:</translation>
+    </message>
+    <message>
+        <source>Coin supply:</source>
+        <translation>Coin supply:</translation>
+    </message>
+    <message>
+        <source>Payments:</source>
+        <translation>Payments:</translation>
+    </message>
+    <message>
+        <source>Payment ID:</source>
+        <translation>Payment ID:</translation>
+    </message>
+    <message>
+        <source>Value:</source>
+        <translation>Value:</translation>
+    </message>
+    <message>
+        <source>Fee paid:</source>
+        <translation>Fee paid:</translation>
+    </message>
+    <message>
+        <source>Reward + fees:</source>
+        <translation>Reward + fees:</translation>
+    </message>
+    <message>
+        <source>Inputs:</source>
+        <translation>Inputs:</translation>
+    </message>
+    <message>
+        <source>Outputs:</source>
+        <translation>Outputs:</translation>
+    </message>
 </context>
 <context>
     <name>SendCoinsDialog</name>
@@ -2655,6 +2767,10 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <location line="+1"/>
         <source>Show transaction details</source>
         <translation>Show transaction details</translation>
+    </message>
+    <message>
+        <source>Show payment in block explorer</source>
+        <translation>Show payment in block explorer</translation>
     </message>
     <message>
         <location line="+144"/>

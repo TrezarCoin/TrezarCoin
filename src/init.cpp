@@ -17,6 +17,10 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <openssl/crypto.h>
 
+#ifdef USE_UPNP
+#include <miniupnpc/miniupnpc.h>
+#endif
+
 #ifndef WIN32
 #include <signal.h>
 #endif
@@ -32,9 +36,12 @@ unsigned int nNodeLifespan;
 unsigned int nDerivationMethodIndex;
 unsigned int nMsgSleep;
 unsigned int nMinerSleep;
-unsigned int nStakeMinDepth;
-bool fUseFastStakeMiner;
+uint nStakeMinTime;
+uint nStakeMinDepth;
 enum Checkpoints::CPMode CheckpointsMode;
+
+/* Assembly level processor optimisation features */
+uint opt_flags = 0;
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -309,7 +316,7 @@ std::string HelpMessage()
         "  -salvagewallet         " + _("Attempt to recover private keys from a corrupt wallet.dat") + "\n" +
         "  -checkblocks=<n>       " + _("How many blocks to check at startup (default: 2500, 0 = all)") + "\n" +
         "  -checklevel=<n>        " + _("How thorough the block verification is (0-6, default: 1)") + "\n" +
-        "  -loadblock=<file>      " + _("Imports blocks from external blk000?.dat file") + "\n" +
+        "  -reindex               " + _("Rebuild block chain index from existing block chain files") + "\n" +
 
         "\n" + _("Block creation options:") + "\n" +
         "  -blockminsize=<n>      "   + _("Set minimum block size in bytes (default: 0)") + "\n" +
@@ -324,10 +331,11 @@ std::string HelpMessage()
 
         "\n" + _("Staking options:") + "\n" +
         "  -stakegen=<n>          "   + _("Generate coin stakes (default: 1 = enabled)") + "\n" +
-        "  -stakemindepth=<n>     "   + _("Set the min. stake input depth value in confirmations (default: 10000 or testnet: 100)") + "\n" +
-        "  -minstakinginput=<n>   "   + _("Set the min. stake input amount in coins (default: 1.0)") + "\n" +
-        "  -stakecombine=<n>      "   + _("Try to combine inputs while staking up to this limit in coins (20 < n < 50; default: 20)") + "\n";
-        "  -stakesplit=<n>        "   + _("Don't split outputs while staking below this limit in coins (40 < n < 100; default: 40)") + "\n";
+        "  -stakemintime=<n>      "   + _("Set the min. stake input block chain time in hours (default: 48 or testnet: 1)") + "\n" +
+        "  -stakemindepth=<n>     "   + _("Set the min. stake input block chain depth in confirmations (default: follow -stakeminage)") + "\n" +
+        "  -stakeminvalue=<n>     "   + _("Set the min. stake input value in coins (default: 1.0)") + "\n" +
+        "  -stakecombine=<n>      "   + _("Try to combine inputs while staking up to this limit in coins (20 < n < 200; default: 20)") + "\n";
+        "  -stakesplit=<n>        "   + _("Don't split outputs while staking below this limit in coins (40 < n < 400; default: 80)") + "\n";
 
     return strUsage;
 }
@@ -381,9 +389,22 @@ bool AppInit2()
 
     // ********************************************************* Step 2: parameter interactions
 
-    if(GetBoolArg("-sse2", false)) {
-        printf("SSE2 assembly optimisations enabled\n");
-        nNeoScryptOptions |= 0x1000;
+    printf("\n\n\n\n\n\n\n\n\n\n");
+    fPrintToConsole = GetBoolArg("-printtoconsole", false);
+    fPrintToDebugger = GetBoolArg("-printtodebugger", false);
+    fLogTimestamps = GetBoolArg("-logtimestamps", false);
+
+    opt_flags = cpu_vec_exts();
+    if(GetBoolArg("-sse2", true)) {
+        /* Verify hardware SSE2 support */
+        if(opt_flags & 0x00000020) {
+            printf("SSE2 optimisations enabled\n");
+            nNeoScryptOptions |= 0x1000;
+        } else {
+            printf("SSE2 unsupported, optimisations disabled\n");
+        }
+    } else {
+        printf("SSE2 optimisations disabled\n");
     }
 
     fTestNet = GetBoolArg("-testnet");
@@ -394,10 +415,17 @@ bool AppInit2()
     /* Polling delay for message handling, in milliseconds */
     nMsgSleep = GetArg("-msgsleep", 20);
     /* Polling delay for stake mining, in milliseconds */
-    nMinerSleep = GetArg("-minersleep", 500);
-    /* Minimal input depth (age) for stake mining, in confirmations */
-    if(fTestNet) nStakeMinDepth = GetArg("-stakemindepth", 100);
-    else nStakeMinDepth = GetArg("-stakemindepth", 10000);
+    nMinerSleep = GetArg("-minersleep", 2000);
+    /* Minimal input time or depth in block chain for stake mining, in hours or confirmations */
+    if(fTestNet) {
+        nStakeMinTime = (uint)GetArg("-stakemintime", 1);
+        nStakeMinDepth = (uint)GetArg("-stakemindepth", 0);
+    } else {
+        nStakeMinTime = (uint)GetArg("-stakemintime", 48);
+        nStakeMinDepth = (uint)GetArg("-stakemindepth", 0);
+    }
+    /* Reset time if depth is specified */
+    if(nStakeMinDepth) nStakeMinTime = 0;
 
     CheckpointsMode = Checkpoints::STRICT;
     std::string strCpMode = GetArg("-cppolicy", "strict");
@@ -473,9 +501,6 @@ bool AppInit2()
 #if !defined(QT_GUI)
     fServer = true;
 #endif
-    fPrintToConsole = GetBoolArg("-printtoconsole");
-    fPrintToDebugger = GetBoolArg("-printtodebugger");
-    fLogTimestamps = GetBoolArg("-logtimestamps");
 
     if (mapArgs.count("-timeout"))
     {
@@ -506,10 +531,10 @@ bool AppInit2()
     }
 
     /* Inputs below this limit in value don't participate in staking */
-    if(mapArgs.count("-minstakinginput")) {
-        if(!ParseMoney(mapArgs["-minstakinginput"], nMinStakingInputValue))
-          return(InitError(strprintf(_("Invalid amount for -minstakinginput=<amount>: '%s'"),
-            mapArgs["-minstakinginput"].c_str())));
+    if(mapArgs.count("-stakeminvalue")) {
+        if(!ParseMoney(mapArgs["-stakeminvalue"], nStakeMinValue))
+          return(InitError(strprintf(_("Invalid amount for -stakeminvalue=<amount>: '%s'"),
+            mapArgs["-stakeminvalue"].c_str())));
     }
 
     /* Try to combine inputs while staking up to this limit */
@@ -519,8 +544,8 @@ bool AppInit2()
             mapArgs["-stakecombine"].c_str())));
         if(nCombineThreshold < MIN_STAKE_AMOUNT)
           nCombineThreshold = MIN_STAKE_AMOUNT;
-        if(nCombineThreshold > 2.5 * MIN_STAKE_AMOUNT)
-          nCombineThreshold = 2.5 * MIN_STAKE_AMOUNT;
+        if(nCombineThreshold > 10 * MIN_STAKE_AMOUNT)
+          nCombineThreshold = 10 * MIN_STAKE_AMOUNT;
     }
 
     /* Don't split outputs while staking below this limit */
@@ -530,8 +555,8 @@ bool AppInit2()
             mapArgs["-stakesplit"].c_str())));
         if(nSplitThreshold < 2 * MIN_STAKE_AMOUNT)
           nSplitThreshold = 2 * MIN_STAKE_AMOUNT;
-        if(nSplitThreshold > 5 * MIN_STAKE_AMOUNT)
-          nSplitThreshold = 5 * MIN_STAKE_AMOUNT;
+        if(nSplitThreshold > 20 * MIN_STAKE_AMOUNT)
+          nSplitThreshold = 20 * MIN_STAKE_AMOUNT;
     }
 
     /* Controls proof-of-stake generation */
@@ -578,13 +603,20 @@ bool AppInit2()
 
     if (GetBoolArg("-shrinkdebugfile", !fDebug))
         ShrinkDebugFile();
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
     printf("Orbitcoin version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
-    printf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
-    if (!fLogTimestamps)
-        printf("Startup time: %s\n", DateTimeStrFormat("%x %H:%M:%S", GetTime()).c_str());
-    printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
-    printf("Used data directory %s\n", strDataDir.c_str());
+    printf("Using OpenSSL release: %s\n", SSLeay_version(SSLEAY_VERSION));
+    printf("Using BerkeleyDB release: %s\n", DbEnv::version(0, 0, 0));
+    printf("Using LevelDB v%d.%d\n", leveldb::kMajorVersion, leveldb::kMinorVersion);
+    printf("Using Boost v%d.%d.%d\n",
+      BOOST_VERSION / 100000, BOOST_VERSION / 100 % 1000, BOOST_VERSION % 100);
+#ifdef USE_UPNP
+    printf("Using miniUPnP Client v%s API v%d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
+#endif
+    if(!fLogTimestamps)
+        printf("Launch time: %s\n", DateTimeStrFormat("%x %H:%M:%S", GetTime()).c_str());
+    printf("The default data directory is %s\n", GetDefaultDataDir().string().c_str());
+    printf("Set up for a data directory of %s\n", strDataDir.c_str());
     std::ostringstream strErrors;
 
     int64 nStart;
@@ -747,6 +779,10 @@ bool AppInit2()
 
     // ********************************************************* Step 7: load blockchain
 
+    InitTestnet();
+
+    fReindex = GetBoolArg("-reindex", false);
+
     if (!bitdb.Open(GetDataDir()))
     {
         string msg = strprintf(_("Error initializing database environment %s!"
@@ -755,25 +791,59 @@ bool AppInit2()
         return InitError(msg);
     }
 
-    uiInterface.InitMessage(_("Loading block index..."));
-    printf("Loading block index...\n");
     nStart = GetTimeMillis();
     pblocktree = new CBlockTreeDB();
     pcoinsdbview = new CCoinsViewDB();
     pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
 
-    if (!LoadBlockIndex())
-        return InitError(_("Error loading block index, see debug.log for details"));
-
-    // as LoadBlockIndex can take several minutes, it's possible the user
-    // requested to kill bitcoin-qt during the last operation. If so, exit.
-    // As the program has not fully started yet, Shutdown() is possibly overkill.
-    if (fRequestShutdown)
-    {
-        printf("Shutdown requested. Exiting.\n");
-        return false;
+    if(!fReindex) {
+        uiInterface.InitMessage(_("Loading the block index..."));
+        printf("Loading the block index...\n");
+        if(!LoadBlockIndex()) {
+            fReindex = true;
+            mapBlockIndex.clear();
+        }
     }
-    printf(" block index %15"PRI64d"ms\n", GetTimeMillis() - nStart);
+
+    if(fReindex) {
+        /* Destroy the old block index and UTXO DB */
+        delete(pblocktree);
+        delete(pcoinsdbview);
+        delete(pcoinsTip);
+        DestroyDB(strDataDir + "/blktree", leveldb::Options());
+        DestroyDB(strDataDir + "/coins", leveldb::Options());
+        /* Initialise the new block index and UTXO DB */
+        pblocktree = new CBlockTreeDB();
+        pcoinsdbview = new CCoinsViewDB();
+        pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
+        /* Proceed to reindexing */
+        uiInterface.InitMessage(_("Reindexing the block chain..."));
+        int nFile = 0;
+        while(1) {
+            CDiskBlockPos pos(nFile, 0);
+            FILE *file = OpenBlockFile(pos, true);
+            if(!file) break;
+            printf("Reindexing the block file blk%05d.dat...\n", nFile);
+            LoadExternalBlockFile(file, &pos);
+            nFile++;
+        }
+        fReindex = false;
+        printf("Reindexing completed in %" PRI64d "ms\n", GetTimeMillis() - nStart);
+        /* Attempt to load the block index */
+        nStart = GetTimeMillis();
+        uiInterface.InitMessage(_("Loading the block index..."));
+        if(!LoadBlockIndex()) {
+            InitError(_("Error loading the block index, reindexing failed"));
+            return(false);
+        }
+    }
+
+    if(fRequestShutdown) {
+        printf("Shutting down...\n");
+        return(false);
+    }
+
+    printf(" block index %15" PRI64d "ms\n", GetTimeMillis() - nStart);
 
     if (GetBoolArg("-printblockindex") || GetBoolArg("-printblocktree"))
     {
@@ -864,7 +934,7 @@ bool AppInit2()
     }
 
     printf("%s", strErrors.str().c_str());
-    printf(" wallet      %15"PRI64d"ms\n", GetTimeMillis() - nStart);
+    printf(" wallet      %15" PRI64d "ms\n", GetTimeMillis() - nStart);
 
     RegisterWallet(pwalletMain);
 
@@ -884,33 +954,18 @@ bool AppInit2()
         printf("Rescanning last %i blocks (from block %i)...\n", pindexBest->nHeight - pindexRescan->nHeight, pindexRescan->nHeight);
         nStart = GetTimeMillis();
         pwalletMain->ScanForWalletTransactions(pindexRescan, true);
-        printf(" rescan      %15"PRI64d"ms\n", GetTimeMillis() - nStart);
+        printf(" rescan      %15" PRI64d "ms\n", GetTimeMillis() - nStart);
     }
 
     // ********************************************************* Step 9: import blocks
 
     // scan for better chains in the block chain database, that are not yet connected in the active best chain
-    uiInterface.InitMessage(_("Importing blocks from block database..."));
     if (!ConnectBestBlock())
         strErrors << "Failed to connect best block";
 
-    if (mapArgs.count("-loadblock"))
-    {
-        uiInterface.InitMessage(_("Importing blockchain data file."));
-
-        BOOST_FOREACH(string strFile, mapMultiArgs["-loadblock"])
-        {
-            FILE *file = fopen(strFile.c_str(), "rb");
-            if (file)
-                LoadExternalBlockFile(file);
-        }
-        exit(0);
-    }
-
     filesystem::path pathBootstrap = GetDataDir() / "bootstrap.dat";
-    if (filesystem::exists(pathBootstrap)) {
-        uiInterface.InitMessage(_("Importing bootstrap blockchain data file."));
-
+    if((mapBlockIndex.size() == 1) && filesystem::exists(pathBootstrap)) {
+        uiInterface.InitMessage(_("Bootstrapping from a block chain data file..."));
         FILE *file = fopen(pathBootstrap.string().c_str(), "rb");
         if (file) {
             filesystem::path pathBootstrapOld = GetDataDir() / "bootstrap.dat.old";
@@ -931,7 +986,7 @@ bool AppInit2()
             printf("Invalid or missing peers.dat; recreating\n");
     }
 
-    printf("Loaded %i addresses from peers.dat  %"PRI64d"ms\n",
+    printf("Loaded %i addresses from peers.dat  %" PRI64d "ms\n",
            addrman.size(), GetTimeMillis() - nStart);
 
     // ********************************************************* Step 11: start node
@@ -942,11 +997,11 @@ bool AppInit2()
     RandAddSeedPerfmon();
 
     //// debug print
-    printf("mapBlockIndex.size() = %"PRIszu"\n",   mapBlockIndex.size());
-    printf("nBestHeight = %d\n",            nBestHeight);
-    printf("setKeyPool.size() = %"PRIszu"\n",      pwalletMain->setKeyPool.size());
-    printf("mapWallet.size() = %"PRIszu"\n",       pwalletMain->mapWallet.size());
-    printf("mapAddressBook.size() = %"PRIszu"\n",  pwalletMain->mapAddressBook.size());
+    printf("mapBlockIndex.size() = %" PRIszu "\n", mapBlockIndex.size());
+    printf("nBestHeight = %d\n", nBestHeight);
+    printf("setKeyPool.size() = %" PRIszu "\n", pwalletMain->setKeyPool.size());
+    printf("mapWallet.size() = %" PRIszu "\n", pwalletMain->mapWallet.size());
+    printf("mapAddressBook.size() = %" PRIszu "\n", pwalletMain->mapAddressBook.size());
 
     if (!NewThread(StartNode, NULL))
         InitError(_("Error: could not start node"));

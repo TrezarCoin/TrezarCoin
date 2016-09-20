@@ -52,7 +52,7 @@ Value getpeerinfo(const Array& params, bool fHelp)
         Object obj;
 
         obj.push_back(Pair("addr", stats.addrName));
-        obj.push_back(Pair("services", strprintf("%08"PRI64x, stats.nServices)));
+        obj.push_back(Pair("services", strprintf("%08" PRI64x, stats.nServices)));
         obj.push_back(Pair("lastsend", (boost::int64_t)stats.nLastSend));
         obj.push_back(Pair("lastrecv", (boost::int64_t)stats.nLastRecv));
         obj.push_back(Pair("conntime", (boost::int64_t)stats.nTimeConnected));
@@ -258,3 +258,18 @@ Value getaddednodeinfo(const Array& params, bool fHelp) {
     return(ret);
 }
 
+
+Value getnettotals(const Array &params, bool fHelp) {
+
+    if(fHelp || (params.size() > 0))
+      throw(runtime_error(
+        "getnettotals\n"
+        "Returns information about network traffic including bytes received,\n"
+        "bytes transmitted and current time."));
+
+    Object obj;
+    obj.push_back(Pair("rxbytestotal", (boost::uint64_t)CNode::GetTotalBytesRx()));
+    obj.push_back(Pair("txbytestotal", (boost::uint64_t)CNode::GetTotalBytesTx()));
+    obj.push_back(Pair("timemillis", (boost::int64_t)GetTimeMillis()));
+    return(obj);
+}

@@ -1,0 +1,154 @@
+# Copyright (c) 2016 John Doering <ghostlander@orbitcoin.org>
+# Compiles the thing without much trouble in a straight way.
+
+CXX = g++
+AR = ar
+
+OPT = -O2 -fomit-frame-pointer -fno-stack-protector
+INCLUDES = -I. -I./include
+DEFINES = -D_REENTRANT -DOS_WINDOWS -DLEVELDB_PLATFORM_WINDOWS -DWINVER=0x0500 -D__USE_MINGW_ANSI_STDIO=1
+CXXFLAGS = $(OPT) -fno-builtin-memcmp $(INCLUDES) $(DEFINES)
+
+LOBJS = obj/builder.o obj/c.o obj/db_impl.o obj/db_iter.o obj/dbformat.o \
+        obj/dumpfile.o obj/filename.o obj/log_reader.o obj/log_writer.o \
+        obj/memtable.o obj/repair.o obj/table_cache.o obj/version_edit.o \
+        obj/version_set.o obj/write_batch.o obj/port_win.o obj/block.o \
+        obj/block_builder.o obj/filter_block.o obj/format.o obj/iterator.o \
+        obj/merger.o obj/table.o obj/table_builder.o obj/two_level_iterator.o \
+        obj/arena.o obj/bloom.o obj/cache.o obj/coding.o obj/comparator.o \
+        obj/crc32c.o obj/env.o obj/env_win.o obj/filter_policy.o obj/hash.o \
+        obj/histogram.o obj/logging.o obj/options.o obj/status.o
+
+MOBJS = obj/memenv.o
+
+all:	libleveldb.a libmemenv.a
+
+libleveldb.a:	$(LOBJS)
+	$(AR) cr $@ $?
+
+libmemenv.a:	$(MOBJS)
+	$(AR) cr $@ $?
+
+obj/builder.o:
+	$(CXX) $(CXXFLAGS) -c db/builder.cc -o $@ $<
+
+obj/c.o:
+	$(CXX) $(CXXFLAGS) -c db/c.cc -o $@ $<
+
+obj/db_impl.o:
+	$(CXX) $(CXXFLAGS) -c db/db_impl.cc -o $@ $<
+
+obj/db_iter.o:
+	$(CXX) $(CXXFLAGS) -c db/db_iter.cc -o $@ $<
+
+obj/dbformat.o:
+	$(CXX) $(CXXFLAGS) -c db/dbformat.cc -o $@ $<
+
+obj/dumpfile.o:
+	$(CXX) $(CXXFLAGS) -c db/dumpfile.cc -o $@ $<
+
+obj/filename.o:
+	$(CXX) $(CXXFLAGS) -c db/filename.cc -o $@ $<
+
+obj/log_reader.o:
+	$(CXX) $(CXXFLAGS) -c db/log_reader.cc -o $@ $<
+
+obj/log_writer.o:
+	$(CXX) $(CXXFLAGS) -c db/log_writer.cc -o $@ $<
+
+obj/memtable.o:
+	$(CXX) $(CXXFLAGS) -c db/memtable.cc -o $@ $<
+
+obj/repair.o:
+	$(CXX) $(CXXFLAGS) -c db/repair.cc -o $@ $<
+
+obj/table_cache.o:
+	$(CXX) $(CXXFLAGS) -c db/table_cache.cc -o $@ $<
+
+obj/version_edit.o:
+	$(CXX) $(CXXFLAGS) -c db/version_edit.cc -o $@ $<
+
+obj/version_set.o:
+	$(CXX) $(CXXFLAGS) -c db/version_set.cc -o $@ $<
+
+obj/write_batch.o:
+	$(CXX) $(CXXFLAGS) -c db/write_batch.cc -o $@ $<
+
+obj/port_win.o:
+	$(CXX) $(CXXFLAGS) -c port/port_win.cc -o $@ $<
+
+obj/block.o:
+	$(CXX) $(CXXFLAGS) -c table/block.cc -o $@ $<
+
+obj/block_builder.o:
+	$(CXX) $(CXXFLAGS) -c table/block_builder.cc -o $@ $<
+
+obj/filter_block.o:
+	$(CXX) $(CXXFLAGS) -c table/filter_block.cc -o $@ $<
+
+obj/format.o:
+	$(CXX) $(CXXFLAGS) -c table/format.cc -o $@ $<
+
+obj/iterator.o:
+	$(CXX) $(CXXFLAGS) -c table/iterator.cc -o $@ $<
+
+obj/merger.o:
+	$(CXX) $(CXXFLAGS) -c table/merger.cc -o $@ $<
+
+obj/table.o:
+	$(CXX) $(CXXFLAGS) -c table/table.cc -o $@ $<
+
+obj/table_builder.o:
+	$(CXX) $(CXXFLAGS) -c table/table_builder.cc -o $@ $<
+
+obj/two_level_iterator.o:
+	$(CXX) $(CXXFLAGS) -c table/two_level_iterator.cc -o $@ $<
+
+obj/arena.o:
+	$(CXX) $(CXXFLAGS) -c util/arena.cc -o $@ $<
+
+obj/bloom.o:
+	$(CXX) $(CXXFLAGS) -c util/bloom.cc -o $@ $<
+
+obj/cache.o:
+	$(CXX) $(CXXFLAGS) -c util/cache.cc -o $@ $<
+
+obj/coding.o:
+	$(CXX) $(CXXFLAGS) -c util/coding.cc -o $@ $<
+
+obj/comparator.o:
+	$(CXX) $(CXXFLAGS) -c util/comparator.cc -o $@ $<
+
+obj/crc32c.o:
+	$(CXX) $(CXXFLAGS) -c util/crc32c.cc -o $@ $<
+
+obj/env.o:
+	$(CXX) $(CXXFLAGS) -c util/env.cc -o $@ $<
+
+obj/env_win.o:
+	$(CXX) $(CXXFLAGS) -c util/env_win.cc -o $@ $<
+
+obj/filter_policy.o:
+	$(CXX) $(CXXFLAGS) -c util/filter_policy.cc -o $@ $<
+
+obj/hash.o:
+	$(CXX) $(CXXFLAGS) -c util/hash.cc -o $@ $<
+
+obj/histogram.o:
+	$(CXX) $(CXXFLAGS) -c util/histogram.cc -o $@ $<
+
+obj/logging.o:
+	$(CXX) $(CXXFLAGS) -c util/logging.cc -o $@ $<
+
+obj/options.o:
+	$(CXX) $(CXXFLAGS) -c util/options.cc -o $@ $<
+
+obj/status.o:
+	$(CXX) $(CXXFLAGS) -c util/status.cc -o $@ $<
+
+obj/memenv.o:
+	$(CXX) $(CXXFLAGS) -c helpers/memenv/memenv.cc -o $@ $<
+
+clean:
+	rm -f obj/*.o libleveldb.a libmemenv.a
+#	del /q obj/*.o libleveldb.a libmemenv.a

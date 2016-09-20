@@ -1,11 +1,12 @@
 #ifndef NOTIFICATOR_H
 #define NOTIFICATOR_H
 
-#include <QObject>
 #include <QIcon>
+#include <QObject>
 
 QT_BEGIN_NAMESPACE
 class QSystemTrayIcon;
+
 #ifdef USE_DBUS
 class QDBusInterface;
 #endif
@@ -19,7 +20,7 @@ public:
     /** Create a new notificator.
        @note Ownership of trayIcon is not transferred to this object.
     */
-    Notificator(const QString &programName=QString(), QSystemTrayIcon *trayIcon=0, QWidget *parent=0);
+    Notificator(const QString &programName, QSystemTrayIcon *trayIcon, QWidget *parent);
     ~Notificator();
 
     // Message class
@@ -49,8 +50,9 @@ private:
         None,        /**< Ignore informational notifications, and show a modal pop-up dialog for Critical notifications. */
         Freedesktop, /**< Use DBus org.freedesktop.Notifications */
         QSystemTray, /**< Use QSystemTray::showMessage */
-        Growl12,        /**< Use the Growl 1.2 notification system (Mac only) */
-        Growl13        /**< Use the Growl 1.3 notification system (Mac only) */
+        Growl12,     /* Use the Growl 1.2 notification system (MacOS X only) */
+        Growl13,     /* Use the Growl 1.3 notification system (MacOS X only) */
+        NCenter      /* Use the Notification Center (MacOS X 10.8+ only) */
     };
     QString programName;
     Mode mode;
@@ -62,6 +64,7 @@ private:
 #endif
     void notifySystray(Class cls, const QString &title, const QString &text, const QIcon &icon, int millisTimeout);
 #ifdef Q_OS_MAC
+    void notifyNCenter(Class cls, const QString &title, const QString &text, const QIcon &icon);
     void notifyGrowl(Class cls, const QString &title, const QString &text, const QIcon &icon);
 #endif
 };

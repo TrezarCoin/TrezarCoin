@@ -25,6 +25,7 @@
 #include "notificator.h"
 #include "guiutil.h"
 #include "rpcconsole.h"
+#include "blockexplorer.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -50,11 +51,17 @@
 #include <QStackedWidget>
 #include <QDateTime>
 #include <QFileDialog>
-#include <QDesktopServices>
 #include <QTimer>
 #include <QDragEnterEvent>
-#include <QUrl>
 #include <QStyle>
+
+#if (QT_VERSION < 0x050000)
+#include <QUrl>
+#include <QDesktopServices>
+#else
+#include <QMimeData>
+#include <QStandardPaths>
+#endif
 
 #include <iostream>
 
@@ -72,7 +79,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     prevBlocks(0),
     spinnerFrame(0)
 {
-    resize(850, 550);
     setWindowTitle(tr("Orbitcoin") + " - " + tr("Wallet"));
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/orbitcoin"));
@@ -81,17 +87,75 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     setUnifiedTitleAndToolBarOnMac(true);
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
 #endif
+
+    int nQtStyle = GetArg("-qtstyle", 2);
+    if(nQtStyle < 0) nQtStyle = 0;
+
+    if(!nQtStyle) {
+        resize(850, 575);
+        qApp->setStyleSheet("QToolBar QToolButton { text-align: left; \
+          padding-left: 0px; padding-right: 0px; padding-top: 3px; padding-bottom: 3px; }");
+    } else if(nQtStyle == 1) {
+        resize(1000, 525);
+#ifndef Q_OS_MAC
+        qApp->setStyleSheet("QToolBar QToolButton { text-align: center; width: 100%; \
+          padding-left: 5px; padding-right: 5px; padding-top: 2px; padding-bottom: 2px; \
+          margin-top: 2px; } \
+          QToolBar QToolButton:hover { font-weight: bold; } \
+          #toolbar { border: none; height: 100%; min-width: 150px; max-width: 150px; } \
+          QMenuBar { min-height: 20px; }");
+#else
+        qApp->setStyleSheet("QToolBar QToolButton { text-align: center; width: 100%; \
+          padding-left: 5px; padding-right: 5px; padding-top: 2px; padding-bottom: 2px; \
+          margin-top: 2px; } \
+          QToolBar QToolButton:hover { font-weight: bold; background-color: transparent; } \
+          #toolbar { border: none; height: 100%; min-width: 150px; max-width: 150px; }");
+#endif
+    } else {
+        resize(1000, 525);
+#ifndef Q_OS_MAC
+        qApp->setStyleSheet("QToolBar QToolButton { text-align: center; width: 100%; \
+          color: white; background-color: darkgreen; padding-left: 5px; padding-right: 5px; \
+          padding-top: 2px; padding-bottom: 2px; margin-top: 2px; } \
+          QToolBar QToolButton:hover { font-weight: bold; \
+          background-color: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 2, \
+          stop: 0 #006400, stop: 1 #FFDF5F); } \
+          #toolbar { border: none; height: 100%; min-width: 150px; max-width: 150px; \
+          background-color: darkgreen; } \
+          QMenuBar { color: white; background-color: darkgreen; } \
+          QMenuBar::item { color: white; background-color: transparent; \
+          padding-top: 6px; padding-bottom: 6px; \
+          padding-left: 10px; padding-right: 10px; } \
+          QMenuBar::item:selected { background-color: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 2, \
+          stop: 0 #006400, stop: 1 #FFDF5F); } \
+          QMenu { border: 1px solid; color: black; background-color: ivory; } \
+          QMenu::item { background-color: transparent; } \
+          QMenu::item:disabled { color: gray; } \
+          QMenu::item:enabled:selected { color: white; background-color: green; } \
+          QMenu::separator { height: 4px; }");
+#else
+        qApp->setStyleSheet("QToolBar QToolButton { text-align: center; width: 100%; \
+          color: white; padding-left: 5px; padding-right: 5px; \
+          padding-top: 2px; padding-bottom: 2px; margin-top: 2px; } \
+          QToolBar QToolButton:hover { font-weight: bold; \
+          background-color: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 2, \
+          stop: 0 #006400, stop: 1 #FFDF5F); } \
+          #toolbar { border: none; height: 100%; min-width: 150px; max-width: 150px; \
+          background-color: darkgreen; }");
+#endif
+    }
+
     // Accept D&D of URIs
     setAcceptDrops(true);
 
     // Create actions for the toolbar, menu bar and tray/dock icon
-    createActions();
+    createActions(nQtStyle);
 
     // Create application menu bar
     createMenuBar();
 
     // Create the toolbars
-    createToolBars();
+    createToolBars(nQtStyle);
 
     // Create the tray icon (or setup the dock icon)
     createTrayIcon();
@@ -169,12 +233,20 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     connect(transactionView, SIGNAL(doubleClicked(QModelIndex)), transactionView, SLOT(showDetails()));
 
     rpcConsole = new RPCConsole(this);
-    connect(consoleAction, SIGNAL(triggered()), rpcConsole, SLOT(show()));
+    connect(consoleAction, SIGNAL(triggered()), rpcConsole, SLOT(showConsole()));
+    connect(trafficAction, SIGNAL(triggered()), rpcConsole, SLOT(showTraffic()));
+
+    blockExplorer = new BlockExplorer(this);
+    connect(explorerAction, SIGNAL(triggered()), blockExplorer, SLOT(gotoBlockExplorer()));
 
     // Clicking on "Verify Message" in the address book sends you to the verify message tab
     connect(addressBookPage, SIGNAL(verifyMessage(QString)), this, SLOT(gotoVerifyMessageTab(QString)));
     // Clicking on "Sign Message" in the receive coins page sends you to the sign message tab
     connect(receiveCoinsPage, SIGNAL(signMessage(QString)), this, SLOT(gotoSignMessageTab(QString)));
+
+    /* Selecting block explorer in the transaction page menu redirects to the block explorer */ 
+    connect(transactionView, SIGNAL(blockExplorerSignal(QString)), blockExplorer,
+      SLOT(gotoBlockExplorer(QString)));
 
     gotoOverviewPage();
 }
@@ -188,7 +260,7 @@ BitcoinGUI::~BitcoinGUI()
 #endif
 }
 
-void BitcoinGUI::createActions() {
+void BitcoinGUI::createActions(int nQtStyle) {
     QActionGroup *tabGroup = new QActionGroup(this);
 
     overviewAction = new QAction(QIcon(":/icons/overview"), tr("&Overview"), this);
@@ -234,8 +306,16 @@ void BitcoinGUI::createActions() {
     consoleAction = new QAction(QIcon(":/icons/debugwindow"), tr("&Console"), this);
     consoleAction->setToolTip(tr("Open the RPC console"));
     consoleAction->setCheckable(false);
+    consoleAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     tabGroup->addAction(consoleAction);
     /* RPC console action connected already */
+
+    explorerAction = new QAction(QIcon(":/icons/explorer"), tr("&Explorer"), this);
+    explorerAction->setToolTip(tr("Open the block explorer"));
+    explorerAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
+    explorerAction->setCheckable(false);
+    tabGroup->addAction(explorerAction);
+    /* Block explorer action connected already */
 
     toggleHideAction = new QAction(QIcon(":/icons/orbitcoin"), tr("&Show / Hide"), this);
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
@@ -260,6 +340,8 @@ void BitcoinGUI::createActions() {
     quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     quitAction->setMenuRole(QAction::QuitRole);
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+
+    trafficAction = new QAction(QIcon(":/icons/traffic"), tr("&Network activity"), this);
 
     stakeMinerToggleAction = new QAction(this);
     stakeMinerToggle(true);
@@ -292,7 +374,7 @@ void BitcoinGUI::createActions() {
     aboutAction->setMenuRole(QAction::AboutRole);
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
 
-    aboutQtAction = new QAction(QIcon(":/trolltech/qmessagebox/images/qtlogo-64.png"), tr("About &Qt"), this);
+    aboutQtAction = new QAction(QIcon(":/icons/qt"), tr("About &Qt"), this);
     aboutQtAction->setMenuRole(QAction::AboutQtRole);
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 }
@@ -320,6 +402,8 @@ void BitcoinGUI::createMenuBar()
 
     QMenu *tools = appMenuBar->addMenu(tr("&Tools"));
     tools->addAction(consoleAction);
+    tools->addAction(explorerAction);
+    tools->addAction(trafficAction);
     tools->addSeparator();
     tools->addAction(stakeMinerToggleAction);
     tools->addSeparator();
@@ -339,20 +423,33 @@ void BitcoinGUI::createMenuBar()
     help->addAction(aboutQtAction);
 }
 
-void BitcoinGUI::createToolBars()
+void BitcoinGUI::createToolBars(int nQtStyle)
 {
-    QToolBar *toolbar = addToolBar(tr("Tabs toolbar"));
-    toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    QToolBar *toolbar = addToolBar(tr("Primary tool bar"));
+    toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    toolbar->setMovable(false);
+    toolbar->setIconSize(QSize(32, 32));
+
+    if(!nQtStyle) {
+        toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    } else {
+        toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        toolbar->setObjectName("toolbar");
+        addToolBar(Qt::LeftToolBarArea, toolbar);
+        toolbar->setOrientation(Qt::Vertical);
+    }
+
     toolbar->addAction(overviewAction);
     toolbar->addAction(sendCoinsAction);
     toolbar->addAction(receiveCoinsAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
     toolbar->addAction(consoleAction);
+    toolbar->addAction(explorerAction);
 
-    QToolBar *toolbar2 = addToolBar(tr("Actions toolbar"));
-    toolbar2->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    toolbar2->addAction(exportAction);
+//    QToolBar *toolbar2 = addToolBar(tr("Actions toolbar"));
+//    toolbar2->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+//    toolbar2->addAction(exportAction);
 }
 
 void BitcoinGUI::setClientModel(ClientModel *clientModel)
@@ -455,12 +552,13 @@ void BitcoinGUI::createTrayIcon()
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(optionsAction);
     trayIconMenu->addAction(consoleAction);
+    trayIconMenu->addAction(explorerAction);
 #ifndef Q_OS_MAC // This is built-in on Mac
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
 #endif
 
-    notificator = new Notificator(qApp->applicationName(), trayIcon);
+    notificator = new Notificator(qApp->applicationName(), trayIcon, this);
 }
 
 #ifndef Q_OS_MAC
@@ -911,11 +1009,12 @@ void BitcoinGUI::cloneWallet() {
    if(!ctx.isValid())
      return;
 
-#if QT_VERSION < 0x050000
+#if (QT_VERSION < 0x050000)
     QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
 #else
     QString saveDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #endif
+
     QString filename = QFileDialog::getSaveFileName(this, tr("Clone Wallet"), saveDir, tr("Wallet Data (*.dat)"));
     if(!filename.isEmpty()) {
         if(walletModel->cloneWallet(filename)) {
@@ -939,11 +1038,12 @@ void BitcoinGUI::exportWallet() {
    if(!ctx.isValid())
      return;
 
-#if QT_VERSION < 0x050000
+#if (QT_VERSION < 0x050000)
     QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
 #else
     QString saveDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #endif
+
     QString filename = QFileDialog::getSaveFileName(this, tr("Export Wallet Keys"), saveDir, tr("Wallet Text (*.txt)"));
     if(!filename.isEmpty()) {
         if(walletModel->exportWallet(filename)) {
@@ -968,11 +1068,12 @@ void BitcoinGUI::importWallet() {
    if(!ctx.isValid())
      return;
 
-#if QT_VERSION < 0x050000
+#if (QT_VERSION < 0x050000)
     QString openDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
 #else
     QString openDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #endif
+
     QString filename = QFileDialog::getOpenFileName(this, tr("Import Wallet Keys"), openDir, tr("Wallet Text (*.txt)"));
     if(!filename.isEmpty()) {
         if(walletModel->importWallet(filename)) {
@@ -1082,7 +1183,7 @@ void BitcoinGUI::inspectWallet() {
 
     walletModel->repairWallet(nMismatchSpent, nOrphansFound, nBalanceInQuestion, true);
 
-    if(!nMismatchSpent)
+    if(!nMismatchSpent && !nOrphansFound)
       notificator->notify(Notificator::Warning,
         tr("Wallet Inspection Report"),
         tr("Integrity test passed, nothing to fix.\n"));
@@ -1090,13 +1191,14 @@ void BitcoinGUI::inspectWallet() {
       notificator->notify(Notificator::Warning,
         tr("Wallet Inspection Report"),
         tr("Integrity test failed!\n\n"
-           "Mismatched coins found: %1\n"
-           "Amount in question: %2\n"
-           "Orphans found: %3\n\n"
+           "Orphans found: %1\n"
+           "Mismatched outputs detected: %2\n"
+           "Amount in question: %3\n\n"
            "Please clone your wallet and repair it.\n")
+        .arg(nOrphansFound)
         .arg(nMismatchSpent)
-        .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(), nBalanceInQuestion, true))
-        .arg(nOrphansFound));
+        .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(),
+          nBalanceInQuestion, true)));
 }
 
 void BitcoinGUI::repairWallet() {
@@ -1109,7 +1211,7 @@ void BitcoinGUI::repairWallet() {
 
     walletModel->repairWallet(nMismatchSpent, nOrphansFound, nBalanceInQuestion, false);
 
-    if(!nMismatchSpent)
+    if(!nMismatchSpent && !nOrphansFound)
       notificator->notify(Notificator::Warning,
         tr("Wallet Repair Report"),
         tr("Integrity test passed, nothing to fix.\n"));
@@ -1117,11 +1219,12 @@ void BitcoinGUI::repairWallet() {
       notificator->notify(Notificator::Warning,
         tr("Wallet Repair Report"),
         tr("Wallet repaired successfully!\n\n"
-           "Mismatched coins found: %1\n"
-           "Amount affected by repair: %2\n"
-           "Orphans removed: %3\n")
+           "Orphans removed: %1\n"
+           "Mismatched outputs corrected: %2\n"
+           "Amount affected by repair: %3\n")
+        .arg(nOrphansFound)
         .arg(nMismatchSpent)
-        .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(), nBalanceInQuestion, true))
-        .arg(nOrphansFound));
+        .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(),
+          nBalanceInQuestion, true)));
 }
 

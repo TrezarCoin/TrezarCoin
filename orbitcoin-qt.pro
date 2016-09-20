@@ -1,12 +1,20 @@
 TEMPLATE = app
 TARGET = orbitcoin-qt
-VERSION = 1.5.0.0
+VERSION = 1.6.0.0
 INCLUDEPATH += src src/json src/qt
+QT += core gui network
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
 CONFIG += thread
 CONFIG += static
-QMAKE_CFLAGS += -DSHA256 -DASM
+QMAKE_CFLAGS += -DSHA256 -DASM -DOPT
+
+greaterThan(QT_MAJOR_VERSION, 4): {
+    QT += widgets
+    message("Building with the Qt v5 support$$escape_expand(\\n)")
+} else {
+    message("Building with the Qt v4 support$$escape_expand(\\n)")
+}
 
 # for boost 1.37, add -mt to the boost libraries
 # use: qmake BOOST_LIB_SUFFIX=-mt
@@ -22,32 +30,49 @@ OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
 
-# use: qmake "RELEASE=1"
-contains(RELEASE, 1) {
-    # Mac: compile for maximum compatibility (10.5, 32-bit)
-    macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.5 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk
-    macx:QMAKE_CFLAGS += -mmacosx-version-min=10.5 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk
-    macx:QMAKE_LFLAGS += -mmacosx-version-min=10.5 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk
+# use: qmake RELEASE_I386=1
+contains(RELEASE_I386, 1) {
+    # Mac: optimised 32-bit x86
+    macx:QMAKE_CFLAGS += -arch i386 -fomit-frame-pointer -msse2 -mdynamic-no-pic -I/usr/local/i386/include
+    macx:QMAKE_CXXFLAGS += -arch i386 -fomit-frame-pointer -msse2 -mdynamic-no-pic -I/usr/local/i386/include
+    macx:QMAKE_LFLAGS += -arch i386 -L/usr/local/i386/lib
+    # Mac: 10.5+ compatibility; Qt with Cocoa is broken on 10.4
+    macx:QMAKE_CFLAGS += -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk
+    macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk
+    macx:QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.5
+    # Windows: optimised 32-bit x86
+    win32:QMAKE_CFLAGS += -march=i686 -fomit-frame-pointer
+    win32:QMAKE_CXXFLAGS += -march=i686 -fomit-frame-pointer
+}
 
-    !windows:!macx {
-        # Linux: static link
-        LIBS += -Wl,-Bstatic
-    }
+# use: qmake RELEASE_AMD64=1
+contains(RELEASE_AMD64, 1) {
+    # Mac: optimised 64-bit x86
+    macx:QMAKE_CFLAGS += -DMOVQ_FIX -arch x86_64 -fomit-frame-pointer -mdynamic-no-pic -I/usr/local/amd64/include
+    macx:QMAKE_CXXFLAGS += -arch x86_64 -fomit-frame-pointer -mdynamic-no-pic -I/usr/local/amd64/include
+    macx:QMAKE_LFLAGS += -arch x86_64 -L/usr/local/amd64/lib
+    # Mac: 10.8+ compatibility
+    macx:QMAKE_CFLAGS += -mmacosx-version-min=10.8 -isysroot /Developer/SDKs/MacOSX10.8.sdk
+    macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.8 -isysroot /Developer/SDKs/MacOSX10.8.sdk
+    macx:QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8
 }
 
 # strip symbols
-QMAKE_LFLAGS += -Wl,-s
+!macx:QMAKE_LFLAGS += -Wl,-s
+macx:QMAKE_LFLAGS += -dead_strip
+# disable debug builds on Windows
+win32:CONFIG -= debug_and_release debug_and_release_target
 # for extra security on Windows: enable ASLR and DEP via GCC linker flags
 win32:QMAKE_LFLAGS *= -Wl,--dynamicbase -Wl,--nxcompat
-# on Windows: enable GCC large address aware linker flag
-win32:QMAKE_LFLAGS *= -Wl,--large-address-aware -static
+# on Windows: enable GCC large address aware linker flag; breaks MinGW-w64
+#win32:QMAKE_LFLAGS *= -Wl,--large-address-aware
 # i686-w64-mingw32
-win32:QMAKE_LFLAGS *= -static-libgcc -static-libstdc++
+win32:QMAKE_LFLAGS *=  -static -static-libgcc -static-libstdc++
 
 # use: qmake "USE_QRCODE=1"
 # libqrencode (http://fukuchi.org/works/qrencode/index.en.html) must be installed for support
 contains(USE_QRCODE, 1) {
-    message(Building with QRCode support)
+    message("Building with the QR code support$$escape_expand(\\n)")
     DEFINES += USE_QRCODE
     LIBS += -lqrencode
 }
@@ -57,9 +82,9 @@ contains(USE_QRCODE, 1) {
 #  or: qmake "USE_UPNP=-" (not supported)
 # miniupnpc (http://miniupnp.free.fr/files/) must be installed for support
 contains(USE_UPNP, -) {
-    message(Building without UPNP support)
+    message("Building without UPnP support$$escape_expand(\\n)")
 } else {
-    message(Building with UPNP support)
+    message("Building with the UPnP support$$escape_expand(\\n)")
     count(USE_UPNP, 0) {
         USE_UPNP=1
     }
@@ -71,17 +96,18 @@ contains(USE_UPNP, -) {
 
 # use: qmake "USE_DBUS=1"
 contains(USE_DBUS, 1) {
-    message(Building with DBUS (Freedesktop notifications) support)
+    message("Building with the D-Bus support$$escape_expand(\\n)")
     DEFINES += USE_DBUS
     QT += dbus
 }
 
-# use: qmake "USE_IPV6=1" ( enabled by default; default)
-#  or: qmake "USE_IPV6=0" (disabled by default)
-#  or: qmake "USE_IPV6=-" (not supported)
+# use: qmake "USE_IPV6=1" (compiled and enabled by default)
+#  or: qmake "USE_IPV6=0" (compiled and disabled by default)
+#  or: qmake "USE_IPV6=-" (not compiled)
 contains(USE_IPV6, -) {
-    message(Building without IPv6 support)
+    message("Building without IPv6 support$$escape_expand(\\n)")
 } else {
+    message("Building with the IPv6 support$$escape_expand(\\n)")
     count(USE_IPV6, 0) {
         USE_IPV6=1
     }
@@ -94,24 +120,21 @@ contains(BITCOIN_NEED_QT_PLUGINS, 1) {
 }
 
 INCLUDEPATH += src/leveldb/include src/leveldb/helpers
-LIBS += $$PWD/src/leveldb/libleveldb.a $$PWD/src/leveldb/libmemenv.a
+LIBS += -Lsrc/leveldb -lleveldb -lmemenv
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
     genleveldb.commands = cd $$PWD/src/leveldb && CC=$$QMAKE_CC CXX=$$QMAKE_CXX $(MAKE) OPT=\"$$QMAKE_CXXFLAGS $$QMAKE_CXXFLAGS_RELEASE\" libleveldb.a libmemenv.a
+    # Gross ugly hack that depends on qmake internals, unfortunately there is no other way to do it.
+    QMAKE_CLEAN += $$PWD/src/leveldb/libleveldb.a; cd $$PWD/src/leveldb ; $(MAKE) clean
 } else {
-    # make an educated guess about what the ranlib command is called
-    isEmpty(QMAKE_RANLIB) {
-        QMAKE_RANLIB = $$replace(QMAKE_STRIP, strip, ranlib)
-    }
     LIBS += -lshlwapi
-    genleveldb.commands = cd $$PWD/src/leveldb && CC=$$QMAKE_CC CXX=$$QMAKE_CXX TARGET_OS=OS_WINDOWS_CROSSCOMPILE $(MAKE) OPT=\"$$QMAKE_CXXFLAGS $$QMAKE_CXXFLAGS_RELEASE\" libleveldb.a libmemenv.a && $$QMAKE_RANLIB $$PWD/src/leveldb/libleveldb.a && $$QMAKE_RANLIB $$PWD/src/leveldb/libmemenv.a
+    genleveldb.commands = cd $$PWD/src/leveldb; $(MAKE) -f Makefile.mingw
+    QMAKE_CLEAN += $$PWD/src/leveldb/libleveldb.a
+    QMAKE_CLEAN += $$PWD/src/leveldb/libmemenv.a
+    QMAKE_CLEAN += $$PWD/src/leveldb/obj/*.o
 }
-genleveldb.target = $$PWD/src/leveldb/libleveldb.a
-genleveldb.depends = FORCE
-PRE_TARGETDEPS += $$PWD/src/leveldb/libleveldb.a
+PRE_TARGETDEPS += genleveldb
 QMAKE_EXTRA_TARGETS += genleveldb
-# Gross ugly hack that depends on qmake internals, unfortunately there is no other way to do it.
-QMAKE_CLEAN += $$PWD/src/leveldb/libleveldb.a; cd $$PWD/src/leveldb ; $(MAKE) clean
 
 # regenerate src/build.h
 !windows|contains(USE_BUILD_INFO, 1) {
@@ -121,14 +144,6 @@ QMAKE_CLEAN += $$PWD/src/leveldb/libleveldb.a; cd $$PWD/src/leveldb ; $(MAKE) cl
     PRE_TARGETDEPS += $$OUT_PWD/build/build.h
     QMAKE_EXTRA_TARGETS += genbuild
     DEFINES += HAVE_BUILD_INFO
-}
-
-contains(USE_O3, 1) {
-    message(Building O3 optimization flag)
-    QMAKE_CXXFLAGS_RELEASE -= -O2 -fomit-frame-pointer -fno-stack-protector
-    QMAKE_CFLAGS_RELEASE -= -O2 -fomit-frame-pointer -fno-stack-protector
-    QMAKE_CXXFLAGS += -O3 -fomit-frame-pointer -fno-stack-protector
-    QMAKE_CFLAGS += -O3 -fomit-frame-pointer -fno-stack-protector
 }
 
 QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter
@@ -190,6 +205,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/guiconstants.h \
     src/qt/optionsmodel.h \
     src/qt/monitoreddatamapper.h \
+    src/qt/trafficgraphwidget.h \
     src/qt/transactiondesc.h \
     src/qt/transactiondescdialog.h \
     src/qt/bitcoinamountfield.h \
@@ -213,6 +229,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/allocators.h \
     src/ui_interface.h \
     src/qt/rpcconsole.h \
+    src/qt/blockexplorer.h \
     src/version.h \
     src/netbase.h \
     src/clientversion.h
@@ -252,6 +269,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/transactionrecord.cpp \
     src/qt/optionsmodel.cpp \
     src/qt/monitoreddatamapper.cpp \
+    src/qt/trafficgraphwidget.cpp \
     src/qt/transactiondesc.cpp \
     src/qt/transactiondescdialog.cpp \
     src/qt/bitcoinstrings.cpp \
@@ -280,6 +298,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/notificator.cpp \
     src/qt/qtipcserver.cpp \
     src/qt/rpcconsole.cpp \
+    src/qt/blockexplorer.cpp \
     src/noui.cpp \
     src/kernel.cpp \
     src/neoscrypt.c \
@@ -305,6 +324,7 @@ FORMS += \
     src/qt/forms/sendcoinsentry.ui \
     src/qt/forms/askpassphrasedialog.ui \
     src/qt/forms/rpcconsole.ui \
+    src/qt/forms/blockexplorer.ui \
     src/qt/forms/optionsdialog.ui
 
 contains(USE_QRCODE, 1) {
@@ -339,31 +359,15 @@ OTHER_FILES += \
 # platform specific defaults, if not overridden on command line
 isEmpty(BOOST_LIB_SUFFIX) {
     macx:BOOST_LIB_SUFFIX = -mt
-    windows:BOOST_LIB_SUFFIX = -mgw44-mt-1_53
+    windows:BOOST_LIB_SUFFIX = -mgw46-mt-1_59
 }
 
 isEmpty(BOOST_THREAD_LIB_SUFFIX) {
     BOOST_THREAD_LIB_SUFFIX = $$BOOST_LIB_SUFFIX
 }
 
-isEmpty(BDB_LIB_PATH) {
-    macx:BDB_LIB_PATH = /usr/local/lib
-}
-
 isEmpty(BDB_LIB_SUFFIX) {
     macx:BDB_LIB_SUFFIX = -5.3
-}
-
-isEmpty(BDB_INCLUDE_PATH) {
-    macx:BDB_INCLUDE_PATH = /usr/local/include
-}
-
-isEmpty(BOOST_LIB_PATH) {
-    macx:BOOST_LIB_PATH = /opt/local/lib
-}
-
-isEmpty(BOOST_INCLUDE_PATH) {
-    macx:BOOST_INCLUDE_PATH = /opt/local/include
 }
 
 windows:DEFINES += WIN32
@@ -385,8 +389,8 @@ windows:!contains(MINGW_THREAD_BUGFIX, 0) {
     LIBS += -lrt
 }
 
-macx:HEADERS += src/qt/macdockiconhandler.h
-macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm
+macx:HEADERS += src/qt/macdockiconhandler.h src/qt/macnotificationhandler.h
+macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm src/qt/macnotificationhandler.mm
 macx:LIBS += -framework Foundation -framework ApplicationServices -framework AppKit
 macx:DEFINES += MAC_OSX MSG_NOSIGNAL=0
 macx:ICON = src/qt/res/icons/orbitcoin.icns
@@ -403,12 +407,5 @@ LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX
 windows:LIBS += -lws2_32 -lshlwapi -lmswsock -lole32 -loleaut32 -luuid -lgdi32
 LIBS += -lboost_system$$BOOST_LIB_SUFFIX -lboost_filesystem$$BOOST_LIB_SUFFIX -lboost_program_options$$BOOST_LIB_SUFFIX -lboost_thread$$BOOST_THREAD_LIB_SUFFIX
 windows:LIBS += -lboost_chrono$$BOOST_LIB_SUFFIX
-
-contains(RELEASE, 1) {
-    !windows:!macx {
-        # Linux: turn dynamic linking back on for c/c++ runtime libraries
-        LIBS += -Wl,-Bdynamic
-    }
-}
 
 system($$QMAKE_LRELEASE -silent $$_PRO_FILE_)

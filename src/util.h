@@ -59,15 +59,6 @@ static const int64 CENT = 10000;
 #endif
 #endif
 
-#ifndef THROW_WITH_STACKTRACE
-#define THROW_WITH_STACKTRACE(exception)  \
-{                                         \
-    LogStackTrace();                      \
-    throw (exception);                    \
-}
-void LogStackTrace();
-#endif
-
 
 /* Format characters for (s)size_t and ptrdiff_t */
 #if defined(_MSC_VER) || defined(__MSVCRT__)
@@ -159,6 +150,7 @@ extern bool fLogTimestamps;
 extern bool fReopenDebugLog;
 extern bool fStakeGen;
 extern bool fStakingOnly;
+extern bool fReindex;
 
 extern bool fNeoScrypt;
 extern uint nNeoScryptOptions;
@@ -170,6 +162,7 @@ extern uint64 nModifierCacheMisses;
 extern uint64 nInputCacheHits;
 extern uint64 nInputCacheMisses;
 
+extern uint nStakeMinTime;
 extern uint nStakeMinDepth;
 extern long long nLastWalletStakeTime;
 extern unsigned long long nMinWeightInputs;
@@ -228,6 +221,7 @@ std::string EncodeBase32(const std::string& str);
 void ParseParameters(int argc, const char*const argv[]);
 bool WildcardMatch(const char* psz, const char* mask);
 bool WildcardMatch(const std::string& str, const std::string& mask);
+int FileTruncate(FILE *fileout, uint length);
 int FileCommit(FILE *fileout);
 int GetFilesize(FILE* file);
 void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length);
@@ -243,6 +237,7 @@ void ReadConfigFile(std::map<std::string, std::string>& mapSettingsRet, std::map
 #ifdef WIN32
 boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate = true);
 #endif
+boost::filesystem::path GetTempPath();
 void ShrinkDebugFile();
 int GetRandInt(int nMax);
 uint64 GetRand(uint64 nMax);
@@ -264,9 +259,8 @@ void runCommand(std::string strCommand);
 
 
 
-inline std::string i64tostr(int64 n)
-{
-    return strprintf("%"PRI64d, n);
+inline std::string i64tostr(int64 n) {
+    return(strprintf("%" PRI64d, n));
 }
 
 inline std::string itostr(int n)

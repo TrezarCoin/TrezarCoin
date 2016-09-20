@@ -47,7 +47,8 @@ static const unsigned int BLOCKFILE_CHUNK_SIZE = 0x1000000; // 16 MiB
 static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 static const unsigned int MEMPOOL_HEIGHT = 0x7FFFFFFF;
 
-static const uint BLOCK_LIMITER_TIME = 90;
+static const uint BLOCK_LIMITER_TIME_OLD = 90;
+static const uint BLOCK_LIMITER_TIME_NEW = 240;
 
 static const int64 MIN_TX_FEE = 0.1 * CENT;
 static const int64 MIN_RELAY_TX_FEE = 0.1 * CENT;
@@ -69,6 +70,8 @@ static const int nBonanzaOne            = 660000;
 static const int nBonanzaTwo            = 760000;
 static const int nForkSix               = 1010000;
 static const uint nStakeMinAgeForkTime  = 1419076800;  /* 20 Dec 2014 12:00:00 GMT */
+static const int nForkSeven             = 2000000;
+static const uint nForkThreeTime        = 1475323200;  /*  1 Oct 2016 12:00:00 GMT */
 
 /* Testnet hard forks */
 static const uint nTestnetForkOneTime   = 1393473600;  /* 27 Feb 2014 04:00:00 GMT */
@@ -76,11 +79,11 @@ static const int nTestnetForkTwo        = 1850;
 static const int nTestnetForkThree      = 2000;
 static const int nTestnetForkFour       = 3400;
 static const int nTestnetForkFive       = 4000;
+static const int nTestnetForkSix        = 4100;
+static const uint nTestnetForkTwoTime   = 1473811200;  /* 14 Sep 2016 00:00:00 GMT */
 
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
-// Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
-static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;
@@ -120,7 +123,7 @@ extern std::map<uint256, CBlock*> mapOrphanBlocks;
 // Settings
 extern int64 nTransactionFee;
 extern int64 nMinimumInputValue;
-extern int64 nMinStakingInputValue;
+extern int64 nStakeMinValue;
 extern int64 nCombineThreshold;
 extern int64 nSplitThreshold;
 extern uint nStakeMinAgeOne;
@@ -135,16 +138,17 @@ static const uint64 nMinDiskSpace = 52428800;
 class CReserveKey;
 class CCoinsDB;
 class CBlockTreeDB;
-class CDiskBlockPos;
+struct CDiskBlockPos;
 class CCoins;
 class CTxUndo;
 class CCoinsView;
 class CCoinsViewCache;
 
+void InitTestnet();
 void RegisterWallet(CWallet* pwalletIn);
 void UnregisterWallet(CWallet* pwalletIn);
 void SyncWithWallets(const uint256 &hash, const CTransaction& tx, const CBlock* pblock = NULL, bool fUpdate = false, bool fConnect = true);
-bool ProcessBlock(CNode* pfrom, CBlock* pblock);
+bool ProcessBlock(CNode* pfrom, CBlock* pblock, CDiskBlockPos *dbp = NULL);
 bool CheckDiskSpace(uint64 nAdditionalBytes=0);
 FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 FILE* OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
@@ -153,7 +157,7 @@ void PrintBlockTree();
 CBlockIndex* FindBlockByHeight(int nHeight);
 bool ProcessMessages(CNode* pfrom);
 bool SendMessages(CNode* pto, bool fSendTrickle);
-bool LoadExternalBlockFile(FILE* fileIn);
+bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp = NULL);
 
 bool CheckProofOfWork(uint256 hashPoW, uint nBits);
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake, bool fPrettyPrint);
@@ -175,9 +179,7 @@ void ResendWalletTransactions(bool fForce=false);
 
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
-class CDiskBlockPos
-{
-public:
+struct CDiskBlockPos {
     int nFile;
     unsigned int nPos;
 
@@ -185,6 +187,15 @@ public:
         READWRITE(VARINT(nFile));
         READWRITE(VARINT(nPos));
     )
+
+    CDiskBlockPos() {
+        SetNull();
+    }
+
+    CDiskBlockPos(int nFileIn, uint nPosIn) {
+        nFile = nFileIn;
+        nPos = nPosIn;
+    }
 
     friend bool operator==(const CDiskBlockPos &a, const CDiskBlockPos &b) {
         return (a.nFile == b.nFile && a.nPos == b.nPos);
@@ -196,6 +207,10 @@ public:
 
     void SetNull() { nFile = -1; nPos = 0; }
     bool IsNull() const { return (nFile == -1); }
+
+    std::string ToString() const {
+        return(strprintf("CBlockDiskPos(nFile=%i, nPos=%i)", nFile, nPos));
+    }
 };
 
 
@@ -637,7 +652,8 @@ public:
     {
         std::string str;
         str += IsCoinBase()? "Coinbase" : (IsCoinStake()? "Coinstake" : "CTransaction");
-        str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%"PRIszu", vout.size=%"PRIszu", nLockTime=%d, strTxComment=%s)\n",
+        str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%" PRIszu \
+          ", vout.size=%" PRIszu ", nLockTime=%d, strTxComment=%s)\n",
             GetHash().ToString().substr(0,10).c_str(),
             nTime,
             nVersion,
@@ -666,7 +682,7 @@ public:
 
     // Check whether all inputs of this transaction are valid (no double spends, scripts & sigs, amounts)
     // This does not modify the UTXO set
-    bool CheckInputs(CCoinsViewCache &view, enum CheckSig_mode csmode, bool fStrictPayToScriptHash=true, bool fStrictEncodings=true, CBlock *pblock=NULL) const;
+    bool CheckInputs(CCoinsViewCache &view, enum CheckSig_mode csmode, uint flags) const;
 
     // Apply the effects of this transaction on the UTXO set represented by view
     bool UpdateCoins(CCoinsViewCache &view, CTxUndo &txundo, int nHeight, unsigned int nBlockTime, const uint256 &txhash) const;
@@ -1311,19 +1327,15 @@ public:
     }
 
     /* Block hashing */
-    uint256 GetHash(int nHeight = 0) const {
+    uint256 GetHash() const {
         if(timeCached != nTime) {
             uint profile = 0x0;
 
-            /* Not fail safe, but better than nothing */
-            if(!nHeight)
-              nHeight = GetBlockHeight();
-
-            if(fTestNet) {
-                if(nHeight < nTestnetForkFive)
+            if(!fTestNet) {
+                if(nTime < 1418511997)  /* nForkSix */
                   profile = 0x3;
             } else {
-                if(nHeight < nForkSix)
+                if(nTime < 1418144320)  /* nTestnetForkFive */
                   profile = 0x3;
             }
 
@@ -1359,13 +1371,11 @@ public:
         uint256 hashPoW;
         uint profile = 0x0;
 
-        /* All these blocks must be v2+ with valid nHeight */
-        int nHeight = GetBlockHeight();
-        if(fTestNet) {
-            if(nHeight < nTestnetForkFive)
+        if(!fTestNet) {
+            if(nTime < 1418511997)  /* nForkSix */
               profile = 0x3;
         } else {
-            if(nHeight < nForkSix)
+            if(nTime < 1418144320)  /* nTestnetForkFive */
               profile = 0x3;
         }
 
@@ -1550,7 +1560,8 @@ public:
 
     void print() const
     {
-        printf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%"PRIszu", vchBlockSig=%s)\n",
+        printf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, "
+          "nTime=%u, nBits=%08x, nNonce=%u, vtx=%" PRIszu ", vchBlockSig=%s)\n",
             GetHash().ToString().c_str(),
             nVersion,
             hashPrevBlock.ToString().c_str(),
@@ -1585,7 +1596,7 @@ public:
     bool CheckBlock() const;
 
     // Store block on disk
-    bool AcceptBlock();
+    bool AcceptBlock(CDiskBlockPos *dbp = NULL);
 
     /* Calculates block coin age related information */
     bool GetCoinAge(uint64 *pCoinAge=NULL, uint64 *pCoinAgeFails=NULL) const;
@@ -2002,15 +2013,14 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(nprev=%p, pnext=%p nHeight=%d, nMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016"PRI64x", nStakeModifierChecksum=%08x, hashProofOfStake=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
-            pprev, pnext, nHeight,
-            FormatMoney(nMint).c_str(), FormatMoney(nMoneySupply).c_str(),
-            GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
-            nStakeModifier, nStakeModifierChecksum, 
-            hashProofOfStake.ToString().c_str(),
-            prevoutStake.ToString().c_str(), nStakeTime,
-            hashMerkleRoot.ToString().c_str(),
-            GetBlockHash().ToString().c_str());
+        return(strprintf("CBlockIndex(nprev=%p, pnext=%p nHeight=%d, nMint=%s, nMoneySupply=%s, " \
+          "nFlags=(%s)(%d)(%s), nStakeModifier=%016" PRI64x ", nStakeModifierChecksum=%08x, "
+          "hashProofOfStake=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
+          pprev, pnext, nHeight, FormatMoney(nMint).c_str(), FormatMoney(nMoneySupply).c_str(),
+          GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(),
+          IsProofOfStake()? "PoS" : "PoW", nStakeModifier, nStakeModifierChecksum,
+          hashProofOfStake.ToString().c_str(), prevoutStake.ToString().c_str(), nStakeTime,
+          hashMerkleRoot.ToString().c_str(), GetBlockHash().ToString().c_str()));
     }
 
 
@@ -2101,8 +2111,7 @@ public:
         block.nBits           = nBits;
         block.nNonce          = nNonce;
 
-        /* nHeight is known and should be used to avoid trouble */
-        const_cast<CDiskBlockIndex*>(this)->blockHash = block.GetHash(nHeight);
+        const_cast<CDiskBlockIndex*>(this)->blockHash = block.GetHash();
 
         return(blockHash);
     }

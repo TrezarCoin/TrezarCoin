@@ -1212,9 +1212,9 @@ int64 nCoinsCacheValue = 0;
 uint  nCoinsCacheTime  = 0;
 const uint nCoinsCacheInterval = 600;  /* 10 minutes */
 
-/* Quick cacheable selection of inputs for staking at the depth specified */
-bool CWallet::SelectCoinsStaking(int64 nTargetValue, int nStakeMinDepth,
-  set<pair<const CWalletTx*, uint> >& setCoinsRet, int64& nValueRet) const {
+/* Quick cacheable selection of inputs for staking */
+bool CWallet::SelectCoinsStaking(int64 nTargetValue, 
+  set<pair<const CWalletTx *, uint> > &setCoinsRet, int64 &nValueRet) const {
 
     uint nCurrentTime = GetTime();
     if(nCurrentTime < (nCoinsCacheTime + nCoinsCacheInterval)) {
@@ -1245,14 +1245,21 @@ bool CWallet::SelectCoinsStaking(int64 nTargetValue, int nStakeMinDepth,
             /* May be negative (failed transactions) */
             nDepth = pcoin->GetDepthInMainChain();
 
-            /* Discard if the depth requirement is unmet */
-            if(nDepth < nStakeMinDepth)
-              continue;
+            /* Discard if the time (depth) requirement is unmet */
+            if(nStakeMinTime) {
+                if(nDepth < nBaseMaturity)
+                  continue;
+                if(nCurrentTime < (pcoin->nTime + nStakeMinTime * 60 * 60))
+                  continue;
+            } else {
+                if(nDepth < (int)nStakeMinDepth)
+                  continue;
+            }
 
             for(i = 0; i < pcoin->vout.size(); i++) {
               /* Must be unspent and above the limit in value */
               if(!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i])
-                && (pcoin->vout[i].nValue >= nMinStakingInputValue))
+                && (pcoin->vout[i].nValue >= nStakeMinValue))
                 vCoins.push_back(COutput(pcoin, i, nDepth));
             }
         }
@@ -1468,8 +1475,8 @@ bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeightInputs
     set<pair<const CWalletTx*,unsigned int> > setCoins;
     int64 nValueIn = 0;
 
-    /* Select aged coins by depth in the main chain */
-    if(!SelectCoinsStaking(nBalance - nReserveBalance, nStakeMinDepth, setCoins, nValueIn))
+    /* Select aged coins */
+    if(!SelectCoinsStaking(nBalance - nReserveBalance, setCoins, nValueIn))
       return(false);
 
     if(setCoins.empty()) return(false);
@@ -1540,8 +1547,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, uint nBits, int64 nSear
     set<pair<const CWalletTx*, uint> > setCoins;
     int64 nValueIn = 0;
 
-    /* Select aged coins by depth in the main chain */
-    if(!SelectCoinsStaking(nBalance - nReserveBalance, nStakeMinDepth, setCoins, nValueIn))
+    /* Select aged coins */
+    if(!SelectCoinsStaking(nBalance - nReserveBalance, setCoins, nValueIn))
       return(false);
 
     if(setCoins.empty()) return(false);
@@ -1932,12 +1939,14 @@ void CWallet::PrintWallet(const CBlock& block)
         if (block.IsProofOfWork() && mapWallet.count(block.vtx[0].GetHash()))
         {
             CWalletTx& wtx = mapWallet[block.vtx[0].GetHash()];
-            printf("    mine:  %d  %d  %"PRI64d"", wtx.GetDepthInMainChain(), wtx.GetBlocksToMaturity(), wtx.GetCredit());
+            printf("    mine:  %d  %d  %" PRI64d "",
+              wtx.GetDepthInMainChain(), wtx.GetBlocksToMaturity(), wtx.GetCredit());
         }
         if (block.IsProofOfStake() && mapWallet.count(block.vtx[1].GetHash()))
         {
             CWalletTx& wtx = mapWallet[block.vtx[1].GetHash()];
-            printf("    stake: %d  %d  %"PRI64d"", wtx.GetDepthInMainChain(), wtx.GetBlocksToMaturity(), wtx.GetCredit());
+            printf("    stake: %d  %d  %" PRI64d "",
+              wtx.GetDepthInMainChain(), wtx.GetBlocksToMaturity(), wtx.GetCredit());
          }
 
     }
@@ -2000,7 +2009,7 @@ bool CWallet::NewKeyPool()
             walletdb.WritePool(nIndex, CKeyPool(GenerateNewKey()));
             setKeyPool.insert(nIndex);
         }
-        printf("CWallet::NewKeyPool wrote %"PRI64d" new keys\n", nKeys);
+        printf("CWallet::NewKeyPool wrote %" PRI64d " new keys\n", nKeys);
     }
     return true;
 }
@@ -2030,7 +2039,8 @@ bool CWallet::TopUpKeyPool(unsigned int nSize)
             if (!walletdb.WritePool(nEnd, CKeyPool(GenerateNewKey())))
                 throw runtime_error("TopUpKeyPool() : writing generated key failed");
             setKeyPool.insert(nEnd);
-            printf("keypool added key %"PRI64d", size=%"PRIszu"\n", nEnd, setKeyPool.size());
+            printf("keypool added key %" PRI64d ", size=%" PRIszu "\n",
+              nEnd, setKeyPool.size());
         }
     }
     return true;
@@ -2059,8 +2069,8 @@ void CWallet::ReserveKeyFromKeyPool(int64& nIndex, CKeyPool& keypool)
         if (!HaveKey(keypool.vchPubKey.GetID()))
             throw runtime_error("ReserveKeyFromKeyPool() : unknown key in key pool");
         assert(keypool.vchPubKey.IsValid());
-        if (fDebug && GetBoolArg("-printkeypool"))
-            printf("keypool reserve %"PRI64d"\n", nIndex);
+        if(fDebug && GetBoolArg("-printkeypool"))
+          printf("keypool reserve %" PRI64d "\n", nIndex);
     }
 }
 
@@ -2088,7 +2098,7 @@ void CWallet::KeepKey(int64 nIndex)
         walletdb.ErasePool(nIndex);
     }
     if(fDebug)
-        printf("keypool keep %"PRI64d"\n", nIndex);
+      printf("keypool keep %" PRI64d "\n", nIndex);
 }
 
 void CWallet::ReturnKey(int64 nIndex)
@@ -2099,7 +2109,7 @@ void CWallet::ReturnKey(int64 nIndex)
         setKeyPool.insert(nIndex);
     }
     if(fDebug)
-        printf("keypool return %"PRI64d"\n", nIndex);
+      printf("keypool return %" PRI64d "\n", nIndex);
 }
 
 bool CWallet::GetKeyFromPool(CPubKey& result, bool fAllowReuse)
@@ -2269,12 +2279,16 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int& nOrphansFound, int64& nBal
     nBalanceInQuestion = 0;
     nOrphansFound = 0;
 
+    /* If repairing, don't bother to put the stake miner on hold and invalidate its cache
+     * as there shouldn't be any failed transactions by design */
+
     LOCK(cs_wallet);
     vector<CWalletTx*> vCoins;
     vCoins.reserve(mapWallet.size());
     for (map<uint256, CWalletTx>::iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
         vCoins.push_back(&(*it).second);
 
+    uint n;
     CCoinsViewCache &view = *pcoinsTip;
     BOOST_FOREACH(CWalletTx* pcoin, vCoins)
     {
@@ -2282,18 +2296,43 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int& nOrphansFound, int64& nBal
         if(!view.HaveCoins(hash))
             continue;
 
+        if((pcoin->IsCoinBase() || pcoin->IsCoinStake()) &&
+          (pcoin->GetDepthInMainChain() < 0)) {
+            int64 nCurrentValue = 0;
+
+            nOrphansFound++;
+
+            for(n = 0; n < pcoin->vout.size(); n++)
+              nCurrentValue += pcoin->vout[n].nValue;
+            nBalanceInQuestion += nCurrentValue;
+
+            printf("FixSpentCoins() : %s orphaned coin %s %s of value %s\n",
+              fCheckOnly ? "found" : "removed",
+              pcoin->IsCoinBase() ? "base" : "stake",
+              hash.ToString().c_str(),
+              FormatMoney(nCurrentValue).c_str());
+
+            if(!fCheckOnly) {
+                EraseFromWallet(hash);
+                NotifyTransactionChanged(this, hash, CT_DELETED);
+            }
+
+            continue;
+        }
+
         // Find the corresponding transaction index
         CCoins &coins = view.GetCoins(hash);
 
-        for (unsigned int n=0; n < pcoin->vout.size(); n++)
-        {
+        for(n = 0; n < pcoin->vout.size(); n++) {
             bool fUpdated = false;
             if (IsMine(pcoin->vout[n]))
             {
                 if (pcoin->IsSpent(n) && coins.IsAvailable(n))
                 {
-                    printf("FixSpentCoins found lost coin %sorb %s[%d], %s\n",
-                        FormatMoney(pcoin->vout[n].nValue).c_str(), hash.ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
+                    printf("FixSpentCoins() : %s lost output %s-%u of value %s\n",
+                      fCheckOnly ? "found" : "added",
+                      hash.ToString().c_str(), n,
+                      FormatMoney(pcoin->vout[n].nValue).c_str());
                     nMismatchFound++;
                     nBalanceInQuestion += pcoin->vout[n].nValue;
                     if (!fCheckOnly)
@@ -2305,8 +2344,10 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int& nOrphansFound, int64& nBal
                 }
                 else if (!pcoin->IsSpent(n) && !coins.IsAvailable(n))
                 {
-                    printf("FixSpentCoins found spent coin %sorb %s[%d], %s\n",
-                        FormatMoney(pcoin->vout[n].nValue).c_str(), hash.ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
+                    printf("FixSpentCoins() : %s spent output %s-%u of value %s\n",
+                      fCheckOnly ? "found" : "removed",
+                      hash.ToString().c_str(), n,
+                      FormatMoney(pcoin->vout[n].nValue).c_str());
                     nMismatchFound++;
                     nBalanceInQuestion += pcoin->vout[n].nValue;
                     if (!fCheckOnly)
@@ -2320,18 +2361,6 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int& nOrphansFound, int64& nBal
                 if (fUpdated)
                     NotifyTransactionChanged(this, hash, CT_UPDATED);
             }
-        }
-
-        if((pcoin->IsCoinBase() || pcoin->IsCoinStake()) && (pcoin->GetDepthInMainChain() < 0)) {
-            nOrphansFound++;
-
-            if (!fCheckOnly)
-            {
-                EraseFromWallet(hash);
-                NotifyTransactionChanged(this, hash, CT_DELETED);
-            }
-
-            printf("FixSpentCoins %s orphaned generation tx %s\n", fCheckOnly ? "found" : "removed", hash.ToString().c_str());
         }
     }
 }

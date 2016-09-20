@@ -29,7 +29,7 @@ QString TransactionDesc::FormatTxStatus(const CWalletTx& wtx)
         }
         if(!nDepth)
           return tr("pending");
-        if(nDepth < TransactionRecord::NumConfirmations)
+        if(nDepth < TX_MATURITY)
           return tr("%1/unconfirmed").arg(nDepth);
         return tr("%1 confirmations").arg(nDepth);
     }

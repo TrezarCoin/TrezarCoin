@@ -53,6 +53,8 @@ namespace boost {
 #include "shlobj.h"
 #elif defined(__linux__)
 #include <sys/prctl.h>
+#elif defined(__APPLE__)
+#include <AvailabilityMacros.h>
 #endif
 
 #ifndef WIN32
@@ -81,6 +83,7 @@ CMedianFilter<int64> vTimeOffsets(200,0);
 bool fReopenDebugLog = false;
 bool fStakeGen = true;
 bool fStakingOnly = false;
+bool fReindex = false;
 
 /* NeoScrypt related */
 bool fNeoScrypt = false;
@@ -392,7 +395,7 @@ string FormatMoney(int64 n, bool fPlus)
     int64 n_abs = (n > 0 ? n : -n);
     int64 quotient = n_abs/COIN;
     int64 remainder = n_abs%COIN;
-    string str = strprintf("%"PRI64d".%08"PRI64d, quotient, remainder);
+    string str = strprintf("%" PRI64d ".%06" PRI64d, quotient, remainder);
 
     // Right-trim excess zeros before the decimal point:
     int nTrim = 0;
@@ -1006,19 +1009,6 @@ void PrintException(std::exception* pex, const char* pszThread)
     throw;
 }
 
-void LogStackTrace() {
-    printf("\n\n******* exception encountered *******\n");
-    if (fileout)
-    {
-#ifndef WIN32
-        void* pszBuffer[32];
-        size_t size;
-        size = backtrace(pszBuffer, 32);
-        backtrace_symbols_fd(pszBuffer, size, fileno(fileout));
-#endif
-    }
-}
-
 void PrintExceptionContinue(std::exception* pex, const char* pszThread)
 {
     std::string message = FormatException(pex, pszThread);
@@ -1156,25 +1146,46 @@ bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest)
 #endif /* WIN32 */
 }
 
-/* Returns zero on success and -1 on failure */
+/* Truncates a file to a length specified;
+ * returns zero on success and -1 on failure */
+int FileTruncate(FILE *fileout, uint length) {
+    int ret, fd;
+
+#if defined(WIN32)
+    fd = _fileno(fileout);
+    ret = _chsize(fd, length);
+#else
+    fd = fileno(fileout);
+    ret = ftruncate(fd, length);
+#endif
+    return(ret);
+}
+
+/* Syncronises a file with a medium;
+ * returns zero on success and -1 on failure */
 int FileCommit(FILE *fileout) {
     int ret, fd;
 
     /* fflush() is a caller's responsibility */
 
     /* Get a file descriptor and perform the synchronisation */
-#if (WIN32)
+#if defined(WIN32)
     fd = _fileno(fileout);
     ret = _commit(fd);
 #else
     fd = fileno(fileout);
-#if (__linux__)
-    ret = fdatasync(fd);
-#elif (__APPLE__) && (F_FULLFSYNC)
+#if defined(__APPLE__)
+#if defined(F_FULLFSYNC)
     /* F_FULLFSYNC means fsync with device flush to medium;
      * works with HFS only as of 10.4, so fail over to fsync */
     ret = fcntl(fd, F_FULLFSYNC, 0);
-    if(!ret) ret = fsync(fd);
+    if(ret) ret = fsync(fd);
+#else
+    ret = fsync(fd);
+#endif /* __APPLE__ */
+#elif defined(HAVE_FDATASYNC)
+    /* IEEE Std 1003.1b-1993 aka POSIX.1b; not for MacOS X though */
+    ret = fdatasync(fd);
 #else
     ret = fsync(fd);
 #endif
@@ -1280,7 +1291,8 @@ void AddTimeData(const CNetAddr& ip, int64 nTime)
 
     // Add data
     vTimeOffsets.input(nOffsetSample);
-    printf("Added time data, samples %d, offset %+"PRI64d" (%+"PRI64d" minutes)\n", vTimeOffsets.size(), nOffsetSample, nOffsetSample/60);
+    printf("Added time data, samples %d, offset %+" PRI64d " (%+" PRI64d " minutes)\n",
+      vTimeOffsets.size(), nOffsetSample, nOffsetSample / 60);
     if (vTimeOffsets.size() >= 5 && vTimeOffsets.size() % 2 == 1)
     {
         int64 nMedian = vTimeOffsets.median();
@@ -1315,10 +1327,11 @@ void AddTimeData(const CNetAddr& ip, int64 nTime)
         }
         if (fDebug) {
             BOOST_FOREACH(int64 n, vSorted)
-                printf("%+"PRI64d"  ", n);
+              printf("%+" PRI64d "  ", n);
             printf("|  ");
         }
-        printf("nTimeOffset = %+"PRI64d"  (%+"PRI64d" minutes)\n", nTimeOffset, nTimeOffset/60);
+        printf("nTimeOffset = %+" PRI64d "  (%+" PRI64d " minutes)\n",
+          nTimeOffset, nTimeOffset / 60);
     }
 }
 
@@ -1329,12 +1342,9 @@ void AddTimeData(const CNetAddr& ip, int64 nTime)
 
 
 
-string FormatVersion(int nVersion)
-{
-    if (nVersion%100 == 0)
-        return strprintf("%d.%d.%d", nVersion/1000000, (nVersion/10000)%100, (nVersion/100)%100);
-    else
-        return strprintf("%d.%d.%d.%d", nVersion/1000000, (nVersion/10000)%100, (nVersion/100)%100, nVersion%100);
+string FormatVersion(int nVersion) {
+    return(strprintf("%d.%d.%d.%d", nVersion / 1000000,
+      (nVersion / 10000) % 100, (nVersion / 100) % 100, nVersion % 100));
 }
 
 string FormatFullVersion()
@@ -1371,6 +1381,27 @@ boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate)
 }
 #endif
 
+boost::filesystem::path GetTempPath() {
+#if (BOOST_FILESYSTEM_VERSION >= 3)
+    return(boost::filesystem::temp_directory_path());
+#else
+    /* Obsolete; for Boost < 1.45 */
+    boost::filesystem::path path;
+#ifdef WIN32
+    char pszPath[MAX_PATH] = "";
+    if(GetTempPathA(MAX_PATH, pszPath))
+      path = boost::filesystem::path(pszPath);
+#else
+    path = boost::filesystem::path("/tmp");
+#endif
+    if(path.empty() || !boost::filesystem::is_directory(path)) {
+        printf("GetTempPath() : not found\n");
+        return(boost::filesystem::path(""));
+    }
+    return(path);
+#endif
+}
+
 void runCommand(std::string strCommand)
 {
     int nErr = ::system(strCommand.c_str());
@@ -1378,23 +1409,22 @@ void runCommand(std::string strCommand)
         printf("runCommand error: system(%s) returned %d\n", strCommand.c_str(), nErr);
 }
 
-void RenameThread(const char* name)
-{
-#if defined(PR_SET_NAME)
-    // Only the first 15 characters are used (16 - NUL terminator)
-    ::prctl(PR_SET_NAME, name, 0, 0, 0);
-#elif 0 && (defined(__FreeBSD__) || defined(__OpenBSD__))
-    // TODO: This is currently disabled because it needs to be verified to work
-    //       on FreeBSD or OpenBSD first. When verified the '0 &&' part can be
-    //       removed.
+void RenameThread(const char *name) {
+    /* Thread name can be up to 16 bytes (characters) including NULL terminator */
+#if defined(__linux__) && defined(PR_SET_NAME)
+    /* Available since kernel 2.6.9; pthread_setname_np() also uses prctl() in GLIBC */
+    prctl(PR_SET_NAME, name, 0, 0, 0);
+#elif defined(__NetBSD__)
+    pthread_setname_np(pthread_self(), "%s", name);
+#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
     pthread_set_name_np(pthread_self(), name);
-
-// This is XCode 10.6-and-later; bring back if we drop 10.5 support:
-// #elif defined(MAC_OSX)
-//    pthread_setname_np(name);
-
+#elif defined(__APPLE__)
+#if (MAC_OS_X_VERSION_MIN_REQUIRED >= 1060)
+    /* MacOS X 10.6+ only */
+    pthread_setname_np(name);
+#endif
 #else
-    // Prevent warnings for unused parameters...
+    /* Threads on Windows have no names */
     (void)name;
 #endif
 }

@@ -81,9 +81,8 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
       return(NULL);
 
     // Create new block
-    auto_ptr<CBlock> pblock(new CBlock());
-    if (!pblock.get())
-        return NULL;
+    CBlock *pblock = new CBlock();
+    if(!pblock) return(NULL);
 
     // Create coinbase tx
     CTransaction txNew;
@@ -247,15 +246,10 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
             if ((tx.nTime > nAdjTime) || (fProofOfStake && tx.nTime > pblock->vtx[0].nTime))
                 continue;
 
-            // Use advanced fee calculation after the chain switch
-            if(fTestNet || (nAdjTime > nForkTwoTime)) {
-               // Orbitcoin: low priority transactions up to 500 bytes in size
-               // are free unless they get caught by the dust spam filter
-               bool fAllowFree = ((nBlockSize + nTxSize < 1500) || CTransaction::AllowFree(dPriority));
-               nMinFee = tx.GetMinFee(nBlockSize, fAllowFree, GMF_BLOCK);
-             } else {
-               nMinFee = tx.GetMinFee(nBlockSize, false, GMF_BLOCK);
-             }
+            /* Low priority transactions up to 500 bytes in size
+             * are free unless they get caught by the dust spam filter */
+            bool fAllowFree = ((nBlockSize + nTxSize < 1500) || CTransaction::AllowFree(dPriority));
+            nMinFee = tx.GetMinFee(nBlockSize, fAllowFree, GMF_BLOCK);
 
             // Skip free transactions if we're past the minimum block size:
             if (fSortedByFee && (dFeePerKb < nMinTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
@@ -271,8 +265,10 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
                 std::make_heap(vecPriority.begin(), vecPriority.end(), comparer);
             }
 
-            if (!tx.CheckInputs(viewTemp, CS_ALWAYS, true, false))
-                continue;
+            /* Script verification has been passed already while accepting
+             * transactions to the memory pool */
+            if(!tx.CheckInputs(viewTemp, CS_ALWAYS, SCRIPT_VERIFY_NONE))
+              continue;
 
             int64 nTxFees = tx.GetValueIn(viewTemp)-tx.GetValueOut();
             if (nTxFees < nMinFee)
@@ -329,22 +325,27 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
         nLastBlockTx = nBlockTx;
         nLastBlockSize = nBlockSize;
 
-        if (fDebug && GetBoolArg("-printpriority"))
-            printf("CreateNewBlock(): total size %"PRI64u"\n", nBlockSize);
+        if(fDebug && GetBoolArg("-printpriority"))
+          printf("CreateNewBlock(): total size %" PRI64u "\n", nBlockSize);
 
         if(fProofOfStake) *pStakeReward = GetProofOfStakeReward(pindexPrev->nHeight+1, nFees);
         else pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, nFees);
 
         // Fill in header
         pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
-        pblock->nTime          = max((pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1),
+        pblock->nTime          = max((pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME_NEW + 1),
           pblock->GetMaxTransactionTime());
         pblock->nTime          = max(pblock->GetBlockTime(), PastDrift(pindexPrev->GetBlockTime()));
         if(!fProofOfStake) pblock->UpdateTime(pindexPrev);
         pblock->nNonce         = 0;
+
+        if((fTestNet && (pindexPrev->nHeight >= nTestnetForkSix)) ||
+          (!fTestNet && (pindexPrev->nHeight >= nForkSeven))) {
+            pblock->nVersion = 3;
+        }
     }
 
-    return pblock.release();
+    return(pblock);
 }
 
 
@@ -526,17 +527,19 @@ void StakeMiner(CWallet *pwallet) {
 
         /* Create a new block and receive a stake reward expected */
         CBlockIndex* pindexPrev = pindexBest;
-        auto_ptr<CBlock> pblock(CreateNewBlock(pwallet, true, &nStakeReward));
-        if(!pblock.get()) return;
-        IncrementExtraNonce(pblock.get(), pindexPrev, nExtraNonce);
+        CBlock *pblock = CreateNewBlock(pwallet, true, &nStakeReward);
+        if(!pblock) return;
+        IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
         /* Try to sign the block with the stake reward obtained previously */ 
         if(pblock->SignBlock(*pwallet, nStakeReward)) {
             strMintWarning = _("Stake generation: new block found!");
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
-            CheckStake(pblock.get(), *pwallet);
+            CheckStake(pblock, *pwallet);
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
         }
+
+        delete(pblock);
 
         Sleep(nMinerSleep);
 

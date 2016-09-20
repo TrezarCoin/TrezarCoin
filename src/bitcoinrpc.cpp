@@ -273,6 +273,7 @@ static const CRPCCommand vRPCCommands[] =
     { "sendfrom",               &sendfrom,               false,  false },
     { "sendmany",               &sendmany,               false,  false },
     { "addmultisigaddress",     &addmultisigaddress,     false,  false },
+    { "createmultisig",         &createmultisig,         false,  false },
     { "addredeemscript",        &addredeemscript,        false,  false },
     { "getrawmempool",          &getrawmempool,          true,   false },
     { "getblock",               &getblock,               false,  false },
@@ -312,6 +313,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getstakegen",            &getstakegen,            true,   false },
     { "setstakegen",            &setstakegen,            true,   false },
     { "getcounters",            &getcounters,            true,   true  },
+    { "getnettotals",           &getnettotals,           true,   true  },
 };
 
 CRPCTable::CRPCTable()
@@ -401,7 +403,7 @@ static string HTTPReply(int nStatus, const string& strMsg, bool keepalive)
             "HTTP/1.1 %d %s\r\n"
             "Date: %s\r\n"
             "Connection: %s\r\n"
-            "Content-Length: %"PRIszu"\r\n"
+            "Content-Length: %" PRIszu "\r\n"
             "Content-Type: application/json\r\n"
             "Server: orbitcoin-json-rpc/%s\r\n"
             "\r\n"
@@ -1226,6 +1228,8 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "reservebalance"         && n > 1) ConvertTo<double>(params[1]);
     if (strMethod == "addmultisigaddress"     && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "addmultisigaddress"     && n > 1) ConvertTo<Array>(params[1]);
+    if(strMethod == "createmultisig"          && n > 0) ConvertTo<boost::int64_t>(params[0]);
+    if(strMethod == "createmultisig"          && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "listunspent"            && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "listunspent"            && n > 1) ConvertTo<boost::int64_t>(params[1]);
     if (strMethod == "listunspent"            && n > 2) ConvertTo<Array>(params[2]);

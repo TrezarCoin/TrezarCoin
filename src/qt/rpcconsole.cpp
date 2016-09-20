@@ -2,16 +2,22 @@
 #include "ui_rpcconsole.h"
 
 #include "clientmodel.h"
-#include "bitcoinrpc.h"
 #include "guiutil.h"
+
+#ifndef Q_MOC_RUN
+#include "bitcoinrpc.h"
+#endif
 
 #include <QTime>
 #include <QTimer>
 #include <QThread>
 #include <QTextEdit>
 #include <QKeyEvent>
-#include <QUrl>
 #include <QScrollBar>
+
+#if (QT_VERSION < 0x050000)
+#include <QUrl>
+#endif
 
 #include <openssl/crypto.h>
 
@@ -22,6 +28,8 @@ const int CONSOLE_SCROLLBACK = 50;
 const int CONSOLE_HISTORY = 50;
 
 const QSize ICON_SIZE(24, 24);
+
+const int INITIAL_TRAFFIC_GRAPH_MINS = 60;
 
 const struct {
     const char *url;
@@ -208,6 +216,8 @@ RPCConsole::RPCConsole(QWidget *parent) :
 
     startExecutor();
 
+    setTrafficGraphRange(INITIAL_TRAFFIC_GRAPH_MINS);
+
     clear();
 }
 
@@ -256,11 +266,15 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
 void RPCConsole::setClientModel(ClientModel *model)
 {
     this->clientModel = model;
+    ui->trafficGraph->setClientModel(model);
     if(model)
     {
         // Subscribe to information, replies, messages, errors
         connect(model, SIGNAL(numConnectionsChanged(int)), this, SLOT(setNumConnections(int)));
         connect(model, SIGNAL(numBlocksChanged(int,int)), this, SLOT(setNumBlocks(int,int)));
+
+        updateTrafficStats(model->getTotalBytesRx(), model->getTotalBytesTx());
+        connect(model, SIGNAL(bytesChanged(quint64,quint64)), this, SLOT(updateTrafficStats(quint64, quint64)));
 
         // Provide initial values
         ui->clientVersion->setText(model->formatFullVersion());
@@ -435,4 +449,57 @@ void RPCConsole::on_showCLOptionsButton_clicked()
 {
     GUIUtil::HelpMessageBox help;
     help.exec();
+}
+
+void RPCConsole::on_sldGraphRange_valueChanged(int nValue) {
+    /* Each position on the slider represents 5 minutes */
+    int nMinutes = nValue * 5U;
+    setTrafficGraphRange(nMinutes);
+}
+
+QString RPCConsole::FormatBytes(quint64 nBytes) {
+
+    if(nBytes < 1024)
+      return(QString(tr("%1 b")).arg(nBytes));
+
+    if(nBytes < 1048576)
+      return(QString(tr("%1 Kb")).arg(QString::number((double)nBytes / 1024.0, 'f', 2)));
+
+    if(nBytes < 1073741824)
+      return(QString(tr("%1 Mb")).arg(QString::number((double)nBytes / 1048576.0, 'f', 2)));
+
+    return(QString(tr("%1 Gb")).arg(QString::number((double)nBytes / 1073741824.0, 'f', 2)));
+}
+
+void RPCConsole::setTrafficGraphRange(int nMinutes) {
+    ui->trafficGraph->setGraphRange(nMinutes);
+    if(nMinutes < 60) {
+        ui->lblGraphRange->setText(QString(tr("%1 m")).arg(nMinutes));
+    } else {
+        int nHours = nMinutes / 60;
+        int nMinutesLeft = nMinutes % 60;
+        if(!nMinutesLeft)
+          ui->lblGraphRange->setText(QString(tr("%1 h")).arg(nHours));
+        else
+          ui->lblGraphRange->setText(QString(tr("%1 h %2 m")).arg(nHours).arg(nMinutesLeft));
+    }
+}
+
+void RPCConsole::updateTrafficStats(quint64 totalBytesRx, quint64 totalBytesTx) {
+    ui->lblBytesRx->setText(FormatBytes(totalBytesRx));
+    ui->lblBytesTx->setText(FormatBytes(totalBytesTx));
+}
+
+void RPCConsole::on_btnClearTrafficGraph_clicked() {
+    ui->trafficGraph->clear();
+}
+
+void RPCConsole::showConsole() {
+    ui->tabWidget->setCurrentIndex(1);
+    this->show();
+}
+
+void RPCConsole::showTraffic() {
+    ui->tabWidget->setCurrentIndex(2);
+    this->show();
 }

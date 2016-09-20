@@ -421,6 +421,11 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line=""/>
+        <source>&amp;Network activity</source>
+        <translation>&amp;Сетевая активность</translation>
+    </message>
+    <message>
+        <location line=""/>
         <source>&amp;Enable PoS mining</source>
         <translation>&amp;Включить PoS добычу</translation>
     </message>
@@ -478,6 +483,14 @@ This product includes software developed by the OpenSSL Project for use in the O
         <location line="+1"/>
         <source>Open the RPC console</source>
         <translation>Открыть консоль RPC</translation>
+    </message>
+    <message>
+        <source>&amp;Explorer</source>
+        <translation>&amp;Исследователь</translation>
+    </message>
+    <message>
+        <source>Open the block explorer</source>
+        <translation>Открыть исследователь блоков</translation>
     </message>
     <message>
         <location line=""/>
@@ -1714,6 +1727,105 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <source>Use up and down arrows to navigate history, Ctrl-L to clear screen. Type help for an overview of available commands.</source>
         <translation>Используйте стрелки вверх и вниз для просмотра истории, &lt;b&gt;Ctrl-L&lt;/b&gt; для очистки экрана. Наберите &lt;b&gt;help&lt;/b&gt; для просмотра доступных команд.</translation>
     </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Network activity</source>
+        <translation>&amp;Сетевая активность</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Received:</source>
+        <translation>Получено:</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>Transmitted:</source>
+        <translation>Отправлено:</translation>
+    </message>
+    <message>
+        <location line=""/>
+        <source>&amp;Clear</source>
+        <translation>&amp;Очистить</translation>
+    </message>
+</context>
+<context>
+    <name>BlockExplorer</name>
+    <message>
+        <source>Block Explorer</source>
+        <translation>Исследователь блоков</translation>
+    </message>
+    <message>
+        <source>Decode block</source>
+        <translation>Декодировать блок</translation>
+    </message>
+    <message>
+        <source>Decode payment</source>
+        <translation>Декодировать платёж</translation>
+    </message>
+    <message>
+        <source>Payment ID</source>
+        <translation>ID платежа</translation>
+    </message>
+    <message>
+        <source>General data:</source>
+        <translation>Общие данные:</translation>
+    </message>
+    <message>
+        <source>Hash:</source>
+        <translation>Хэш:</translation>
+    </message>
+    <message>
+        <source>Merkle root:</source>
+        <translation>Корень платежей:</translation>
+    </message>
+    <message>
+        <source>Coin base:</source>
+        <translation>Базовый PoW-платёж:</translation>
+    </message>
+    <message>
+        <source>Coin stake:</source>
+        <translation>Базовый PoS-платёж:</translation>
+    </message>
+    <message>
+        <source>Difficulty, target, nonce:</source>
+        <translation>Сложность, цель, нонс:</translation>
+    </message>
+    <message>
+        <source>Difficulty, target:</source>
+        <translation>Сложность, цель:</translation>
+    </message>
+    <message>
+        <source>Coin supply:</source>
+        <translation>Монет в обороте:</translation>
+    </message>
+    <message>
+        <source>Payments:</source>
+        <translation>Платежи:</translation>
+    </message>
+    <message>
+        <source>Payment ID:</source>
+        <translation>ID платежа:</translation>
+    </message>
+    <message>
+        <source>Value:</source>
+        <translation>Сумма:</translation>
+    </message>
+    <message>
+        <source>Fee paid:</source>
+        <translation>Комиссия уплачена:</translation>
+    </message>
+    <message>
+        <source>Reward + fees:</source>
+        <translation>Награда + комиссии:</translation>
+    </message>
+    <message>
+        <source>Inputs:</source>
+        <translation>Входы:</translation>
+    </message>
+    <message>
+        <source>Outputs:</source>
+        <translation>Выходы:</translation>
+    </message>
 </context>
 <context>
     <name>SendCoinsDialog</name>
@@ -2666,6 +2778,10 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <location line="+1"/>
         <source>Show transaction details</source>
         <translation>Показать подробности платежа</translation>
+    </message>
+    <message>
+        <source>Show payment in block explorer</source>
+        <translation>Показать платёж в исследователе блоков</translation>
     </message>
     <message>
         <location line="+144"/>

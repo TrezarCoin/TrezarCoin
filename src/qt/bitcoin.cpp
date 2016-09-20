@@ -14,11 +14,14 @@
 
 #include <QApplication>
 #include <QMessageBox>
-#include <QTextCodec>
 #include <QLocale>
 #include <QTranslator>
 #include <QSplashScreen>
 #include <QLibraryInfo>
+
+#if (QT_VERSION < 0x050000)
+#include <QTextCodec>
+#endif
 
 #if defined(BITCOIN_NEED_QT_PLUGINS) && !defined(_BITCOIN_QT_PLUGINS_INCLUDED)
 #define _BITCOIN_QT_PLUGINS_INCLUDED
@@ -117,8 +120,10 @@ int main(int argc, char *argv[])
     ipcScanRelay(argc, argv);
 
     // Internal string conversion is all UTF-8
+#if (QT_VERSION < 0x050000)
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
     QTextCodec::setCodecForCStrings(QTextCodec::codecForTr());
+#endif
 
     Q_INIT_RESOURCE(bitcoin);
     QApplication app(argc, argv);

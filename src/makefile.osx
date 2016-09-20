@@ -141,10 +141,10 @@ obj/%.o: %.cpp
 	  rm -f $(@:%.o=%.d)
 
 obj/neoscrypt.o: neoscrypt.c
-	$(CC) $(CFLAGS) -DSHA256 -DASM -c -o $@ $^
+	$(CC) $(CFLAGS) -DSHA256 -DASM -DOPT -c -o $@ $^
 
 obj/neoscrypt_asm.o: neoscrypt_asm.S
-	$(CC) -c -DSHA256 -DASM -o $@ $^
+	$(CC) -c -DSHA256 -DASM -DOPT -o $@ $^
 
 obj/scrypt-x86.o: scrypt-x86.S
 	$(CC) -c -MMD -o $@ $<

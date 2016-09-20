@@ -59,7 +59,7 @@ static bool vfLimited[NET_MAX] = {};
 static CNode* pnodeLocalHost = NULL;
 CAddress addrSeenByPeer(CService("0.0.0.0", 0), nLocalServices);
 uint64 nLocalHostNonce = 0;
-array<int, THREAD_MAX> vnThreadsRunning;
+boost::array<int, THREAD_MAX> vnThreadsRunning;
 static std::vector<SOCKET> vhListenSocket;
 CAddrMan addrman;
 
@@ -92,13 +92,14 @@ unsigned short GetListenPort()
     return (unsigned short)(GetArg("-port", GetDefaultPort()));
 }
 
-void CNode::PushGetBlocks(CBlockIndex* pindexBegin, uint256 hashEnd)
-{
-    // Filter out duplicate requests
-    if (pindexBegin == pindexLastGetBlocksBegin && hashEnd == hashLastGetBlocksEnd)
-        return;
-    pindexLastGetBlocksBegin = pindexBegin;
-    hashLastGetBlocksEnd = hashEnd;
+void CNode::PushGetBlocks(CBlockIndex *pindexBegin, uint256 hashEnd) {
+    uint nCurrentTime = (uint)GetTime();
+
+    /* Time limit for asking a particular peer */
+    if((nCurrentTime - 5U) < nLastGetblocksAsked)
+      return;
+    else
+      nLastGetblocksAsked = nCurrentTime;
 
     PushMessage("getblocks", CBlockLocator(pindexBegin), hashEnd);
 }
@@ -454,9 +455,10 @@ void AddressCurrentlyConnected(const CService& addr)
 
 
 
-
-
-
+uint64 CNode::nTotalBytesRx = 0;
+uint64 CNode::nTotalBytesTx = 0;
+CCriticalSection CNode::cs_totalBytesRx;
+CCriticalSection CNode::cs_totalBytesTx;
 
 CNode* FindNode(const CNetAddr& ip)
 {
@@ -561,6 +563,9 @@ void CNode::CloseSocketDisconnect()
         printf("disconnecting node %s\n", addrName.c_str());
         closesocket(hSocket);
         hSocket = INVALID_SOCKET;
+        /* Don't try to lock the buffer, just hold on for a while to make sure
+         * all messages received from the node being disconnected have been processed */
+        Sleep(1000);
         vRecv.clear();
     }
 }
@@ -911,8 +916,9 @@ void ThreadSocketHandler2(void* parg)
                     unsigned int nPos = vRecv.size();
 
                     if (nPos > ReceiveBufferSize()) {
-                        if (!pnode->fDisconnect)
-                            printf("socket recv flood control disconnect (%"PRIszu" bytes)\n", vRecv.size());
+                        if(!pnode->fDisconnect)
+                          printf("socket recv flood control disconnect (%" PRIszu " bytes)\n",
+                            vRecv.size());
                         pnode->CloseSocketDisconnect();
                     }
                     else {
@@ -925,6 +931,7 @@ void ThreadSocketHandler2(void* parg)
                             memcpy(&vRecv[nPos], pchBuf, nBytes);
                             pnode->nLastRecv = GetTime();
                             pnode->nRxBytes += nBytes;
+                            pnode->RecordBytesRx(nBytes);
                         }
                         else if (nBytes == 0)
                         {
@@ -967,6 +974,7 @@ void ThreadSocketHandler2(void* parg)
                             vSend.erase(vSend.begin(), vSend.begin() + nBytes);
                             pnode->nLastSend = GetTime();
                             pnode->nTxBytes += nBytes;
+                            pnode->RecordBytesTx(nBytes);
                         }
                         else if (nBytes < 0)
                         {
@@ -1057,12 +1065,17 @@ void ThreadMapPort2(void* parg)
     char lanaddr[64];
 
 #ifndef UPNPDISCOVER_SUCCESS
-    /* miniupnpc 1.5 */
+    /* miniUPnPc v1.5 */
     devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0);
-#else
-    /* miniupnpc 1.6 */
+#elif (MINIUPNPC_API_VERSION < 14)
+    /* miniUPnPc v1.6 to v1.9 */
     int error = 0;
     devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0, 0, &error);
+#else
+    /* miniUPnPc v1.9.20150730 and newer;
+     * CVE-2015-6031 may affect releases prior to v1.9.20150917 */
+    int error = 0;
+    devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0, 0, 2, &error);
 #endif
 
     struct UPNPUrls urls;
@@ -1261,8 +1274,8 @@ void DumpAddresses()
     CAddrDB adb;
     adb.Write(addrman);
 
-    printf("Flushed %d addresses to peers.dat  %"PRI64d"ms\n",
-           addrman.size(), GetTimeMillis() - nStart);
+    printf("Flushed %d addresses to peers.dat  %" PRI64d "ms\n",
+      addrman.size(), GetTimeMillis() - nStart);
 }
 
 void ThreadDumpAddress2(void* parg)
@@ -2029,4 +2042,22 @@ void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataSt
     }
 
     RelayInventory(inv);
+}
+
+void CNode::RecordBytesRx(uint64 nBytes) {
+    LOCK(cs_totalBytesRx);
+    nTotalBytesRx += nBytes;
+}
+
+void CNode::RecordBytesTx(uint64 nBytes) {
+    LOCK(cs_totalBytesTx);
+    nTotalBytesTx += nBytes;
+}
+
+uint64 CNode::GetTotalBytesRx() {
+    return(nTotalBytesRx);
+}
+
+uint64 CNode::GetTotalBytesTx() {
+    return(nTotalBytesTx);
 }

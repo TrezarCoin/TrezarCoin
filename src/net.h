@@ -199,8 +199,8 @@ public:
     std::map<uint256, CRequestTracker> mapRequests;
     CCriticalSection cs_mapRequests;
     uint256 hashContinue;
-    CBlockIndex* pindexLastGetBlocksBegin;
-    uint256 hashLastGetBlocksEnd;
+    uint nLastGetblocksAsked;
+    uint nLastGetblocksReceived;
     int nStartingHeight;
 
     // flood relay
@@ -241,8 +241,8 @@ public:
         nRefCount = 0;
         nReleaseTime = 0;
         hashContinue = 0;
-        pindexLastGetBlocksBegin = 0;
-        hashLastGetBlocksEnd = 0;
+        nLastGetblocksAsked = 0;
+        nLastGetblocksReceived = 0;
         nStartingHeight = -1;
         fGetAddr = false;
         nMisbehavior = 0;
@@ -264,6 +264,12 @@ public:
     }
 
 private:
+    /* Traffic counters */
+    static CCriticalSection cs_totalBytesRx;
+    static CCriticalSection cs_totalBytesTx;
+    static uint64 nTotalBytesRx;
+    static uint64 nTotalBytesTx;
+
     CNode(const CNode&);
     void operator=(const CNode&);
 public:
@@ -327,8 +333,9 @@ public:
         // We're using mapAskFor as a priority queue,
         // the key is the earliest time the request can be sent
         int64& nRequestTime = mapAlreadyAskedFor[inv];
-        if (fDebugNet)
-            printf("askfor %s   %"PRI64d" (%s)\n", inv.ToString().c_str(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000).c_str());
+        if(fDebugNet)
+          printf("askfor %s   %" PRI64d " (%s)\n", inv.ToString().c_str(),
+            nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime / 1000000).c_str());
 
         // Make sure not to reuse time indexes to keep things in the same order
         int64 nNow = (GetTime() - 1) * 1000000;
@@ -648,6 +655,12 @@ public:
     static bool IsBanned(CNetAddr ip);
     bool Misbehaving(int howmuch); // 1 == a little, 100 == a lot
     void copyStats(CNodeStats &stats);
+
+    /* Traffic counters */
+    static void RecordBytesRx(uint64 nBytes);
+    static void RecordBytesTx(uint64 nBytes);
+    static uint64 GetTotalBytesRx();
+    static uint64 GetTotalBytesTx();
 };
 
 inline void RelayInventory(const CInv& inv)
