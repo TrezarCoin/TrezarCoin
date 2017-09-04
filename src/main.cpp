@@ -1141,11 +1141,13 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     /* The short averaging window */
     const CBlockIndex *pindexShort = GetPrevBlockIndex(pindexPrev,
       nIntervalShort, fProofOfStake);
+    if(!pindexShort) return(bnTargetLimit.GetCompact());
     nActualTimespanShort = (int64)pindexPrev->nTime - (int64)pindexShort->nTime;
 
     /* The long averaging window */
     const CBlockIndex *pindexLong = GetPrevBlockIndex(pindexShort,
       nIntervalLong - nIntervalShort, fProofOfStake);
+    if(!pindexLong) return(bnTargetLimit.GetCompact());
     nActualTimespanLong = (int64)pindexPrev->nTime - (int64)pindexLong->nTime;
 
     /* Time warp protection */
