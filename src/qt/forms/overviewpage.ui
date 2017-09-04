@@ -64,7 +64,7 @@
              <string>Your available balance</string>
             </property>
             <property name="text">
-             <string notr="true">0 ORB</string>
+             <string notr="true">0 TZC</string>
             </property>
             <property name="textInteractionFlags">
              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -93,7 +93,7 @@
              <string>Total of coins out of the current balance impermanently due to a profit generated recently</string>
             </property>
             <property name="text">
-             <string notr="true">0 ORB</string>
+             <string notr="true">0 TZC</string>
             </property>
             <property name="textInteractionFlags">
              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -122,7 +122,7 @@
              <string>Total of coins not yet confirmed and count pending toward the current balance</string>
             </property>
             <property name="text">
-             <string notr="true">0 ORB</string>
+             <string notr="true">0 TZC</string>
             </property>
             <property name="textInteractionFlags">
              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -148,7 +148,7 @@
              <string>Mined balance not yet matured</string>
             </property>
             <property name="text">
-             <string notr="true">0 ORB</string>
+             <string notr="true">0 TZC</string>
             </property>
             <property name="textInteractionFlags">
              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -193,7 +193,7 @@
              <string>Consolidated (total) balance of all the accounts above</string>
             </property>
             <property name="text">
-             <string notr="true">0 ORB</string>
+             <string notr="true">0 TZC</string>
             </property>
             <property name="textInteractionFlags">
              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -223,12 +223,12 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="orblogo">
+      <widget class="QLabel" name="trzlogo">
        <property name="text">
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap resource="../bitcoin.qrc">:/icons/orbitcoin</pixmap>
+        <pixmap resource="../bitcoin.qrc">:/icons/trezarcoin</pixmap>
        </property>
        <property name="scaledContents">
         <bool>false</bool>
@@ -279,7 +279,7 @@
           <item>
            <widget class="QLabel" name="labelTransactionsStatus">
             <property name="toolTip">
-             <string>The displayed information may be out of date. Your wallet automatically synchronizes with the Orbitcoin network after a connection is established, but this process has not completed yet.</string>
+             <string>The displayed information may be out of date. Your wallet automatically synchronizes with the Trezarcoin network after a connection is established, but this process has not completed yet.</string>
             </property>
             <property name="styleSheet">
              <string notr="true">QLabel { color: red; }</string>

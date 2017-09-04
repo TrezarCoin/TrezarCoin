@@ -35,8 +35,10 @@ ClientModel::~ClientModel()
 }
 
 double ClientModel::getDifficulty(bool PoS) {
+    const CBlockIndex *pindex = GetPrevBlockIndex(pindexBest, 0, PoS);
 
-    return(GetDifficulty(GetLastBlockIndex(pindexBest, PoS)));
+    if(!pindex) return(fTestNet ? dMinDiffTestNet : dMinDiff);
+    else return(GetDifficulty(pindex));
 }
 
 int ClientModel::getNumConnections() const

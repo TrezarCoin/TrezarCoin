@@ -365,7 +365,7 @@ void CWallet::WalletUpdateSpent(const CTransaction &tx, bool fBlock)
                     printf("WalletUpdateSpent: bad wtx %s\n", wtx.GetHash().ToString().c_str());
                 else if (!wtx.IsSpent(txin.prevout.n) && IsMine(wtx.vout[txin.prevout.n]))
                 {
-                    printf("WalletUpdateSpent found spent coin %sorb %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
+                    printf("WalletUpdateSpent found spent coin %strz %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
                     wtx.MarkSpent(txin.prevout.n);
                     wtx.WriteToDisk();
                     NotifyTransactionChanged(this, txin.prevout.hash, CT_UPDATED);
@@ -862,7 +862,7 @@ void CWallet::ReacceptWalletTransactions()
                 }
                 if (fUpdated)
                 {
-                    printf("ReacceptWalletTransactions found spent coin %sorb %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
+                    printf("ReacceptWalletTransactions found spent coin %strz %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
                     wtx.MarkDirty();
                     wtx.WriteToDisk();
                 }
@@ -1239,7 +1239,7 @@ bool CWallet::SelectCoinsStaking(int64 nTargetValue,
             const CWalletTx* pcoin = &(*it).second;
 
             /* Discard if the age requirement is unmet */
-            if(nCurrentTime < (pcoin->nTime + GetStakeMinAge(pcoin->nTime)))
+            if(nCurrentTime < (pcoin->nTime + nStakeMinAge))
               continue;
 
             /* May be negative (failed transactions) */
@@ -1408,14 +1408,8 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
 
                 // Check that enough fee is included
                 int64 nMinFee, nPayFee = nTransactionFee * (1 + (int64)nBytes / 1000);
-                unsigned int time = GetAdjustedTime();
-                if((fTestNet && (time > nTestnetForkOneTime)) ||
-                  (!fTestNet && (time > nForkTwoTime))) {
-                    bool fAllowFree = CTransaction::AllowFree(dPriority);
-                    nMinFee = wtxNew.GetMinFee(nBytes, fAllowFree, GMF_SEND);
-                } else {
-                    nMinFee = wtxNew.GetMinFee(nBytes, false, GMF_SEND);
-                }
+                bool fAllowFree = CTransaction::AllowFree(dPriority);
+                nMinFee = wtxNew.GetMinFee(nBytes, fAllowFree, GMF_SEND);
                 if(nFeeRet < max(nPayFee, nMinFee)) {
                     nFeeRet = max(nPayFee, nMinFee);
                     continue;
@@ -1516,7 +1510,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, uint nBits, int64 nSear
   CTransaction& txNew, CKey& key, int64 nStakeReward) {
 
     /* Inputs exceeding this age limit are never split while staking */
-    const uint nStakeSplitAge = (nStakeMinAgeTwo + nStakeMaxAge);
+    const uint nStakeSplitAge = (nStakeMinAge + nStakeMaxAge);
     /* Time limit for searching a single input */
     const uint nMaxStakeSearchInterval = 60;
 
@@ -1575,7 +1569,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, uint nBits, int64 nSear
               continue;
 
             /* Discard if too young */
-            if((coins.nBlockTime + GetStakeMinAge(coins.nBlockTime)) > (txNew.nTime - nMaxStakeSearchInterval))
+            if((coins.nBlockTime + nStakeMinAge) > (txNew.nTime - nMaxStakeSearchInterval))
               continue;
 
             CBlockIndex *pindex = FindBlockByHeight(coins.nHeight);
@@ -1703,7 +1697,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, uint nBits, int64 nSear
             if(pcoin.first->vout[pcoin.second].nValue >= nCombineThreshold)
               continue;
             /* Do not add any inputs under the min. age */
-            if(nTimeWeight < nStakeMinAgeTwo)
+            if(nTimeWeight < nStakeMinAge)
               continue;
 
             txNew.vin.push_back(CTxIn(pcoin.first->GetHash(), pcoin.second));

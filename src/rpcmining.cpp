@@ -29,10 +29,16 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("currentblocksize",(boost::uint64_t)nLastBlockSize));
     obj.push_back(Pair("currentblocktx",(boost::uint64_t)nLastBlockTx));
-    obj.push_back(Pair("powdifficulty", (float)GetDifficulty()));
-    obj.push_back(Pair("posdifficulty", (float)GetDifficulty(GetLastBlockIndex(pindexBest, true))));
-    obj.push_back(Pair("powreward",     (float)(GetProofOfWorkReward(GetLastBlockIndex(pindexBest, false)->nHeight, (int64)NULL))/COIN));
-    obj.push_back(Pair("posreward",     (float)(GetProofOfStakeReward(GetLastBlockIndex(pindexBest, true)->nHeight, (int64)NULL))/COIN));
+    obj.push_back(Pair("powdifficulty", (double)GetDifficulty()));
+    obj.push_back(Pair("powreward",     (float)(GetProofOfWorkReward(GetPrevBlockIndex(pindexBest, 0, false)->nHeight, (int64)NULL))/COIN));
+    const CBlockIndex *pindexPoS = GetPrevBlockIndex(pindexBest, 0, true);
+    if(!pindexPoS) {
+        obj.push_back(Pair("posdifficulty", fTestNet ? dMinDiffTestNet : dMinDiff));
+        obj.push_back(Pair("posreward",     (float)(GetProofOfStakeReward((int)1, (int64)NULL))/COIN));
+    } else {
+        obj.push_back(Pair("posdifficulty", (double)GetDifficulty(pindexPoS)));
+        obj.push_back(Pair("posreward",     (float)(GetProofOfStakeReward(pindexPoS->nHeight, (int64)NULL))/COIN));
+    }
     obj.push_back(Pair("networkhashps", getnetworkhashps(params, false)));
     obj.push_back(Pair("stakeweight",   (boost::uint64_t)nTotalStakeWeight));
     obj.push_back(Pair("minweightinputs", (boost::uint64_t)nMinWeightInputs));
@@ -83,10 +89,10 @@ Value getwork(const Array& params, bool fHelp) {
         "If [data] is specified, verifies the PoW hash against target and returns true if successful."));
 
     if (vNodes.empty())
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Orbitcoin is not connected!");
+        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Trezarcoin is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Orbitcoin is downloading blocks...");
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Trezarcoin is downloading blocks...");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
     static mapNewBlock_t mapNewBlock;    // FIXME: thread safety
@@ -149,13 +155,10 @@ Value getwork(const Array& params, bool fHelp) {
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
         Object result;
-        result.push_back(Pair("data",   HexStr(BEGIN(pdata), fNeoScrypt ? (char *) &pdata[20] : END(pdata))));
+        result.push_back(Pair("data",   HexStr(BEGIN(pdata), (char *) &pdata[20])));
         result.push_back(Pair("target", HexStr(BEGIN(hashTarget), END(hashTarget))));
         /* Optional */
-        if(fNeoScrypt)
-          result.push_back(Pair("algorithm", "neoscrypt"));
-        else
-          result.push_back(Pair("algorithm", "scrypt:1024,1,1"));
+        result.push_back(Pair("algorithm", "neoscrypt"));
 
         return(result);
 
@@ -169,14 +172,6 @@ Value getwork(const Array& params, bool fHelp) {
           throw(JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter"));
         CBlock* pdata = (CBlock*) &vchData[0];
 
-        if(!fNeoScrypt) {
-            uint i;
-            /* nVersion and hashPrevBlock aren't needed */
-            for(i = 9; i < 20; i++)
-              /* Convert BE to LE */
-              ((uint *) pdata)[i] = ByteReverse(((uint *) pdata)[i]);
-        }
-
         /* Pick up the block contents saved previously */
         if(!mapNewBlock.count(pdata->hashMerkleRoot))
           return(false);
@@ -189,13 +184,6 @@ Value getwork(const Array& params, bool fHelp) {
 
         /* Rebuild the merkle root */
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
-
-        /* Legacy proof-of-work block signing;
-         * signature must be empty for all NeoScrypt blocks */
-        if(!fNeoScrypt) {
-            if(!pblock->SignWorkBlock(*pwalletMain))
-              throw(JSONRPCError(-100, "Failed to sign this proof-of-work block!"));
-        }
 
         /* Verify the resulting hash against target */
         return(CheckWork(pblock, *pwalletMain, reservekey));
@@ -244,10 +232,10 @@ Value getblocktemplate(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
 
     if (vNodes.empty())
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Orbitcoin is not connected!");
+        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Trezarcoin is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Orbitcoin is downloading blocks...");
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Trezarcoin is downloading blocks...");
 
     static CReserveKey reservekey(pwalletMain);
 
@@ -344,7 +332,7 @@ Value getblocktemplate(const Array& params, bool fHelp) {
     result.push_back(Pair("coinbaseaux", aux));
     result.push_back(Pair("coinbasevalue", (boost::int64_t)pblock->vtx[0].vout[0].nValue));
     result.push_back(Pair("target", hashTarget.GetHex()));
-    result.push_back(Pair("mintime", (boost::int64_t)(pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME_NEW + 1)));
+    result.push_back(Pair("mintime", (boost::int64_t)(pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1)));
     result.push_back(Pair("mutable", aMutable));
     result.push_back(Pair("noncerange", "00000000ffffffff"));
     result.push_back(Pair("sigoplimit", (boost::int64_t)MAX_BLOCK_SIGOPS));
@@ -373,11 +361,6 @@ Value submitblock(const Array& params, bool fHelp)
     }
     catch (std::exception &e) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
-    }
-
-    if(!fNeoScrypt) {
-        if(!block.SignWorkBlock(*pwalletMain))
-          throw(JSONRPCError(-100, "Failed to sign this proof-of-work block!"));
     }
 
     bool fAccepted = ProcessBlock(NULL, &block);

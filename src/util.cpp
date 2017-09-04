@@ -86,7 +86,6 @@ bool fStakingOnly = false;
 bool fReindex = false;
 
 /* NeoScrypt related */
-bool fNeoScrypt = false;
 uint nNeoScryptOptions = 0;
 
 /* Performance counters */
@@ -984,7 +983,7 @@ static std::string FormatException(std::exception* pex, const char* pszThread)
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(NULL, pszModule, sizeof(pszModule));
 #else
-    const char* pszModule = "orbitcoin";
+    const char* pszModule = "trezarcoin";
 #endif
     if (pex)
         return strprintf(
@@ -1025,17 +1024,17 @@ boost::filesystem::path GetDefaultDataDir() {
     /* Windows: current directory \ data for livenet */
     path = boost::filesystem::current_path() / "data";
 #else
-    /* Linux, Mac OS X, *BSD and so on: ~/.orbitcoin */
+    /* Linux, Mac OS X, *BSD and so on: ~/.trezarcoin */
     char* pszHome = getenv("HOME");
     if(!pszHome || !strlen(pszHome))
       /* Must be root if no $HOME set */
 #if (__APPLE__)
-      path = fs::path("/private/var/root/.orbitcoin");
+      path = fs::path("/private/var/root/.trezarcoin");
 #else
-      path = fs::path("/root/.orbitcoin");
+      path = fs::path("/root/.trezarcoin");
 #endif
     else
-      path = fs::path(pszHome) / ".orbitcoin";
+      path = fs::path(pszHome) / ".trezarcoin";
 #endif
 
     return(path);
@@ -1082,7 +1081,7 @@ boost::filesystem::path GetConfigFile()
 
     fs::path pathConfigFile;
     if(mapArgs.count("-conf")) pathConfigFile = fs::path(mapArgs["-conf"]);
-    else pathConfigFile = fs::path("orbitcoin.conf");
+    else pathConfigFile = fs::path("trezarcoin.conf");
     if(!pathConfigFile.is_absolute()) {
         if(!GetBoolArg("-testnet", false)) 
           pathConfigFile = GetDataDir(false) / pathConfigFile;
@@ -1118,7 +1117,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 
 boost::filesystem::path GetPidFile()
 {
-    boost::filesystem::path pathPidFile(GetArg("-pid", "orbitcoind.pid"));
+    boost::filesystem::path pathPidFile(GetArg("-pid", "trezarcoind.pid"));
     if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile;
     return pathPidFile;
 }
@@ -1318,10 +1317,10 @@ void AddTimeData(const CNetAddr& ip, int64 nTime)
                 if (!fMatch)
                 {
                     fDone = true;
-                    string strMessage = _("Warning: Please check that your computer's date and time are correct! If your clock is wrong Orbitcoin will not work properly.");
+                    string strMessage = _("Warning: Please check that your computer's date and time are correct! If your clock is wrong Trezarcoin will not work properly.");
                     strMiscWarning = strMessage;
                     printf("*** %s\n", strMessage.c_str());
-                    uiInterface.ThreadSafeMessageBox(strMessage+" ", string("Orbitcoin"), CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION);
+                    uiInterface.ThreadSafeMessageBox(strMessage+" ", string("Trezarcoin"), CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION);
                 }
             }
         }

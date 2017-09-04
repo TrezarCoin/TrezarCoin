@@ -24,26 +24,8 @@ namespace Checkpoints
     //
     static MapCheckpoints mapCheckpoints =
         boost::assign::map_list_of
-        ( 0,     std::make_pair(hashGenesisBlock, 1375030725) )
-        ( 100000, std::make_pair(uint256("0x0000002110f858359934b537f51100852227b37fa9cdc40a9af6140e33bcd1ce"), 1378396404) )
-        ( 200002, std::make_pair(uint256("0x0000000a9764650de7124d6a1a0806be3a4b2ecf9d0f6144ce1559a4ab3c3b9f"), 1381441905) )
-        ( 300000, std::make_pair(uint256("0x00000153128697d4ba3c0468596b3b03d68fa04f0b5428af9b8e5ae0b7aa7e00"), 1384511282) )
-        ( 400000, std::make_pair(uint256("0x000000035953822f6d1bab635ce32c5773ecbe3feb29ba9bc9c89202da5944fd"), 1388117099) )
-        ( 500000, std::make_pair(uint256("0x00000007094a82c428b1cc4a02db5c99e03e6ab7702ad4904fc3bd2b7b5ae07f"), 1395308803) )
-        ( 600000, std::make_pair(uint256("0x00000025e4214dd10eb7a4d7d088935dbc5c05b18574b56574d19c839e48e8ff"), 1398098754) )
-        ( 700000, std::make_pair(uint256("0x00000002a3e5e5da2a28479e3273990963d8d78a0b6d4e16e47d85fffc4e6102"), 1402161441) )
-        ( 800000, std::make_pair(uint256("0x34a4c166f83cc7b63a8b842747e6bf0926b3e47c9f183adca90f1b83c7aa04da"), 1406649771) )
-        ( 900000, std::make_pair(uint256("0x0000000012374f96b2c32564e4c6b410908a9f2085973d0af8981655c86ee85c"), 1412284335) )
-        ( 1000010, std::make_pair(uint256("0xbbddf2c25a8b26651d387f232201fcab7a9e2c543a9d12ac2302174800c1d982"), 1407667430) )
-        ( 1100000, std::make_pair(uint256("0x30e612dbced71b7727e6e9e6fcb53d9d8d9ffc3802ca86e4f527a8f5cb5ae61e"), 1423808796) )
-        ( 1200000, std::make_pair(uint256("0x6dffd3e69e2d69ad42486f888746aea9d921c02be44025b102357180f2c3995d"), 1429531549) )
-        ( 1300000, std::make_pair(uint256("0x0a1fcc37d7c5fe14d801c305177d7b76bbe922d8a215a13e26aadc87737e8c19"), 1435206331) )
-        ( 1400000, std::make_pair(uint256("0xa1e2f90a8178c3aed30518525e9f6aa94ce5151bf5594478bc9433ee447200cc"), 1440836751) )
-        ( 1500000, std::make_pair(uint256("0x7e88ac1ffc93b47ba9be1b9140a68da0df667f025e007e072ef64d6042b4662a"), 1446415032) )
-        ( 1600000, std::make_pair(uint256("0xc89eb4f8af0826aac8db812479183a6aa6a2ebe3a4da81e7e4a34f33f32f0399"), 1452195893) )
-        ( 1700000, std::make_pair(uint256("0xff60685fb0b88216fd4f385ebbb01c2c490d66162d080959f62c4c40f3158ca7"), 1458048568) )
-        ( 1800000, std::make_pair(uint256("0x9ba922d273c499b3be0e73ced140d44d4d736bd260ca8def89165be5066c5128"), 1463746678) )
-        ( 1900000, std::make_pair(uint256("0x5e26ea965b15e0d10a21ed45db78eeda2bfca1393ff760c30e527ff90fc90f67"), 1469374082) )
+        ( 0,     std::make_pair(hashGenesisBlock, 1504267200) )
+        ( 10,    std::make_pair(uint256("0x92489849c57c0c3fbd19d79067e64f058443aec98dcf674739ff8cd3dfa22188"), 1504462041) )
     ;
 
     // TestNet has no checkpoints
@@ -365,7 +347,7 @@ namespace Checkpoints
         assert(mapBlockIndex.count(hashSyncCheckpoint));
         const CBlockIndex* pindexSync = mapBlockIndex[hashSyncCheckpoint];
         return((nBestHeight >= (pindexSync->nHeight + nBaseMaturity)) ||
-          ((pindexSync->GetBlockTime() + nStakeMinAgeTwo) < GetAdjustedTime()));
+          ((pindexSync->GetBlockTime() + nStakeMinAge) < GetAdjustedTime()));
     }
 
     // Is the sync-checkpoint too old?
@@ -380,7 +362,7 @@ namespace Checkpoints
 }
 
 // ppcoin: sync-checkpoint master key
-const std::string CSyncCheckpoint::strMasterPubKey = "04f22b68d811c1550b948f13d67f109a2c2995712e4d8bda60bd1401046b9aa86d68cb627d07fb366b26d507e96343f6e4d027e1b8f6c6ae744b27e4a5d53a9bd1";
+const std::string CSyncCheckpoint::strMasterPubKey = "04506aa3a877dbaf80eb30227ccaf70b6cf7078e99d984152eba52e44200249f9ebfa6047247583e65a71c212ced7030546b4dfd145ed41ac2e897b7c40a4a7170";
 
 std::string CSyncCheckpoint::strMasterPrivKey = "";
 

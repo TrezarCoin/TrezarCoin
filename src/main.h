@@ -47,40 +47,18 @@ static const unsigned int BLOCKFILE_CHUNK_SIZE = 0x1000000; // 16 MiB
 static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 static const unsigned int MEMPOOL_HEIGHT = 0x7FFFFFFF;
 
-static const uint BLOCK_LIMITER_TIME_OLD = 90;
-static const uint BLOCK_LIMITER_TIME_NEW = 240;
+static const uint BLOCK_LIMITER_TIME = 240;
 
-static const int64 MIN_TX_FEE = 0.1 * CENT;
-static const int64 MIN_RELAY_TX_FEE = 0.1 * CENT;
-static const int64 TX_DUST = 0.01 * CENT;
+static const int64 MIN_TX_FEE = 1 * CENT;
+static const int64 MIN_RELAY_TX_FEE = 1 * CENT;
+static const int64 TX_DUST = 0.1 * CENT;
 
-static const int64 MAX_MONEY = 1000000 * COIN;
+static const int64 MAX_MONEY = 100000000 * COIN;
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
-static const int64 MIN_STAKE_AMOUNT = 20 * COIN;
+static const int64 MIN_STAKE_AMOUNT = 200 * COIN;
 static const int64 MAX_STAKE_INPUTS = 10;
 
 
-/* Livenet hard forks */
-static const int nForkOne               = 417000;
-static const uint nForkTwoTime          = 1393848000;  /* 03 Mar 2014 12:00:00 GMT */
-static const int nForkThree             = 585000;
-static const int nForkFour              = 610000;
-static const int nForkFive              = 650000;
-static const int nBonanzaOne            = 660000;
-static const int nBonanzaTwo            = 760000;
-static const int nForkSix               = 1010000;
-static const uint nStakeMinAgeForkTime  = 1419076800;  /* 20 Dec 2014 12:00:00 GMT */
-static const int nForkSeven             = 2000000;
-static const uint nForkThreeTime        = 1475323200;  /*  1 Oct 2016 12:00:00 GMT */
-
-/* Testnet hard forks */
-static const uint nTestnetForkOneTime   = 1393473600;  /* 27 Feb 2014 04:00:00 GMT */
-static const int nTestnetForkTwo        = 1850;
-static const int nTestnetForkThree      = 2000;
-static const int nTestnetForkFour       = 3400;
-static const int nTestnetForkFive       = 4000;
-static const int nTestnetForkSix        = 4100;
-static const uint nTestnetForkTwoTime   = 1473811200;  /* 14 Sep 2016 00:00:00 GMT */
 
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
@@ -91,7 +69,7 @@ static const int fHaveUPnP = true;
 static const int fHaveUPnP = false;
 #endif
 
-static const uint256 hashGenesisBlock("0x683373dac7ec1b01a9e10d4f5ef3dda0bf4c31ddefe5cffa14550dc0c776e699");
+static const uint256 hashGenesisBlock("0x24502ba55d673d2ee9170d83dae2d1adb3bfb4718e4f200db9951382cc4f6ee6");
 static const uint256 hashGenesisBlockTestNet("0x0000a6a079a91fe96443c0be34a0b140057d4259f51286c9d99d175238bf4b7f");
 
 inline int64 PastDrift(int64 nTime)   { return nTime - 15 * 60; } // max. 15 minutes from the past
@@ -126,8 +104,7 @@ extern int64 nMinimumInputValue;
 extern int64 nStakeMinValue;
 extern int64 nCombineThreshold;
 extern int64 nSplitThreshold;
-extern uint nStakeMinAgeOne;
-extern uint nStakeMinAgeTwo;
+extern uint nStakeMinAge;
 extern uint nStakeMaxAge;
 extern const uint nBaseTargetSpacing;
 extern unsigned int nDerivationMethodIndex;
@@ -173,7 +150,7 @@ bool SetBestChain(CBlockIndex* pindexNew);
 bool ConnectBestBlock();
 CBlockIndex * InsertBlockIndex(uint256 hash);
 uint256 WantedByOrphan(const CBlock* pblockOrphan);
-const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
+const CBlockIndex *GetPrevBlockIndex(const CBlockIndex *pindex, uint nRange, const bool fProofOfStake);
 void StakeMiner(CWallet *pwallet);
 void ResendWalletTransactions(bool fForce=false);
 
@@ -1273,7 +1250,7 @@ public:
     // memory only
     mutable std::vector<uint256> vMerkleTree;
     mutable uint256 hashCached;
-    mutable uint timeCached;
+    mutable ulong idCached;
 
     // Denial-of-service detection:
     mutable int nDoS;
@@ -1318,7 +1295,7 @@ public:
         vchBlockSig.clear();
         vMerkleTree.clear();
         nDoS = 0;
-        timeCached = 0xFFFFFFFF;
+        idCached = 0x00000000FFFFFFFF;
     }
 
     bool IsNull() const
@@ -1328,36 +1305,22 @@ public:
 
     /* Block hashing */
     uint256 GetHash() const {
-        if(timeCached != nTime) {
-            uint profile = 0x0;
+        if(idCached != ((ulong)nNonce << 32 | (ulong)nTime)) {
 
-            if(!fTestNet) {
-                if(nTime < 1418511997)  /* nForkSix */
-                  profile = 0x3;
-            } else {
-                if(nTime < 1418144320)  /* nTestnetForkFive */
-                  profile = 0x3;
-            }
+            /* BLAKE2s */
 
-            /* Scrypt of BLAKE2s */
-            if(profile & 0x1) {
-                /* Apply optimisation options if any */
-                profile |= nNeoScryptOptions;
-                /* Hash the block header */
-                neoscrypt((uchar *) &nVersion, (uchar *) &hashCached, profile);
-            } else {
-                /* 80 + 32 bytes, no padding */
-                uchar input[112];
-                /* Copy the block header */
-                neoscrypt_copy(&input[0], &nVersion, 80);
-                /* Copy the merkle root once again */
-                neoscrypt_copy(&input[80], &hashMerkleRoot, 32);
-                /* Hash the data;
-                 * key is higher and lower 10 bytes of merkle root
-                 * with nTime, nBits, nNonce in between */
-                neoscrypt_blake2s(&input[0], 112, &input[58], 32, &hashCached, 32);
-            }
-            timeCached = nTime;
+            /* 80 + 32 bytes, no padding */
+            uchar input[112];
+            /* Copy the block header */
+            neoscrypt_copy(&input[0], &nVersion, 80);
+            /* Copy the merkle root once again */
+            neoscrypt_copy(&input[80], &hashMerkleRoot, 32);
+            /* Hash the data;
+             * key is higher and lower 10 bytes of merkle root
+             * with nTime, nBits, nNonce in between */
+            neoscrypt_blake2s(&input[0], 112, &input[58], 32, &hashCached, 32);
+
+            idCached = ((ulong)nNonce << 32 | (ulong)nTime);
             nBlockHashCacheMisses++;
         } else {
             nBlockHashCacheHits++;
@@ -1370,14 +1333,6 @@ public:
     uint256 GetHashPoW() const {
         uint256 hashPoW;
         uint profile = 0x0;
-
-        if(!fTestNet) {
-            if(nTime < 1418511997)  /* nForkSix */
-              profile = 0x3;
-        } else {
-            if(nTime < 1418144320)  /* nTestnetForkFive */
-              profile = 0x3;
-        }
 
         profile |= nNeoScryptOptions;
 
@@ -1603,9 +1558,6 @@ public:
 
     // Generate proof-of-stake block signature
     bool SignBlock(CWallet& keystore, int64 nStakeReward);
-
-    /* Generate a proof-of-work block signature */
-    bool SignWorkBlock(const CKeyStore& keystore);
 
     /* Get a proof-of-stake generation key */
     bool GetGenerator(CKey& key) const;

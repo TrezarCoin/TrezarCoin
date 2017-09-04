@@ -17,7 +17,7 @@ typedef std::map<int, unsigned int> MapModifierCheckpoints;
 // Hard checkpoints of stake modifiers to ensure they are deterministic
 static std::map<int, unsigned int> mapStakeModifierCheckpoints =
     boost::assign::map_list_of
-        ( 0, 0x0e00670bu )
+        ( 0, 0xFD11F4E7 )
     ;
 
 // Hard checkpoints of stake modifiers to ensure they are deterministic (testNet)
@@ -27,24 +27,11 @@ static std::map<int, unsigned int> mapStakeModifierCheckpointsTestNet =
     ;
 
 
-/* Selects the appropriate minimal stake age */
-uint GetStakeMinAge(uint nStakeTime) {
-
-    if(nStakeTime > nStakeMinAgeForkTime)
-      return(nStakeMinAgeTwo);
-    else
-      return(nStakeMinAgeOne);
-}
-
-
 /* Calculates time weight */
 int64 GetWeight(int64 nIntervalBegin, int64 nIntervalEnd) {
-    uint nAdjTime = GetAdjustedTime();
-    uint nStakeMinAge = GetStakeMinAge(nIntervalEnd);
     int64 nTimeWeight = 0;
 
-    if((fTestNet && (nAdjTime > nTestnetForkOneTime)) ||
-      (!fTestNet && (nAdjTime > nForkTwoTime))) {
+    if(true) {
         /* New rule: nStakeMaxAge is the limit */
         nTimeWeight = nIntervalEnd - nIntervalBegin - nStakeMinAge;
         if(nTimeWeight > (int64)nStakeMaxAge)
@@ -169,17 +156,7 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64& nStakeModif
           nStakeModifier, DateTimeStrFormat(nModifierTime).c_str());
     }
 
-    int nBlockHeight = pindexPrev->nHeight;
-    uint nActualModifierInterval = nModifierIntervalOne;
-    if(fTestNet) {
-        if(nBlockHeight > nTestnetForkFour)
-          nActualModifierInterval = nModifierIntervalTwo;
-    } else {
-        if(nBlockHeight > nForkFive)
-          nActualModifierInterval = nModifierIntervalTwo;
-        if(nBlockHeight > nForkSix)
-          nActualModifierInterval = nModifierIntervalThree;
-    }
+    uint nActualModifierInterval = nModifierIntervalThree;
 
     if((nModifierTime / nActualModifierInterval) >= (pindexPrev->GetBlockTime() / nActualModifierInterval))
       return(true);
@@ -263,18 +240,7 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64& nStakeModifier,
     nStakeModifierTime   = pindexFrom->GetBlockTime();
     nStakeModifierHeight = pindexFrom->nHeight;
 
-    uint nStakeMinAge = GetStakeMinAge(nStakeModifierTime);
-
-    uint nActualModifierInterval = nModifierIntervalOne;
-    if(fTestNet) {
-        if(nStakeModifierHeight > nTestnetForkFour)
-          nActualModifierInterval = nModifierIntervalTwo;
-    } else {
-        if(nStakeModifierHeight > nForkFive)
-          nActualModifierInterval = nModifierIntervalTwo;
-        if(nStakeModifierHeight > nForkSix)
-          nActualModifierInterval = nModifierIntervalThree;
-    }
+    uint nActualModifierInterval = nModifierIntervalThree;
 
     int64 nStakeModifierSelectionInterval = GetStakeModifierSelectionInterval(nActualModifierInterval);
     const CBlockIndex* pindex = pindexFrom;
@@ -327,7 +293,6 @@ bool CheckStakeKernelHash(uint nBits, const CBlock& blockFrom, uint nTxPrevOffse
       return(error("CheckStakeKernelHash() : time stamp violation"));
 
     uint nTimeBlockFrom = blockFrom.GetBlockTime();
-    uint nStakeMinAge = GetStakeMinAge(nTimeBlockFrom);
     if((nTimeBlockFrom + nStakeMinAge) > nTimeTx)
       return(error("CheckStakeKernelHash() : min. stake age violation"));
 

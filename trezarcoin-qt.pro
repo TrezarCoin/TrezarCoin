@@ -1,13 +1,13 @@
 TEMPLATE = app
-TARGET = orbitcoin-qt
-VERSION = 1.6.0.0
+TARGET = trezarcoin-qt
+VERSION = 1.0.0.0
 INCLUDEPATH += src src/json src/qt
 QT += core gui network
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
 CONFIG += thread
 CONFIG += static
-QMAKE_CFLAGS += -DSHA256 -DASM -DOPT
+QMAKE_CFLAGS += -DASM -DOPT
 
 greaterThan(QT_MAJOR_VERSION, 4): {
     QT += widgets
@@ -393,8 +393,8 @@ macx:HEADERS += src/qt/macdockiconhandler.h src/qt/macnotificationhandler.h
 macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm src/qt/macnotificationhandler.mm
 macx:LIBS += -framework Foundation -framework ApplicationServices -framework AppKit
 macx:DEFINES += MAC_OSX MSG_NOSIGNAL=0
-macx:ICON = src/qt/res/icons/orbitcoin.icns
-macx:TARGET = "Orbitcoin-Qt"
+macx:ICON = src/qt/res/icons/trezarcoin.icns
+macx:TARGET = "Trezarcoin-Qt"
 macx:QMAKE_CFLAGS_THREAD += -pthread
 macx:QMAKE_LFLAGS_THREAD += -pthread
 macx:QMAKE_CXXFLAGS_THREAD += -pthread

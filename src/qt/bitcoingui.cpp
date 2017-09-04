@@ -79,16 +79,16 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     prevBlocks(0),
     spinnerFrame(0)
 {
-    setWindowTitle(tr("Orbitcoin") + " - " + tr("Wallet"));
+    setWindowTitle(tr("Trezarcoin") + " - " + tr("Wallet"));
 #ifndef Q_OS_MAC
-    qApp->setWindowIcon(QIcon(":icons/orbitcoin"));
-    setWindowIcon(QIcon(":icons/orbitcoin"));
+    qApp->setWindowIcon(QIcon(":icons/trezarcoin"));
+    setWindowIcon(QIcon(":icons/trezarcoin"));
 #else
     setUnifiedTitleAndToolBarOnMac(true);
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
 #endif
 
-    int nQtStyle = GetArg("-qtstyle", 2);
+    int nQtStyle = GetArg("-qtstyle", 1);
     if(nQtStyle < 0) nQtStyle = 0;
 
     if(!nQtStyle) {
@@ -272,7 +272,7 @@ void BitcoinGUI::createActions(int nQtStyle) {
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
 
     sendCoinsAction = new QAction(QIcon(":/icons/send"), tr("&Send"), this);
-    sendCoinsAction->setToolTip(tr("Send coins to an Orbitcoin address"));
+    sendCoinsAction->setToolTip(tr("Send coins to an Trezarcoin address"));
     sendCoinsAction->setCheckable(true);
     sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_2));
     tabGroup->addAction(sendCoinsAction);
@@ -317,7 +317,7 @@ void BitcoinGUI::createActions(int nQtStyle) {
     tabGroup->addAction(explorerAction);
     /* Block explorer action connected already */
 
-    toggleHideAction = new QAction(QIcon(":/icons/orbitcoin"), tr("&Show / Hide"), this);
+    toggleHideAction = new QAction(QIcon(":/icons/trezarcoin"), tr("&Show / Hide"), this);
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
 
     cloneWalletAction = new QAction(QIcon(":/icons/filesave"), tr("&Clone"), this);
@@ -370,7 +370,7 @@ void BitcoinGUI::createActions(int nQtStyle) {
     exportAction->setToolTip(tr("Export the data in the current tab to a file"));
     /* Connected / disconnected on respective tab pages */
 
-    aboutAction = new QAction(QIcon(":/icons/orbitcoin"), tr("&About Orbitcoin"), this);
+    aboutAction = new QAction(QIcon(":/icons/trezarcoin"), tr("&About Trezarcoin"), this);
     aboutAction->setMenuRole(QAction::AboutRole);
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
 
@@ -462,14 +462,14 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
         {
             setWindowTitle(windowTitle() + QString(" ") + tr("[testnet]"));
 #ifndef Q_OS_MAC
-            qApp->setWindowIcon(QIcon(":icons/orbitcoin_testnet"));
-            setWindowIcon(QIcon(":icons/orbitcoin_testnet"));
+            qApp->setWindowIcon(QIcon(":icons/trezarcoin_testnet"));
+            setWindowIcon(QIcon(":icons/trezarcoin_testnet"));
 #else
-            MacDockIconHandler::instance()->setIcon(QIcon(":icons/orbitcoin_testnet"));
+            MacDockIconHandler::instance()->setIcon(QIcon(":icons/trezarcoin_testnet"));
 #endif
             if(trayIcon)
             {
-                trayIcon->setToolTip(tr("Orbitcoin client") + QString(" ") + tr("[testnet]"));
+                trayIcon->setToolTip(tr("Trezarcoin client") + QString(" ") + tr("[testnet]"));
                 trayIcon->setIcon(QIcon(":/icons/toolbar_testnet"));
                 toggleHideAction->setIcon(QIcon(":/icons/toolbar_testnet"));
             }
@@ -530,7 +530,7 @@ void BitcoinGUI::createTrayIcon()
     trayIcon = new QSystemTrayIcon(this);
     trayIconMenu = new QMenu(this);
     trayIcon->setContextMenu(trayIconMenu);
-    trayIcon->setToolTip(tr("Orbitcoin client"));
+    trayIcon->setToolTip(tr("Trezarcoin client"));
     trayIcon->setIcon(QIcon(":/icons/toolbar"));
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
             this, SLOT(trayIconActivated(QSystemTrayIcon::ActivationReason)));
@@ -648,7 +648,7 @@ void BitcoinGUI::setNumConnections(int count)
     default: icon = ":/icons/connect_4"; break;
     }
     labelConnectionsIcon->setPixmap(QIcon(icon).pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-    labelConnectionsIcon->setToolTip(tr("%n active connection(s) to the Orbitcoin network", "", count));
+    labelConnectionsIcon->setToolTip(tr("%n active connection(s) to the Trezarcoin network", "", count));
 }
 
 void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
@@ -931,7 +931,7 @@ void BitcoinGUI::dropEvent(QDropEvent *event)
         if (nValidUrisFound)
             gotoSendCoinsPage();
         else
-            notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid Orbitcoin address or malformed URI parameters."));
+            notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid Trezarcoin address or malformed URI parameters."));
     }
 
     event->acceptProposedAction();
@@ -946,7 +946,7 @@ void BitcoinGUI::handleURI(QString strURI)
         gotoSendCoinsPage();
     }
     else
-        notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid Orbitcoin address or malformed URI parameters."));
+        notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid Trezarcoin address or malformed URI parameters."));
 }
 
 void BitcoinGUI::setEncryptionStatus(int status)

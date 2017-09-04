@@ -327,7 +327,7 @@ void RPCConsole::clear()
                 );
 
     message(CMD_REPLY, (
-      tr("Welcome to the Orbitcoin RPC console.") + "<br>" +
+      tr("Welcome to the Trezarcoin RPC console.") + "<br>" +
       tr("Use up and down arrows to navigate history, Ctrl-L to clear screen. Type help for an overview of available commands.")
       ), true);
 }

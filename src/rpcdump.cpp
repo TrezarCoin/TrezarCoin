@@ -37,7 +37,7 @@ Value importprivkey(const Array& params, bool fHelp) {
 
     if(fHelp || (params.size() < 1) || (params.size() > 3))
       throw(runtime_error(
-        "importprivkey <orbitcoin_privkey> [label] [rescan]\n"
+        "importprivkey <trezarcoin_privkey> [label] [rescan]\n"
         "Adds a private key (as returned by dumpprivkey) to your wallet.\n"
         "Block chain re-scanning is on (true) by default."));
 
@@ -104,15 +104,15 @@ Value dumpprivkey(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "dumpprivkey <orbitcoin_address>\n"
-            "Reveals the private key corresponding to <orbitcoin_address>.");
+            "dumpprivkey <trezarcoin_address>\n"
+            "Reveals the private key corresponding to <trezarcoin_address>.");
 
     EnsureWalletIsUnlocked();
 
     string strAddress = params[0].get_str();
     CBitcoinAddress address;
     if (!address.SetString(strAddress))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Orbitcoin address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Trezarcoin address");
 
     CKeyID keyID;
     if (!address.GetKeyID(keyID))

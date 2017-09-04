@@ -6,13 +6,13 @@
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="+14"/>
-        <source>About Orbitcoin</source>
-        <translation>About Orbitcoin</translation>
+        <source>About Trezarcoin</source>
+        <translation>About Trezarcoin</translation>
     </message>
     <message>
         <location line="+39"/>
-        <source>&lt;b&gt;Orbitcoin&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;Orbitcoin&lt;/b&gt; version</translation>
+        <source>&lt;b&gt;Trezarcoin&lt;/b&gt; version</source>
+        <translation>&lt;b&gt;Trezarcoin&lt;/b&gt; version</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -59,8 +59,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-46"/>
-        <source>These are your Orbitcoin addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</source>
-        <translation>These are your Orbitcoin addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</translation>
+        <source>These are your Trezarcoin addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</source>
+        <translation>These are your Trezarcoin addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</translation>
     </message>
     <message>
         <location line="+60"/>
@@ -74,8 +74,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+11"/>
-        <source>Sign a message to prove you own an Orbitcoin address</source>
-        <translation>Sign a message to prove you own an Orbitcoin address</translation>
+        <source>Sign a message to prove you own an Trezarcoin address</source>
+        <translation>Sign a message to prove you own an Trezarcoin address</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -89,8 +89,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-14"/>
-        <source>Verify a message to ensure it was signed with a specified Orbitcoin address</source>
-        <translation>Verify a message to ensure it was signed with a specified Orbitcoin address</translation>
+        <source>Verify a message to ensure it was signed with a specified Trezarcoin address</source>
+        <translation>Verify a message to ensure it was signed with a specified Trezarcoin address</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -257,8 +257,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-56"/>
-        <source>Orbitcoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
-        <translation>Orbitcoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</translation>
+        <source>Trezarcoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
+        <translation>Trezarcoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -371,8 +371,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+4"/>
-        <source>Show information about Orbitcoin</source>
-        <translation>Show information about Orbitcoin</translation>
+        <source>Show information about Trezarcoin</source>
+        <translation>Show information about Trezarcoin</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -446,13 +446,13 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-58"/>
-        <source>Send coins to an Orbitcoin address</source>
-        <translation>Send coins to an Orbitcoin address</translation>
+        <source>Send coins to an Trezarcoin address</source>
+        <translation>Send coins to an Trezarcoin address</translation>
     </message>
     <message>
         <location line="+45"/>
-        <source>Modify configuration options for Orbitcoin</source>
-        <translation>Modify configuration options for Orbitcoin</translation>
+        <source>Modify configuration options for Trezarcoin</source>
+        <translation>Modify configuration options for Trezarcoin</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -514,8 +514,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-186"/>
-        <source>Orbitcoin</source>
-        <translation>Orbitcoin</translation>
+        <source>Trezarcoin</source>
+        <translation>Trezarcoin</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -524,8 +524,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+168"/>
-        <source>&amp;About Orbitcoin</source>
-        <translation>&amp;About Orbitcoin</translation>
+        <source>&amp;About Trezarcoin</source>
+        <translation>&amp;About Trezarcoin</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -566,15 +566,15 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+0"/>
         <location line="+60"/>
-        <source>Orbitcoin client</source>
-        <translation>Orbitcoin client</translation>
+        <source>Trezarcoin client</source>
+        <translation>Trezarcoin client</translation>
     </message>
     <message numerus="yes">
         <location line="+69"/>
-        <source>%n active connection(s) to the Orbitcoin network</source>
+        <source>%n active connection(s) to the Trezarcoin network</source>
         <translation>
-            <numerusform>%n active connection to the Orbitcoin network</numerusform>
-            <numerusform>%n active connections to the Orbitcoin network</numerusform>
+            <numerusform>%n active connection to the Trezarcoin network</numerusform>
+            <numerusform>%n active connections to the Trezarcoin network</numerusform>
         </translation>
     </message>
     <message>
@@ -734,8 +734,8 @@ Address: %4
     <message>
         <location line="-15"/>
         <location line="+15"/>
-        <source>URI can not be parsed! This can be caused by an invalid Orbitcoin address or malformed URI parameters.</source>
-        <translation>URI can not be parsed! This can be caused by an invalid Orbitcoin address or malformed URI parameters.</translation>
+        <source>URI can not be parsed! This can be caused by an invalid Trezarcoin address or malformed URI parameters.</source>
+        <translation>URI can not be parsed! This can be caused by an invalid Trezarcoin address or malformed URI parameters.</translation>
     </message>
     <message>
         <location line=""/>
@@ -839,8 +839,8 @@ Address: %4
     </message>
     <message>
         <location filename="../bitcoin.cpp" line="+109"/>
-        <source>A fatal error occurred. Orbitcoin can no longer continue safely and will quit.</source>
-        <translation>A fatal error occurred. Orbitcoin can no longer continue safely and will quit.</translation>
+        <source>A fatal error occurred. Trezarcoin can no longer continue safely and will quit.</source>
+        <translation>A fatal error occurred. Trezarcoin can no longer continue safely and will quit.</translation>
     </message>
 </context>
 <context>
@@ -884,8 +884,8 @@ Address: %4
         <location line="+80"/>
         <location line="+86"/>
         <location line="+38"/>
-        <source>0.00 ORB</source>
-        <translation>0.00 ORB</translation>
+        <source>0.00 TZC</source>
+        <translation>0.00 TZC</translation>
     </message>
     <message>
         <location line="-191"/>
@@ -1174,8 +1174,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+5"/>
-        <source>The entered address &quot;%1&quot; is not a valid Orbitcoin address.</source>
-        <translation>The entered address &quot;%1&quot; is not a valid Orbitcoin address.</translation>
+        <source>The entered address &quot;%1&quot; is not a valid Trezarcoin address.</source>
+        <translation>The entered address &quot;%1&quot; is not a valid Trezarcoin address.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1193,8 +1193,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location filename="../guiutil.cpp" line="+420"/>
         <location line="+12"/>
-        <source>Orbitcoin-Qt</source>
-        <translation>Orbitcoin-Qt</translation>
+        <source>Trezarcoin-Qt</source>
+        <translation>Trezarcoin-Qt</translation>
     </message>
     <message>
         <location line="-12"/>
@@ -1256,13 +1256,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+31"/>
-        <source>Automatically start Orbitcoin after logging in to the system.</source>
-        <translation>Automatically start Orbitcoin after logging in to the system.</translation>
+        <source>Automatically start Trezarcoin after logging in to the system.</source>
+        <translation>Automatically start Trezarcoin after logging in to the system.</translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>&amp;Start Orbitcoin on system login</source>
-        <translation>&amp;Start Orbitcoin on system login</translation>
+        <source>&amp;Start Trezarcoin on system login</source>
+        <translation>&amp;Start Trezarcoin on system login</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -1281,8 +1281,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+6"/>
-        <source>Automatically open the Orbitcoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Automatically open the Orbitcoin client port on the router. This only works when your router supports UPnP and it is enabled.</translation>
+        <source>Automatically open the Trezarcoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Automatically open the Trezarcoin client port on the router. This only works when your router supports UPnP and it is enabled.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1291,8 +1291,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+7"/>
-        <source>Connect to the Orbitcoin network through a SOCKS proxy (e.g. when connecting through Tor).</source>
-        <translation>Connect to the Orbitcoin network through a SOCKS proxy (e.g. when connecting through Tor).</translation>
+        <source>Connect to the Trezarcoin network through a SOCKS proxy (e.g. when connecting through Tor).</source>
+        <translation>Connect to the Trezarcoin network through a SOCKS proxy (e.g. when connecting through Tor).</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1366,8 +1366,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+13"/>
-        <source>The user interface language can be set here. This setting will take effect after restarting Orbitcoin.</source>
-        <translation>The user interface language can be set here. This setting will take effect after restarting Orbitcoin.</translation>
+        <source>The user interface language can be set here. This setting will take effect after restarting Trezarcoin.</source>
+        <translation>The user interface language can be set here. This setting will take effect after restarting Trezarcoin.</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -1381,8 +1381,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+9"/>
-        <source>Whether to show Orbitcoin addresses in the transaction list or not.</source>
-        <translation>Whether to show Orbitcoin addresses in the payment list or not.</translation>
+        <source>Whether to show Trezarcoin addresses in the transaction list or not.</source>
+        <translation>Whether to show Trezarcoin addresses in the payment list or not.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1428,8 +1428,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="-9"/>
         <location line="+9"/>
-        <source>This setting will take effect after restarting Orbitcoin.</source>
-        <translation>This setting will take effect after restarting Orbitcoin.</translation>
+        <source>This setting will take effect after restarting Trezarcoin.</source>
+        <translation>This setting will take effect after restarting Trezarcoin.</translation>
     </message>
     <message>
         <location line="+29"/>
@@ -1447,8 +1447,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+33"/>
         <location line="+212"/>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Orbitcoin network after a connection is established, but this process has not completed yet.</source>
-        <translation>The displayed information may be out of date. Your wallet automatically synchronizes with the Orbitcoin network after a connection is established, but this process has not completed yet.</translation>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Trezarcoin network after a connection is established, but this process has not completed yet.</source>
+        <translation>The displayed information may be out of date. Your wallet automatically synchronizes with the Trezarcoin network after a connection is established, but this process has not completed yet.</translation>
     </message>
     <message>
         <location line=""/>
@@ -1668,8 +1668,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+7"/>
-        <source>Show the Orbitcoin-Qt help message to get a list with possible Orbitcoin command-line options.</source>
-        <translation>Show the Orbitcoin-Qt help message to get a list with possible Orbitcoin command-line options.</translation>
+        <source>Show the Trezarcoin-Qt help message to get a list with possible Trezarcoin command-line options.</source>
+        <translation>Show the Trezarcoin-Qt help message to get a list with possible Trezarcoin command-line options.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1688,13 +1688,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="-104"/>
-        <source>Orbitcoin - RPC Console</source>
-        <translation>Orbitcoin - RPC Console</translation>
+        <source>Trezarcoin - RPC Console</source>
+        <translation>Trezarcoin - RPC Console</translation>
     </message>
     <message>
         <location line="+25"/>
-        <source>Orbitcoin Core</source>
-        <translation>Orbitcoin Core</translation>
+        <source>Trezarcoin Core</source>
+        <translation>Trezarcoin Core</translation>
     </message>
     <message>
         <location line="+279"/>
@@ -1703,8 +1703,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+7"/>
-        <source>Open the Orbitcoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
-        <translation>Open the Orbitcoin debug log file from the current data directory. This can take a few seconds for large log files.</translation>
+        <source>Open the Trezarcoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
+        <translation>Open the Trezarcoin debug log file from the current data directory. This can take a few seconds for large log files.</translation>
     </message>
     <message>
         <location line="+102"/>
@@ -1713,8 +1713,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location filename="../rpcconsole.cpp" line="-33"/>
-        <source>Welcome to the Orbitcoin RPC console.</source>
-        <translation>Welcome to the Orbitcoin RPC console.</translation>
+        <source>Welcome to the Trezarcoin RPC console.</source>
+        <translation>Welcome to the Trezarcoin RPC console.</translation>
     </message>
     <message>
         <location line=""/>
@@ -1886,8 +1886,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <location line="+86"/>
         <location line="+86"/>
         <location line="+32"/>
-        <source>0.00 ORB</source>
-        <translation>0.00 ORB</translation>
+        <source>0.00 TZC</source>
+        <translation>0.00 TZC</translation>
     </message>
     <message>
         <location line="-191"/>
@@ -1956,8 +1956,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+10"/>
-        <source>123.456 ORB</source>
-        <translation>123.456 ORB</translation>
+        <source>123.456 TZC</source>
+        <translation>123.456 TZC</translation>
     </message>
     <message>
         <location line="+31"/>
@@ -1971,8 +1971,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-173"/>
-        <source>Enter an Orbitcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</source>
-        <translation type="unfinished">Enter an Orbitcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
+        <source>Enter an Trezarcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</source>
+        <translation type="unfinished">Enter an Trezarcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
     </message>
     <message>
         <location line="+15"/>
@@ -2140,8 +2140,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="+1"/>
-        <source>Enter an Orbitcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</source>
-        <translation>Enter an Orbitcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
+        <source>Enter an Trezarcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</source>
+        <translation>Enter an Trezarcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
     </message>
 </context>
 <context>
@@ -2201,8 +2201,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+21"/>
-        <source>Sign the message to prove you own this Orbitcoin address</source>
-        <translation>Sign the message to prove you own this Orbitcoin address</translation>
+        <source>Sign the message to prove you own this Trezarcoin address</source>
+        <translation>Sign the message to prove you own this Trezarcoin address</translation>
     </message>
     <message>
         <location line="+17"/>
@@ -2233,8 +2233,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+40"/>
-        <source>Verify the message to ensure it was signed with the specified Orbitcoin address</source>
-        <translation>Verify the message to ensure it was signed with the specified Orbitcoin address</translation>
+        <source>Verify the message to ensure it was signed with the specified Trezarcoin address</source>
+        <translation>Verify the message to ensure it was signed with the specified Trezarcoin address</translation>
     </message>
     <message>
         <location line="+17"/>
@@ -2244,8 +2244,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location filename="../signverifymessagedialog.cpp" line="+27"/>
         <location line="+3"/>
-        <source>Enter an Orbitcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</source>
-        <translation>Enter an Orbitcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
+        <source>Enter an Trezarcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</source>
+        <translation>Enter an Trezarcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
     </message>
     <message>
         <location line="-2"/>
@@ -2254,8 +2254,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+3"/>
-        <source>Enter Orbitcoin signature</source>
-        <translation>Enter Orbitcoin signature</translation>
+        <source>Enter Trezarcoin signature</source>
+        <translation>Enter Trezarcoin signature</translation>
     </message>
     <message>
         <location line="+82"/>
@@ -2847,11 +2847,11 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
 </context>
 <context>
-    <name>orb-core</name>
+    <name>trz-core</name>
     <message>
         <location filename="../bitcoinstrings.cpp" line="+124"/>
-        <source>Orbitcoin version</source>
-        <translation>Orbitcoin version</translation>
+        <source>Trezarcoin version</source>
+        <translation>Trezarcoin version</translation>
     </message>
     <message>
         <location line="+39"/>
@@ -2879,13 +2879,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+23"/>
-        <source>Specify configuration file (default: orbitcoin.conf)</source>
-        <translation>Specify configuration file (default: orbitcoin.conf)</translation>
+        <source>Specify configuration file (default: trezarcoin.conf)</source>
+        <translation>Specify configuration file (default: trezarcoin.conf)</translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>Specify pid file (default: orbitcoind.pid)</source>
-        <translation>Specify pid file (default: orbitcoind.pid)</translation>
+        <source>Specify pid file (default: trezarcoind.pid)</source>
+        <translation>Specify pid file (default: trezarcoind.pid)</translation>
     </message>
     <message>
         <source>Specify wallet file (within data directory)</source>
@@ -2908,8 +2908,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line=""/>
-        <source>Listen for connections on &lt;port&gt; (default: 15298 or testnet: 25298)</source>
-        <translation>Listen for connections on &lt;port&gt; (default: 15298 or testnet: 25298)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 17298 or testnet: 27298)</source>
+        <translation>Listen for connections on &lt;port&gt; (default: 17298 or testnet: 27298)</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -2968,8 +2968,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line=""/>
-        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 15299 or testnet: 25299)</source>
-        <translation>Listen for JSON-RPC connections on &lt;port&gt; (default: 15299 or testnet: 25299)</translation>
+        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 17299 or testnet: 27299)</source>
+        <translation>Listen for JSON-RPC connections on &lt;port&gt; (default: 17299 or testnet: 27299)</translation>
     </message>
     <message>
         <location line="+28"/>
@@ -3042,8 +3042,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+3"/>
-        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Orbitcoin will not work properly.</source>
-        <translation>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Orbitcoin will not work properly.</translation>
+        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Trezarcoin will not work properly.</source>
+        <translation>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Trezarcoin will not work properly.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -3140,7 +3140,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+1"/>
-        <source>Send command to -server or orbitcoind</source>
+        <source>Send command to -server or trezarcoind</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3304,13 +3304,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="-129"/>
-        <source>Cannot obtain a lock on data directory %s.  Orbitcoin is probably already running.</source>
-        <translation>Cannot obtain a lock on data directory %s.  Orbitcoin is probably already running.</translation>
+        <source>Cannot obtain a lock on data directory %s.  Trezarcoin is probably already running.</source>
+        <translation>Cannot obtain a lock on data directory %s.  Trezarcoin is probably already running.</translation>
     </message>
     <message>
         <location line="+99"/>
-        <source>Orbitcoin</source>
-        <translation>Orbitcoin</translation>
+        <source>Trezarcoin</source>
+        <translation>Trezarcoin</translation>
     </message>
     <message>
         <location line="+33"/>
@@ -3344,13 +3344,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+1"/>
-        <source>Error loading wallet.dat: Wallet requires newer version of Orbitcoin</source>
-        <translation>Error loading wallet.dat: Wallet requires newer version of Orbitcoin</translation>
+        <source>Error loading wallet.dat: Wallet requires newer version of Trezarcoin</source>
+        <translation>Error loading wallet.dat: Wallet requires newer version of Trezarcoin</translation>
     </message>
     <message>
         <location line="+76"/>
-        <source>Wallet needed to be rewritten: restart Orbitcoin to complete</source>
-        <translation>Wallet needed to be rewritten: restart Orbitcoin to complete</translation>
+        <source>Wallet needed to be rewritten: restart Trezarcoin to complete</source>
+        <translation>Wallet needed to be rewritten: restart Trezarcoin to complete</translation>
     </message>
     <message>
         <location line="-78"/>
@@ -3419,8 +3419,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="-22"/>
-        <source>Unable to bind to %s on this computer. Orbitcoin is probably already running.</source>
-        <translation>Unable to bind to %s on this computer. Orbitcoin is probably already running.</translation>
+        <source>Unable to bind to %s on this computer. Trezarcoin is probably already running.</source>
+        <translation>Unable to bind to %s on this computer. Trezarcoin is probably already running.</translation>
     </message>
     <message>
         <location line="+49"/>

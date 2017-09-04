@@ -1,4 +1,4 @@
-IDI_ICON1 ICON DISCARDABLE "icons/orbitcoin.ico"
+IDI_ICON1 ICON DISCARDABLE "icons/trezarcoin.ico"
 
 #include <windows.h>             // needed for VERSIONINFO
 #include "../../clientversion.h" // holds the needed client version information
@@ -18,14 +18,14 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "Orbitcoin"
-            VALUE "FileDescription",    "Orbitcoin-Qt (OSS GUI client for Orbitcoin)"
+            VALUE "CompanyName",        "Trezarcoin"
+            VALUE "FileDescription",    "Trezarcoin-Qt (OSS GUI client for Trezarcoin)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
-            VALUE "InternalName",       "Orbitcoin-qt"
-            VALUE "LegalCopyright",     "2009-2012 The Bitcoin Developers, 2012-2013 The NovaCoin & PPCoin Developers, 2013-2014 The Orbitcoin Developers"
+            VALUE "InternalName",       "Trezarcoin-qt"
+            VALUE "LegalCopyright",     "2009-2012 The Bitcoin Developers, 2012-2013 The NovaCoin & PPCoin Developers, 2013-2016 The Orbitcoin Developers, 207 The Trezarcoin Developers"
             VALUE "LegalTrademarks1",   "Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
-            VALUE "OriginalFilename",   "orbitcoin-qt.exe"
-            VALUE "ProductName",        "Orbitcoin-Qt"
+            VALUE "OriginalFilename",   "trezarcoin-qt.exe"
+            VALUE "ProductName",        "Trezarcoin-Qt"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END

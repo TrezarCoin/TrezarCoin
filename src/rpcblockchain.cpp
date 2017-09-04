@@ -14,14 +14,10 @@ extern enum Checkpoints::CPMode CheckpointsMode;
 
 double GetDifficulty(const CBlockIndex* blockindex)
 {
-    // Floating point number that is a multiple of the minimum difficulty,
-    // minimum difficulty = 1.0.
-    if (blockindex == NULL)
-    {
-        if (pindexBest == NULL)
-            return 1.0;
-        else
-            blockindex = GetLastBlockIndex(pindexBest, false);
+
+    if(!blockindex) {
+        if(!pindexBest) return(fTestNet ? dMinDiffTestNet : dMinDiff);
+        else blockindex = GetPrevBlockIndex(pindexBest, 0, false);
     }
 
     int nShift = (blockindex->nBits >> 24) & 0xff;
@@ -179,7 +175,11 @@ Value getdifficulty(const Array& params, bool fHelp)
 
     Object obj;
     obj.push_back(Pair("proof-of-work",        GetDifficulty()));
-    obj.push_back(Pair("proof-of-stake",       GetDifficulty(GetLastBlockIndex(pindexBest, true))));
+    const CBlockIndex *pindexPoS = GetPrevBlockIndex(pindexBest, 0, true);
+    if(!pindexPoS)
+      obj.push_back(Pair("proof-of-stake", fTestNet ? dMinDiffTestNet : dMinDiff));
+    else
+      obj.push_back(Pair("proof-of-stake", (double)GetDifficulty(pindexPoS)));
     obj.push_back(Pair("search-interval",      (int)nLastCoinStakeSearchInterval));
     return obj;
 }

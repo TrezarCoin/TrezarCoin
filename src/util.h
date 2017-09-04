@@ -152,7 +152,6 @@ extern bool fStakeGen;
 extern bool fStakingOnly;
 extern bool fReindex;
 
-extern bool fNeoScrypt;
 extern uint nNeoScryptOptions;
 
 extern uint64 nBlockHashCacheHits;
@@ -169,6 +168,9 @@ extern unsigned long long nMinWeightInputs;
 extern unsigned long long nAvgWeightInputs;
 extern unsigned long long nMaxWeightInputs;
 extern unsigned long long nTotalStakeWeight;
+
+extern const double dMinDiff;
+extern const double dMinDiffTestNet;
 
 void RandAddSeed();
 void RandAddSeedPerfmon();

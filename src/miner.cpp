@@ -333,16 +333,12 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64 *pStakeReward
 
         // Fill in header
         pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
-        pblock->nTime          = max((pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME_NEW + 1),
+        pblock->nTime          = max((pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1),
           pblock->GetMaxTransactionTime());
         pblock->nTime          = max(pblock->GetBlockTime(), PastDrift(pindexPrev->GetBlockTime()));
         if(!fProofOfStake) pblock->UpdateTime(pindexPrev);
         pblock->nNonce         = 0;
-
-        if((fTestNet && (pindexPrev->nHeight >= nTestnetForkSix)) ||
-          (!fTestNet && (pindexPrev->nHeight >= nForkSeven))) {
-            pblock->nVersion = 3;
-        }
+        pblock->nVersion = 3;
     }
 
     return(pblock);
@@ -388,20 +384,8 @@ void FormatDataBuffer(CBlock *pblock, uint *pdata) {
     data.nBits          = pblock->nBits;
     data.nNonce         = pblock->nNonce;
 
-    if(fNeoScrypt) {
-        /* Copy the LE data */
-        for(i = 0; i < 20; i++)
-          pdata[i] = ((uint *) &data)[i];
-    } else {
-        /* Block header size in bits */
-        pdata[31] = 640;
-        /* Convert LE to BE and copy */
-        for(i = 0; i < 20; i++)
-          pdata[i] = ByteReverse(((uint *) &data)[i]);
-        /* Erase the remaining part */
-        for(i = 20; i < 31; i++)
-          pdata[i] = 0;
-    }
+    for(i = 0; i < 20; i++)
+      pdata[i] = ((uint *) &data)[i];
 }
 
 
@@ -499,7 +483,7 @@ void StakeMiner(CWallet *pwallet) {
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
     // Make this thread recognisable as a stake mining thread
-    RenameThread("orb-stakeminer");
+    RenameThread("trz-stakeminer");
 
     // Each thread has its own counter
     unsigned int nExtraNonce = 0;
