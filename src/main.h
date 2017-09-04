@@ -1250,7 +1250,7 @@ public:
     // memory only
     mutable std::vector<uint256> vMerkleTree;
     mutable uint256 hashCached;
-    mutable ulong idCached;
+    mutable uint64 idCached;
 
     // Denial-of-service detection:
     mutable int nDoS;
@@ -1305,7 +1305,7 @@ public:
 
     /* Block hashing */
     uint256 GetHash() const {
-        if(idCached != ((ulong)nNonce << 32 | (ulong)nTime)) {
+        if(idCached != ((uint64)nNonce << 32 | (uint64)nTime)) {
 
             /* BLAKE2s */
 
@@ -1320,7 +1320,7 @@ public:
              * with nTime, nBits, nNonce in between */
             neoscrypt_blake2s(&input[0], 112, &input[58], 32, &hashCached, 32);
 
-            idCached = ((ulong)nNonce << 32 | (ulong)nTime);
+            idCached = ((uint64)nNonce << 32 | (uint64)nTime);
             nBlockHashCacheMisses++;
         } else {
             nBlockHashCacheHits++;
