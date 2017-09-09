@@ -18,7 +18,7 @@ Trezarcoin (TZC) is a decentralised open source digital currency.
  - 200 confirmations for minted coins
  - very low transaction fees (most transactions are free)
  - no destruction of transaction fees (all collected by a block finder)
- - the default P2P port is 15298, RPC port is 15299
+ - the default P2P port is 17298, RPC port is 17299
  - I2P/Tor ready
 
 
