@@ -2032,27 +2032,27 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+0"/>
         <source> and </source>
-        <translation> and </translation>
+        <translation> et </translation>
     </message>
     <message>
         <location line="+29"/>
         <source>The recipient address is not valid, please recheck.</source>
-        <translation>The recipient address is not valid, please recheck.</translation>
+        <translation>L'adresse du destinataire est incorrecte. Veuillez la vérifier.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount to pay must be larger than 0.</source>
-        <translation>The amount to pay must be larger than 0.</translation>
+        <translation>Le montant à payer doit être supérieur à 0.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount exceeds your balance.</source>
-        <translation>The amount exceeds your balance.</translation>
+        <translation>Le montant dépasse votre solde.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The total exceeds your balance when the %1 transaction fee is included.</source>
-        <translation>The total exceeds your balance when the %1 transaction fee is included.</translation>
+        <translation>Le total dépasse votre solde en incluant %1 de frais de transaction.</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -2062,7 +2062,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+5"/>
         <source>Error: Transaction creation failed.</source>
-        <translation>Error: Transaction creation failed.</translation>
+        <translation>Erreur: la création de la transaction a échoué</translation>
     </message>
     <message>
         <location line="+251"/>
@@ -2085,28 +2085,28 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location filename="../forms/sendcoinsentry.ui" line="+14"/>
         <source>Form</source>
-        <translation>Form</translation>
+        <translation>Formulaire</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>A&amp;mount:</source>
-        <translation>A&amp;mount:</translation>
+        <translation>M&amp;ontant:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Pay &amp;To:</source>
-        <translation>Pay &amp;To:</translation>
+        <translation>Payer &amp;à:</translation>
     </message>
     <message>
         <location line="+24"/>
         <location filename="../sendcoinsentry.cpp" line="+25"/>
         <source>Enter a label for this address to add it to your address book</source>
-        <translation>Enter a label for this address to add it to your address book</translation>
+        <translation>Saisissez une étiquette pour cette adresse afin de l'ajouter à votre carnet d'adresse</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>&amp;Label:</source>
-        <translation>&amp;Label:</translation>
+        <translation>&amp;Etiquette:</translation>
     </message>
     <message>
         <location line="+18"/>
@@ -2126,7 +2126,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+7"/>
         <source>Paste address from clipboard</source>
-        <translation>Paste address from clipboard</translation>
+        <translation>Coller l'adresse depuis le presse-papier</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -2136,12 +2136,12 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+7"/>
         <source>Remove this recipient</source>
-        <translation>Remove this recipient</translation>
+        <translation>Supprimer ce destinataire</translation>
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="+1"/>
         <source>Enter an Trezarcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</source>
-        <translation>Enter an Trezarcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
+        <translation>Entrer une adresse Trezarcoin (ex: oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)</translation>
     </message>
 </context>
 <context>
@@ -2149,13 +2149,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location filename="../forms/signverifymessagedialog.ui" line="+14"/>
         <source>Signatures - Sign / Verify a Message</source>
-        <translation>Signatures - Sign / Verify a Message</translation>
+        <translation>Signatures - Signer / Vérifier un Message</translation>
     </message>
     <message>
         <location line="+13"/>
         <location line="+124"/>
         <source>&amp;Sign Message</source>
-        <translation>&amp;Sign Message</translation>
+        <translation>&amp;Signer un Message</translation>
     </message>
     <message>
         <location line="-118"/>
