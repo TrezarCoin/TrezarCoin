@@ -7,7 +7,7 @@
     <message>
         <location filename="../forms/aboutdialog.ui" line="+14"/>
         <source>About Trezarcoin</source>
-        <translation>About Trezarcoin</translation>
+        <translation>A propos de Trezarcoin</translation>
     </message>
     <message>
         <location line="+39"/>
@@ -35,27 +35,27 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location filename="../forms/addressbookpage.ui" line="+14"/>
         <source>Address Book</source>
-        <translation>Address Book</translation>
+        <translation>Carnet d'adresse</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Double-click to edit address or label</source>
-        <translation>Double-click to edit address or label</translation>
+        <translation>Double-clic pour éditer l'adresse ou l'étiquette</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Create a new address</source>
-        <translation>Create a new address</translation>
+        <translation>Créer une nouvelle adresse</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Copy the currently selected address to the system clipboard</source>
-        <translation>Copy the currently selected address to the system clipboard</translation>
+        <translation>Copier l'adresse sélectionnée dans le presse-papier</translation>
     </message>
     <message>
         <location line="-11"/>
         <source>&amp;New address</source>
-        <translation>&amp;New address</translation>
+        <translation>&amp;Nouvelle adresse/translation>
     </message>
     <message>
         <location line="-46"/>
@@ -65,7 +65,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+60"/>
         <source>&amp;Copy address</source>
-        <translation>&amp;Copy address</translation>
+        <translation>&amp;Copier l'adresse</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -75,12 +75,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+11"/>
         <source>Sign a message to prove you own an Trezarcoin address</source>
-        <translation>Sign a message to prove you own an Trezarcoin address</translation>
+        <translation>Signer un message pour prouver que vous détenez une adresse Trezarcoin</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Sign &amp;message</source>
-        <translation>Sign &amp;message</translation>
+        <translation>Signer &amp;message</translation>
     </message>
     <message>
         <location line="+25"/>
@@ -100,37 +100,37 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+14"/>
         <source>&amp;Delete</source>
-        <translation>&amp;Delete</translation>
+        <translation>&amp;Supprimer</translation>
     </message>
     <message>
         <location filename="../addressbookpage.cpp" line="+65"/>
         <source>Copy &amp;label</source>
-        <translation>Copy &amp;label</translation>
+        <translation>Copier &amp;étiquette</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>&amp;Edit</source>
-        <translation>&amp;Edit</translation>
+        <translation>&amp;Editer</translation>
     </message>
     <message>
         <location line="+250"/>
         <source>Export Address Book Data</source>
-        <translation>Export Address Book Data</translation>
+        <translation>Exporter les données du carnet d'adresse</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Comma separated file (*.csv)</source>
-        <translation>Comma separated file (*.csv)</translation>
+        <translation>Fichier séparé par des virgules (*.csv)</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Error exporting</source>
-        <translation>Error exporting</translation>
+        <translation>Erreur d'exportation</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>Could not write to file %1.</translation>
+        <translation>Impossible d'écrire vers le fichier %1.</translation>
     </message>
 </context>
 <context>
@@ -3450,7 +3450,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="+3"/>
         <source>Cannot write default address</source>
-        <translation>Cannot write default address</translation>
+        <translation>Impossible d'écrire l'adresse par défaut</translation>
     </message>
     <message>
         <location line="+47"/>
@@ -3489,7 +3489,7 @@ If the file does not exist, create it with owner-readable-only file permissions.
     <message>
         <location line="+87"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation>Erreur</translation>
     </message>
     <message>
         <location line="-27"/>
