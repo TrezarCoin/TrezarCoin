@@ -75,7 +75,7 @@ void Shutdown(void* parg)
     static bool fTaken;
 
     // Make this thread recognisable as the shutdown thread
-    RenameThread("trz-shutdown");
+    RenameThread("tzc-shutdown");
 
     bool fFirstThread = false;
     {
