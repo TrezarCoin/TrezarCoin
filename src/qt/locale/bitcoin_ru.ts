@@ -2858,7 +2858,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
 </context>
 <context>
-    <name>trz-core</name>
+    <name>tzc-core</name>
     <message>
         <location filename="../bitcoinstrings.cpp" line="+124"/>
         <source>Trezarcoin version</source>
