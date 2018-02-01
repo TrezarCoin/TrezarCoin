@@ -330,7 +330,7 @@ std::string HelpMessage()
 
         "\n" + _("Staking options:") + "\n" +
         "  -stakegen=<n>          "   + _("Generate coin stakes (default: 1 = enabled)") + "\n" +
-        "  -stakemintime=<n>      "   + _("Set the min. stake input block chain time in hours (default: 48 or testnet: 1)") + "\n" +
+        "  -stakemintime=<n>      "   + _("Set the min. stake input block chain time in hours (default: 24 or testnet: 1)") + "\n" +
         "  -stakemindepth=<n>     "   + _("Set the min. stake input block chain depth in confirmations (default: follow -stakeminage)") + "\n" +
         "  -stakeminvalue=<n>     "   + _("Set the min. stake input value in coins (default: 1.0)") + "\n" +
         "  -stakecombine=<n>      "   + _("Try to combine inputs while staking up to this limit in coins (200 < n < 5000; default: 200)") + "\n";
