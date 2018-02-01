@@ -2056,15 +2056,3 @@ uint64 CNode::GetTotalBytesRx() {
 uint64 CNode::GetTotalBytesTx() {
     return(nTotalBytesTx);
 }
-© 2018 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Help
-Contact GitHub
-API
-Training
-Shop
-Blog
-About
