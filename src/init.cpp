@@ -334,8 +334,8 @@ std::string HelpMessage()
         "  -stakemintime=<n>      "   + _("Set the min. stake input block chain time in hours (default: 48 or testnet: 1)") + "\n" +
         "  -stakemindepth=<n>     "   + _("Set the min. stake input block chain depth in confirmations (default: follow -stakeminage)") + "\n" +
         "  -stakeminvalue=<n>     "   + _("Set the min. stake input value in coins (default: 1.0)") + "\n" +
-        "  -stakecombine=<n>      "   + _("Try to combine inputs while staking up to this limit in coins (200 < n < 2000; default: 200)") + "\n";
-        "  -stakesplit=<n>        "   + _("Don't split outputs while staking below this limit in coins (400 < n < 4000; default: 800)") + "\n";
+        "  -stakecombine=<n>      "   + _("Try to combine inputs while staking up to this limit in coins (200 < n < 5000; default: 200)") + "\n";
+        "  -stakesplit=<n>        "   + _("Don't split outputs while staking below this limit in coins (400 < n < 10000; default: 800)") + "\n";
 
     return strUsage;
 }
