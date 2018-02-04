@@ -72,6 +72,8 @@ bool CDBEnv::Open(boost::filesystem::path pathEnv_)
     filesystem::path pathErrorFile = pathDataDir / "db.log";
     printf("dbenv.open LogDir=%s ErrorFile=%s\n", pathLogDir.string().c_str(), pathErrorFile.string().c_str());
 
+	filesystem::path pathConfigFile = pathDataDir / "trezarcoin.conf";
+
     unsigned int nEnvFlags = 0;
     if (GetBoolArg("-privdb", true))
         nEnvFlags |= DB_PRIVATE;

@@ -1441,7 +1441,7 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
               return DoS(25, error("CheckInputs() : too many inputs (%u) of a coin stake %s",
                 (uint) vin.size(), GetHash().ToString().substr(0,10).c_str()));
 
-            /* Orbitcoin: not using coin age for reward calculation,
+            /* Trezarcoin: not using coin age for reward calculation,
              * using for input verification to prevent stake amount manipulations;
              * reward control is in ConnectBlock() when all transactions are processed
              * with all fees present and accounted for */
@@ -1696,7 +1696,7 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view) {
             nValueOut += nTxValueOut;
 
             if(tx.IsCoinStake()) {
-                /* Orbitcoin: combined value of stake inputs must satisfy the limit */ 
+                /* Trezarcoin: combined value of stake inputs must satisfy the limit */ 
                 if(nTxValueIn < MIN_STAKE_AMOUNT)
                   return(DoS(100,
                     error("ConnectBlock() : block %d proof-of-stake input amount too low " \
