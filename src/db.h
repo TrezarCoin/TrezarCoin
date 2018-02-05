@@ -71,6 +71,7 @@ public:
 
     bool Open(boost::filesystem::path pathEnv_);
     void Close();
+	void Create_Config(const std::string& path);
     void Flush(bool fShutdown);
     void CheckpointLSN(std::string strFile);
     void SetDetach(bool fDetachDB_) { fDetachDB = fDetachDB_; }
