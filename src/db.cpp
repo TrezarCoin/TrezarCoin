@@ -602,7 +602,7 @@ void CDBEnv::Create_Config(const string& path)
 	file << "rpcpassword=SOMERANDOMPASSWORD\n";
 	file << "port=17298\n";
 	file << "rpcport=17299\n";
-	file << "rpcallowip=127.0.0.1";
+	file << "rpcallowip=127.0.0.1\n";
 	file << "addnode=162.217.249.198:17298\n";
 	file << "addnode=185.213.210.221:53740\n";
 	file << "addnode=188.242.118.114:37285\n";
