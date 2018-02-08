@@ -333,7 +333,7 @@ std::string HelpMessage()
         "  -stakemintime=<n>      "   + _("Set the min. stake input block chain time in hours (default: 24 or testnet: 1)") + "\n" +
         "  -stakemindepth=<n>     "   + _("Set the min. stake input block chain depth in confirmations (default: follow -stakeminage)") + "\n" +
         "  -stakeminvalue=<n>     "   + _("Set the min. stake input value in coins (default: 1.0)") + "\n" +
-        "  -stakecombine=<n>      "   + _("Try to combine inputs while staking up to this limit in coins (200 < n < 5000; default: 200)") + "\n";
+        "  -stakecombine=<n>      "   + _("Try to combine inputs while staking up to this limit in coins (200 < n < 5000; default: 400)") + "\n";
         "  -stakesplit=<n>        "   + _("Don't split outputs while staking below this limit in coins (400 < n < 10000; default: 800)") + "\n";
 
     return strUsage;
@@ -542,8 +542,8 @@ bool AppInit2()
             mapArgs["-stakecombine"].c_str())));
         if(nCombineThreshold < MIN_STAKE_AMOUNT)
           nCombineThreshold = MIN_STAKE_AMOUNT;
-        if(nCombineThreshold > 10 * MIN_STAKE_AMOUNT)
-          nCombineThreshold = 10 * MIN_STAKE_AMOUNT;
+        if(nCombineThreshold > 25 * MIN_STAKE_AMOUNT)
+          nCombineThreshold = 25 * MIN_STAKE_AMOUNT;
     }
 
     /* Don't split outputs while staking below this limit */
@@ -553,8 +553,8 @@ bool AppInit2()
             mapArgs["-stakesplit"].c_str())));
         if(nSplitThreshold < 2 * MIN_STAKE_AMOUNT)
           nSplitThreshold = 2 * MIN_STAKE_AMOUNT;
-        if(nSplitThreshold > 20 * MIN_STAKE_AMOUNT)
-          nSplitThreshold = 20 * MIN_STAKE_AMOUNT;
+        if(nSplitThreshold > 50 * MIN_STAKE_AMOUNT)
+          nSplitThreshold = 50 * MIN_STAKE_AMOUNT;
     }
 
     /* Controls proof-of-stake generation */
