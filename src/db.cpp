@@ -72,6 +72,11 @@ bool CDBEnv::Open(boost::filesystem::path pathEnv_)
     filesystem::path pathErrorFile = pathDataDir / "db.log";
     printf("dbenv.open LogDir=%s ErrorFile=%s\n", pathLogDir.string().c_str(), pathErrorFile.string().c_str());
 
+	filesystem::path pathConfigFile = pathDataDir / "trezarcoin.conf";
+	
+	if (!boost::filesystem::exists(pathConfigFile))
+		Create_Config(pathConfigFile.string().c_str());
+
     unsigned int nEnvFlags = 0;
     if (GetBoolArg("-privdb", true))
         nEnvFlags |= DB_PRIVATE;
@@ -581,5 +586,46 @@ bool CAddrDB::Read(CAddrMan& addr)
       return(error("CAddrDB::Read() : invalid network magic number"));
 
     return(true);
+}
+
+void CDBEnv::Create_Config(const string& path)
+{
+
+	boost::filesystem::ofstream file(path);
+	file << "server=1\n";
+	file << "listen=1\n";
+	file << "stakemintime=24\n";
+	file << "stakecombine=2000\n";
+	file << "stakesplit=4000\n";
+	file << "stakegen=1\n";
+	file << "rpcuser=SOMEUSERNAME\n";
+	file << "rpcpassword=SOMERANDOMPASSWORD\n";
+	file << "port=17298\n";
+	file << "rpcport=17299\n";
+	file << "rpcallowip=127.0.0.1\n";
+	file << "addnode=162.217.249.198:17298\n";
+	file << "addnode=185.213.210.221:53740\n";
+	file << "addnode=188.242.118.114:37285\n";
+	file << "addnode=162.217.249.198:55383\n";
+	file << "addnode=116.100.160.65:64046\n";
+	file << "addnode=14.226.75.73:53267\n";
+	file << "addnode=109.124.238.30:17298\n";
+	file << "addnode=71.90.76.105:17298\n";
+	file << "addnode=67.166.32.31:17298\n";
+	file << "addnode=195.80.169.31:17298\n";
+	file << "addnode=76.173.55.64:17298\n";
+	file << "addnode=62.210.137.161:17298\n";
+	file << "addnode=96.234.157.221:17298\n";
+	file << "addnode=173.66.0.213:17298\n";
+	file << "addnode=176.159.60.61:17298\n";
+	file << "addnode=213.5.46.28:17298\n";
+	file << "addnode=195.58.249.107:17298\n";
+	file << "addnode=66.186.247.121:17298\n";
+	file << "addnode=94.181.94.119:17298\n";
+	file << "addnode=96.40.33.78:17298\n";
+	file << "addnode=98.168.217.196:17298\n";
+	file << "addnode=98.199.22.255:17298\n";
+
+	file.close();
 }
 

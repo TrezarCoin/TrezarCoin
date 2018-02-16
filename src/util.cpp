@@ -1022,7 +1022,7 @@ boost::filesystem::path GetDefaultDataDir() {
 
 #if (WIN32)
     /* Windows: current directory \ data for livenet */
-    path = boost::filesystem::current_path() / "data";
+    path = GetSpecialFolderPath(CSIDL_APPDATA) / "TrezarCoin";
 #else
     /* Linux, Mac OS X, *BSD and so on: ~/.trezarcoin */
     char* pszHome = getenv("HOME");
