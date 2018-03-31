@@ -75,7 +75,7 @@ void Shutdown(void* parg)
     static bool fTaken;
 
     // Make this thread recognisable as the shutdown thread
-    RenameThread("trz-shutdown");
+    RenameThread("tzc-shutdown");
 
     bool fFirstThread = false;
     {
@@ -269,7 +269,6 @@ std::string HelpMessage()
         "  -externalip=<ip>       " + _("Specify your own public address") + "\n" +
         "  -onlynet=<net>         " + _("Only connect to nodes in network <net> (IPv4, IPv6 or Tor)") + "\n" +
         "  -discover              " + _("Discover own IP address (default: 1 when listening and no -externalip)") + "\n" +
-        "  -irc                   " + _("Find peers using internet relay chat (default: 1)") + "\n" +
         "  -listen                " + _("Accept connections from outside (default: 1 if no -proxy or -connect)") + "\n" +
         "  -bind=<addr>           " + _("Bind to given address. Use [host]:port notation for IPv6") + "\n" +
         "  -dnsseed               " + _("Find peers using DNS lookup (default: 1)") + "\n" +
@@ -331,11 +330,11 @@ std::string HelpMessage()
 
         "\n" + _("Staking options:") + "\n" +
         "  -stakegen=<n>          "   + _("Generate coin stakes (default: 1 = enabled)") + "\n" +
-        "  -stakemintime=<n>      "   + _("Set the min. stake input block chain time in hours (default: 48 or testnet: 1)") + "\n" +
+        "  -stakemintime=<n>      "   + _("Set the min. stake input block chain time in hours (default: 24 or testnet: 1)") + "\n" +
         "  -stakemindepth=<n>     "   + _("Set the min. stake input block chain depth in confirmations (default: follow -stakeminage)") + "\n" +
         "  -stakeminvalue=<n>     "   + _("Set the min. stake input value in coins (default: 1.0)") + "\n" +
-        "  -stakecombine=<n>      "   + _("Try to combine inputs while staking up to this limit in coins (200 < n < 2000; default: 200)") + "\n";
-        "  -stakesplit=<n>        "   + _("Don't split outputs while staking below this limit in coins (400 < n < 4000; default: 800)") + "\n";
+        "  -stakecombine=<n>      "   + _("Try to combine inputs while staking up to this limit in coins (200 < n < 5000; default: 400)") + "\n";
+        "  -stakesplit=<n>        "   + _("Don't split outputs while staking below this limit in coins (400 < n < 10000; default: 800)") + "\n";
 
     return strUsage;
 }
@@ -408,7 +407,6 @@ bool AppInit2()
     }
 
     fTestNet = GetBoolArg("-testnet");
-    if(fTestNet) SoftSetBoolArg("-irc", true);
 
     nNodeLifespan = GetArg("-addrlifespan", 7);
 
@@ -544,8 +542,8 @@ bool AppInit2()
             mapArgs["-stakecombine"].c_str())));
         if(nCombineThreshold < MIN_STAKE_AMOUNT)
           nCombineThreshold = MIN_STAKE_AMOUNT;
-        if(nCombineThreshold > 10 * MIN_STAKE_AMOUNT)
-          nCombineThreshold = 10 * MIN_STAKE_AMOUNT;
+        if(nCombineThreshold > 25 * MIN_STAKE_AMOUNT)
+          nCombineThreshold = 25 * MIN_STAKE_AMOUNT;
     }
 
     /* Don't split outputs while staking below this limit */
@@ -555,8 +553,8 @@ bool AppInit2()
             mapArgs["-stakesplit"].c_str())));
         if(nSplitThreshold < 2 * MIN_STAKE_AMOUNT)
           nSplitThreshold = 2 * MIN_STAKE_AMOUNT;
-        if(nSplitThreshold > 20 * MIN_STAKE_AMOUNT)
-          nSplitThreshold = 20 * MIN_STAKE_AMOUNT;
+        if(nSplitThreshold > 50 * MIN_STAKE_AMOUNT)
+          nSplitThreshold = 50 * MIN_STAKE_AMOUNT;
     }
 
     /* Controls proof-of-stake generation */

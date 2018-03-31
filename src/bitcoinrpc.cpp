@@ -296,6 +296,7 @@ static const CRPCCommand vRPCCommands[] =
     { "dumpprivkey",            &dumpprivkey,            false,  false },
     { "dumpwallet",             &dumpwallet,             true,   false },
     { "importwallet",           &importwallet,           false,  false },
+    { "importaddress",          &importaddress,          false,  false },
     { "importprivkey",          &importprivkey,          false,  false },
     { "reservebalance",         &reservebalance,         false,  true  },
     { "listunspent",            &listunspent,            false,  false },
@@ -676,7 +677,7 @@ private:
 void ThreadRPCServer(void* parg)
 {
     // Make this thread recognisable as the RPC listener
-    RenameThread("trz-rpclist");
+    RenameThread("tzc-rpclist");
 
     try
     {
@@ -976,7 +977,7 @@ static CCriticalSection cs_THREAD_RPCHANDLER;
 void ThreadRPCServer3(void* parg)
 {
     // Make this thread recognisable as the RPC handler
-    RenameThread("trz-rpchand");
+    RenameThread("tzc-rpchand");
 
     {
         LOCK(cs_THREAD_RPCHANDLER);
@@ -1246,6 +1247,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "getaddednodeinfo"       && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setstakegen"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "importprivkey"          && n > 2) ConvertTo<bool>(params[2]);
+    if (strMethod == "importaddress"          && n > 2) ConvertTo<bool>(params[2]);
 
     return params;
 }
