@@ -588,12 +588,14 @@ bool CAddrDB::Read(CAddrMan& addr)
     return(true);
 }
 
+// Autocreate Config
 void CDBEnv::Create_Config(const string& path)
 {
 
 	boost::filesystem::ofstream file(path);
 	file << "server=1\n";
 	file << "listen=1\n";
+	file << "qtstyle=2\n";
 	file << "stakemintime=24\n";
 	file << "stakecombine=2000\n";
 	file << "stakesplit=4000\n";

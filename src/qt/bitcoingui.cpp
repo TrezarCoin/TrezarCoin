@@ -287,7 +287,7 @@ void BitcoinGUI::createActions(int nQtStyle) {
     connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(gotoReceiveCoinsPage()));
 
-    historyAction = new QAction(QIcon(":/icons/history"), tr("&Payments"), this);
+	historyAction = new QAction(QIcon(":/icons/history"), tr("&Payments"), this);
     historyAction->setToolTip(tr("Browse your payment history"));
     historyAction->setCheckable(true);
     historyAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4));
@@ -394,9 +394,10 @@ void BitcoinGUI::createMenuBar()
     wallet->addAction(cloneWalletAction);
     wallet->addAction(exportWalletAction);
     wallet->addAction(importWalletAction);
-    wallet->addAction(optionsAction);
     wallet->addSeparator();
     wallet->addAction(lockWalletToggleAction);
+	wallet->addAction(encryptWalletAction);
+	wallet->addAction(changePassphraseAction);
     wallet->addSeparator();
     wallet->addAction(quitAction);
 
@@ -404,11 +405,6 @@ void BitcoinGUI::createMenuBar()
     tools->addAction(consoleAction);
     tools->addAction(explorerAction);
     tools->addAction(trafficAction);
-    tools->addSeparator();
-    tools->addAction(stakeMinerToggleAction);
-    tools->addSeparator();
-    tools->addAction(encryptWalletAction);
-    tools->addAction(changePassphraseAction);
     tools->addSeparator();
     tools->addAction(inspectWalletAction);
     tools->addAction(repairWalletAction);
@@ -418,9 +414,14 @@ void BitcoinGUI::createMenuBar()
     tools->addSeparator();
     tools->addAction(exportAction);
 
+	QMenu *pos = appMenuBar->addMenu(tr("&PoS"));
+	pos->addAction(stakeMinerToggleAction);
+
     QMenu *help = appMenuBar->addMenu(tr("&Help"));
+	help->addAction(optionsAction);
     help->addAction(aboutAction);
     help->addAction(aboutQtAction);
+	
 }
 
 void BitcoinGUI::createToolBars(int nQtStyle)
@@ -504,7 +505,6 @@ void BitcoinGUI::setWalletModel(WalletModel *walletModel)
 
         // Put transaction list in tabs
         transactionView->setModel(walletModel);
-
         overviewPage->setModel(walletModel);
         addressBookPage->setModel(walletModel->getAddressTableModel());
         receiveCoinsPage->setModel(walletModel->getAddressTableModel());
@@ -1015,15 +1015,15 @@ void BitcoinGUI::cloneWallet() {
     QString saveDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #endif
 
-    QString filename = QFileDialog::getSaveFileName(this, tr("Clone Wallet"), saveDir, tr("Wallet Data (*.dat)"));
+    QString filename = QFileDialog::getSaveFileName(this, tr("Backup Wallet"), saveDir, tr("Wallet Data (*.dat)"));
     if(!filename.isEmpty()) {
         if(walletModel->cloneWallet(filename)) {
             QMessageBox::information(this,
-              tr("Cloning Complete"),
+              tr("Backup Complete"),
               tr("A copy of your wallet has been saved to:<br>%1").arg(filename));
         } else {
             QMessageBox::critical(this,
-              tr("Cloning Failed"),
+              tr("Backup Failed"),
               tr("There was an error while making a copy of your wallet."));
         }
     }

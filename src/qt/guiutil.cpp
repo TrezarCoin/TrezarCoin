@@ -268,6 +268,16 @@ void openDebugLogfile()
         QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(pathDebug.string())));
 }
 
+void openConfigFile()
+{
+	boost::filesystem::path pathDebug = GetDataDir() / "trezarcoin.conf";
+
+	/* Open debug.log with the associated application */
+	if (boost::filesystem::exists(pathDebug))
+		QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(pathDebug.string())));
+
+}
+
 ToolTipToRichTextFilter::ToolTipToRichTextFilter(int size_threshold, QObject *parent) :
     QObject(parent), size_threshold(size_threshold)
 {

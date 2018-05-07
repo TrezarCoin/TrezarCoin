@@ -37,6 +37,8 @@ private slots:
     void on_openDebugLogfileButton_clicked();
     /** display messagebox with program parameters (same as bitcoin-qt --help) */
     void on_showCLOptionsButton_clicked();
+	/**ConfigFileButton*/
+	void on_openConfigFileButton_clicked();
     /* change the time range of the network traffic graph */
     void on_sldGraphRange_valueChanged(int nValue);
     /* update traffic statistics */
