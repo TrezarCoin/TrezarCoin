@@ -25,7 +25,7 @@ Value getmininginfo(const Array& params, bool fHelp)
         nLastWalletStakeTime = GetTime();
     }
 
-    double averageStakeWeight = GetAverageStakeWeight(pindexBest->pprev).convert_to<double>();
+    double averageStakeWeight = GetAverageStakeWeight(pindexBest->pprev);
 
     Object obj;
     obj.push_back(Pair("blocks",        (int)nBestHeight));
@@ -42,8 +42,8 @@ Value getmininginfo(const Array& params, bool fHelp)
         obj.push_back(Pair("posreward",     (float)(GetProofOfStakeReward(pindexPoS->nHeight, (int64)NULL))/COIN));
     }
     obj.push_back(Pair("networkhashps", getnetworkhashps(params, false)));
-    obj.push_back(Pair("netmhashps", GetPoWMHashPS()));
-    obj.push_back(Pair("netstakeweight", averageStakeWeight));
+    obj.push_back(Pair("netmhashps", (boost::uint64_t)GetPoWMHashPS()));
+    obj.push_back(Pair("netstakeweight", (boost::uint64_t)averageStakeWeight));
     obj.push_back(Pair("stakeweight",   (boost::uint64_t)nTotalStakeWeight));
     obj.push_back(Pair("minweightinputs", (boost::uint64_t)nMinWeightInputs));
     obj.push_back(Pair("avgweightinputs", (boost::uint64_t)nAvgWeightInputs));

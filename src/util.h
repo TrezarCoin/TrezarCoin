@@ -32,7 +32,6 @@ typedef long long  int64;
 typedef unsigned long long  uint64;
 typedef unsigned int  uint;
 typedef unsigned char uchar;
-typedef boost::multiprecision::cpp_bin_float_100 mp_float;
 
 static const int64 COIN = 1000000;
 static const int64 CENT = 10000;

@@ -135,6 +135,7 @@ CBlockIndex* FindBlockByHeight(int nHeight);
 bool ProcessMessages(CNode* pfrom);
 bool SendMessages(CNode* pto, bool fSendTrickle);
 bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp = NULL);
+double GetAverageStakeWeight(CBlockIndex* pindexPrev);
 
 bool CheckProofOfWork(uint256 hashPoW, uint nBits);
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake, bool fPrettyPrint);

@@ -11,6 +11,7 @@
 #include "init.h"
 #include "ui_interface.h"
 #include "kernel.h"
+#include "bitcoinrpc.h"
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -60,6 +61,9 @@ uint nModifierIntervalThree = 40 * 60;
 int64 nCombineThreshold = MIN_STAKE_AMOUNT;
 /* Don't split outputs while staking below this limit */
 int64 nSplitThreshold = 2 * MIN_STAKE_AMOUNT;
+
+int nAverageStakeWeightHeightCached = 0;
+double dAverageStakeWeightCached = 0;
 
 /* The base time unit is 30 seconds */
 const uint nBaseTargetSpacing = 30;
@@ -1087,9 +1091,9 @@ int64 inline GetTargetSpacingWorkMax() {
     return 12 * nBaseTargetSpacing;
 }
 
-mp_float GetAverageStakeWeight(CBlockIndex* pindexPrev)
+double GetAverageStakeWeight(CBlockIndex* pindexPrev)
 {
-    mp_float weightSum = 0, weightAve = 0;
+    double weightSum = 0, weightAve = 0;
     if (nBestHeight < 1)
         return weightAve;
 
@@ -1104,7 +1108,7 @@ mp_float GetAverageStakeWeight(CBlockIndex* pindexPrev)
     CBlockIndex* currentBlockIndex = pindexPrev;
     for (i = 0; currentBlockIndex && i < 60; i++)
     {
-        mp_float tempWeight = GetPoSKernelPS(currentBlockIndex);
+        double tempWeight = GetPoSKernelPS();
         weightSum += tempWeight;
         currentBlockIndex = currentBlockIndex->pprev;
     }
