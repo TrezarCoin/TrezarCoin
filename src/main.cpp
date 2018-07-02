@@ -1087,6 +1087,35 @@ int64 inline GetTargetSpacingWorkMax() {
     return 12 * nBaseTargetSpacing;
 }
 
+mp_float GetAverageStakeWeight(CBlockIndex* pindexPrev)
+{
+    mp_float weightSum = 0, weightAve = 0;
+    if (nBestHeight < 1)
+        return weightAve;
+
+    // Use cached weight if it's still valid
+    if (pindexPrev->nHeight == nAverageStakeWeightHeightCached)
+    {
+        return dAverageStakeWeightCached;
+    }
+    nAverageStakeWeightHeightCached = pindexPrev->nHeight;
+
+    int i;
+    CBlockIndex* currentBlockIndex = pindexPrev;
+    for (i = 0; currentBlockIndex && i < 60; i++)
+    {
+        mp_float tempWeight = GetPoSKernelPS(currentBlockIndex);
+        weightSum += tempWeight;
+        currentBlockIndex = currentBlockIndex->pprev;
+    }
+    weightAve = (weightSum / i) + 21;
+
+    // Cache the stake weight value
+    dAverageStakeWeightCached = weightAve;
+
+    return weightAve;
+}
+
 /* Locate a block meeting the range and type specified down the block index;
  * for instance, range 1 PoW means to search for the nearest PoW block including
  * the starting one, then find the previous PoW one and return its position */
