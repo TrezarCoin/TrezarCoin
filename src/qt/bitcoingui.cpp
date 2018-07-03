@@ -26,6 +26,7 @@
 #include "guiutil.h"
 #include "rpcconsole.h"
 #include "blockexplorer.h"
+#include "bitcoinrpc.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -591,6 +592,8 @@ void BitcoinGUI::aboutClicked()
 void BitcoinGUI::setStakeMining() {
     QString tooltip;
     bool fStakeIcon = true;
+    double nNetworkWeight = GetPoSKernelPS();
+    stakeEstimate = GetStakeEstimate(nNetworkWeight, nTotalStakeWeight);
 
     if(!fStakeGen) {
         fStakeIcon = false;
@@ -610,7 +613,8 @@ void BitcoinGUI::setStakeMining() {
             if((GetTime() - 600) > nLastWalletStakeTime) {
                 walletModel->getStakeWeight(nMinWeightInputs, nAvgWeightInputs, nMaxWeightInputs, nTotalStakeWeight);
                 nLastWalletStakeTime = GetTime();
-            } 
+            }
+
             if(!nTotalStakeWeight) {
                 fStakeIcon = false;
                 tooltip = tr("No mature coins found, staking paused");
@@ -618,6 +622,9 @@ void BitcoinGUI::setStakeMining() {
                 fStakeIcon = true;
                 tooltip = tr("Staking enabled for %1 inputs weighing %2 coin days") \
                   .arg(nMinWeightInputs + nAvgWeightInputs + nMaxWeightInputs).arg(nTotalStakeWeight);
+                tooltip += QString("<br>");
+                tooltip += tr("Estimated time to get a stake: %1 hours") \
+                  .arg(stakeEstimate);
                 tooltip += QString("<br>");
                 tooltip += tr("Inputs: %1 min. age, %2 avg. age, %3 max. age") \
                   .arg(nMinWeightInputs).arg(nAvgWeightInputs).arg(nMaxWeightInputs);

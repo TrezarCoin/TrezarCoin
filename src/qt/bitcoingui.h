@@ -117,6 +117,9 @@ private:
     int prevBlocks;
     int spinnerFrame;
 
+    /** Time in Hours, estimated for Staking*/
+    double stakeEstimate;
+
     /** Create the main UI actions. */
     void createActions(int nQtStyle);
     /** Create the menu bar and sub-menus. */

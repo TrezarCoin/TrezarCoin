@@ -88,6 +88,16 @@ double GetPoSKernelPS()
     return dStakeKernelsTriedAvg / nStakesTime;
 }
 
+double GetStakeEstimate(double nStakeWeight, double nTotalStakeWeight)
+{
+    double nEstimateToStake = 0;
+    if (nStakeWeight != 0)
+    {
+       return nEstimateToStake = nStakeWeight / nTotalStakeWeight * 3.00 / 60.00;
+    }
+    else return -1.00;
+}
+
 Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPrintTransactionDetail)
 {
     Object result;
