@@ -166,6 +166,7 @@ extern json_spirit::Value getwork(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getblocktemplate(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getnetworkhashps(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getnetstakeweight(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getstakegen(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value setstakegen(const json_spirit::Array& params, bool fHelp);
 

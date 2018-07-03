@@ -25,7 +25,7 @@ Value getmininginfo(const Array& params, bool fHelp)
         nLastWalletStakeTime = GetTime();
     }
 
-    double averageStakeWeight = GetAverageStakeWeight(pindexBest->pprev);
+    double netstakeweight = GetAverageStakeWeight(pindexBest->pprev);
 
     Object obj;
     obj.push_back(Pair("blocks",        (int)nBestHeight));
@@ -43,7 +43,7 @@ Value getmininginfo(const Array& params, bool fHelp)
     }
     obj.push_back(Pair("networkhashps", getnetworkhashps(params, false)));
     obj.push_back(Pair("netmhashps", (boost::uint64_t)GetPoWMHashPS()));
-    obj.push_back(Pair("netstakeweight", (boost::uint64_t)averageStakeWeight));
+    obj.push_back(Pair("netstakeweight", (boost::uint64_t)netstakeweight));
     obj.push_back(Pair("stakeweight",   (boost::uint64_t)nTotalStakeWeight));
     obj.push_back(Pair("minweightinputs", (boost::uint64_t)nMinWeightInputs));
     obj.push_back(Pair("avgweightinputs", (boost::uint64_t)nAvgWeightInputs));
@@ -409,6 +409,17 @@ Value getnetworkhashps(const Array& params, bool fHelp) {
 
     return((boost::int64_t)(((double)GetDifficulty() * pow(2.0, 32)) / timePerBlock));
 }
+
+Value getnetstakeweight(const Array& params, bool fHelp) {
+
+    if (fHelp)
+        throw(runtime_error(
+            "getnetstakeweight\n"
+            "Calculates estimated network hashes per second."));
+
+    return (boost::int64_t)((double)GetAverageStakeWeight(pindexBest->pprev));
+}
+
 
 Value getstakegen(const Array& params, bool fHelp) {
 
