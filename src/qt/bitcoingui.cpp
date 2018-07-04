@@ -625,12 +625,12 @@ void BitcoinGUI::setStakeMining() {
                 tooltip += QString("<br>");
                 if (stakeEstimate > 24) {
                     stakeEstimate /= 24;
-                    tooltip += tr("Estimated time to get a stake: %1 days") \
+                    tooltip += tr("Estimated Stake Time: %1 days") \
                         .arg(stakeEstimate);
 
                 }
                 else {
-                    tooltip += tr("Estimated time to get a stake: %1 hours") \
+                    tooltip += tr("Estimated Stake Time: %1 hours") \
                         .arg(stakeEstimate);
                 }
                 
@@ -1159,8 +1159,11 @@ void BitcoinGUI::stakeMinerToggle(bool fInitial) {
         stakeMinerToggleAction->setText(tr("&Disable PoS mining"));
     }
 
-    if(!fInitial)
-      setStakeMining();
+    if (!fInitial) {
+        setStakeMining();
+        overviewPage->setNetwork();
+    }
+      
 }
 
 void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden)
