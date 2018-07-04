@@ -91,7 +91,7 @@ double GetPoSKernelPS()
 double GetStakeEstimate(double nStakeWeight, double nTotalStakeWeight)
 {
     double nEstimateToStake = 0;
-    if (nStakeWeight != 0)
+    if (nStakeWeight != 0 && nTotalStakeWeight != 0)
     {
        return nEstimateToStake = nStakeWeight / nTotalStakeWeight * 3.00 / 60.00;
     }

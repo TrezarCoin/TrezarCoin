@@ -1,13 +1,18 @@
 #include "overviewpage.h"
 #include "ui_overviewpage.h"
 
+#include "util.h"
+#include "init.h"
 #include "walletmodel.h"
+#include "clientmodel.h"
 #include "bitcoinunits.h"
 #include "optionsmodel.h"
 #include "transactiontablemodel.h"
 #include "transactionfilterproxy.h"
 #include "guiutil.h"
 #include "guiconstants.h"
+#include "bitcoingui.h"
+#include "bitcoinrpc.h"
 
 #include <QAbstractItemDelegate>
 #include <QPainter>
@@ -158,6 +163,30 @@ void OverviewPage::setBalance(qint64 balance, qint64 stake, qint64 unconfirmed, 
     bool showImmature = (immature != 0);
     ui->labelImmature->setVisible(showImmature);
 /*    ui->labelImmatureText->setVisible(showImmature); */
+}
+
+void OverviewPage::setNetwork() 
+{
+    double nNetworkWeight = GetPoSKernelPS();
+    double estimateStake = GetStakeEstimate(nNetworkWeight,nTotalStakeWeight);
+    int averageStakeWeight = (boost::int64_t)((double)GetAverageStakeWeight(pindexBest->pprev));
+
+    if (estimateStake > 24) 
+    {
+        estimateStake /= 24;
+        ui->label_EstimtatedStake->setText(QString("%1 days").arg(estimateStake));
+    }
+    else 
+    {
+        ui->label_EstimtatedStake->setText(QString("%1 hours").arg(estimateStake));
+    }
+
+    ui->label_Blockheight->setText(QString::number(pindexBest->nHeight));
+    ui->label_PosDiff->setText(QString("%1 PoS").arg(clientModel->getDifficulty(true)));
+    ui->label_Powdiff->setText(QString("%1 PoW").arg(clientModel->getDifficulty(false)));
+    ui->label_StakeWeightNetwork->setText(QString::number(averageStakeWeight));
+    ui->label_StakeWeightWallet->setText(QString::number(nTotalStakeWeight));
+
 }
 
 void OverviewPage::setNumTransactions(int count)

@@ -623,8 +623,17 @@ void BitcoinGUI::setStakeMining() {
                 tooltip = tr("Staking enabled for %1 inputs weighing %2 coin days") \
                   .arg(nMinWeightInputs + nAvgWeightInputs + nMaxWeightInputs).arg(nTotalStakeWeight);
                 tooltip += QString("<br>");
-                tooltip += tr("Estimated time to get a stake: %1 hours") \
-                  .arg(stakeEstimate);
+                if (stakeEstimate > 24) {
+                    stakeEstimate /= 24;
+                    tooltip += tr("Estimated time to get a stake: %1 days") \
+                        .arg(stakeEstimate);
+
+                }
+                else {
+                    tooltip += tr("Estimated time to get a stake: %1 hours") \
+                        .arg(stakeEstimate);
+                }
+                
                 tooltip += QString("<br>");
                 tooltip += tr("Inputs: %1 min. age, %2 avg. age, %3 max. age") \
                   .arg(nMinWeightInputs).arg(nAvgWeightInputs).arg(nMaxWeightInputs);
@@ -693,6 +702,7 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
         tooltip += QString("<br>") + tr("The current PoW difficulty is %1").arg(clientModel->getDifficulty(false));
         tooltip += QString("<br>") + tr("The current PoS difficulty is %1").arg(clientModel->getDifficulty(true));
 
+        overviewPage->setNetwork();
         progressBarLabel->setVisible(false);
         progressBar->setVisible(false);
 

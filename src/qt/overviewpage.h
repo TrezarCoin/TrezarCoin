@@ -11,8 +11,10 @@ namespace Ui {
     class OverviewPage;
 }
 class WalletModel;
+class ClientModel;
 class TxViewDelegate;
 class TransactionFilterProxy;
+
 
 /** Overview ("home") page widget */
 class OverviewPage : public QWidget
@@ -28,6 +30,7 @@ public:
 
 public slots:
     void setBalance(qint64 balance, qint64 stake, qint64 unconfirmed, qint64 immature);
+    void setNetwork();
     void setNumTransactions(int count);
 
 signals:
@@ -35,12 +38,14 @@ signals:
 
 private:
     Ui::OverviewPage *ui;
+    ClientModel *clientModel;
     WalletModel *model;
 
     qint64 currentBalance;
     qint64 currentStake;
     qint64 currentUnconfirmed;
     qint64 currentImmature;
+    
 
     TxViewDelegate *txdelegate;
     TransactionFilterProxy *filter;
