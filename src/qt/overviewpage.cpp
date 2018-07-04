@@ -171,12 +171,12 @@ void OverviewPage::setNetwork()
     double estimateStake = GetStakeEstimate(nNetworkWeight,nTotalStakeWeight);
     int averageStakeWeight = (boost::int64_t)((double)GetAverageStakeWeight(pindexBest->pprev));
 
-    if (estimateStake > 24 && fStakeGen) 
+    if (estimateStake > 24 && fStakeGen && nTotalStakeWeight != 0)
     {
         estimateStake /= 24;
         ui->label_EstimtatedStake->setText(QString("%1 days").arg(estimateStake));
     }
-    else if(fStakeGen)
+    else if(fStakeGen && nTotalStakeWeight != 0)
     {
         ui->label_EstimtatedStake->setText(QString("%1 hours").arg(estimateStake));
     }
@@ -191,7 +191,7 @@ void OverviewPage::setNetwork()
     ui->label_StakeWeightNetwork->setText(QString::number(averageStakeWeight));
     ui->label_StakeWeightWallet->setText(QString::number(nTotalStakeWeight));
 
-    if (fStakeGen)
+    if (fStakeGen && nTotalStakeWeight != 0)
     {
         ui->label_StakingEnabledResult->setText(QString("<font color='green'>Active</font>"));
     }
