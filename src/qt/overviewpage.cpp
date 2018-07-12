@@ -191,7 +191,7 @@ void OverviewPage::setNetwork()
     ui->label_StakeWeightNetwork->setText(QString::number(averageStakeWeight));
     ui->label_StakeWeightWallet->setText(QString::number(nTotalStakeWeight));
 
-    if (fStakeGen && nTotalStakeWeight != 0)
+    if (fStakeGen && nTotalStakeWeight != 0 && (!pwalletMain->IsLocked() || fStakingOnly))
     {
         ui->label_StakingEnabledResult->setText(QString("<font color='green'>Active</font>"));
     }

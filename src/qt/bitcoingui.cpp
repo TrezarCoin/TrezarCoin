@@ -321,7 +321,7 @@ void BitcoinGUI::createActions(int nQtStyle) {
     toggleHideAction = new QAction(QIcon(":/icons/trezarcoin"), tr("&Show / Hide"), this);
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
 
-    cloneWalletAction = new QAction(QIcon(":/icons/filesave"), tr("&Clone"), this);
+    cloneWalletAction = new QAction(QIcon(":/icons/filesave"), tr("&Backup Wallet"), this);
     connect(cloneWalletAction, SIGNAL(triggered()), this, SLOT(cloneWallet()));
 
     optionsAction = new QAction(QIcon(":/icons/options"), tr("&Options"), this);
@@ -1003,6 +1003,7 @@ void BitcoinGUI::setEncryptionStatus(int status)
         break;
     }
     setStakeMining();
+    overviewPage->setNetwork();
 }
 
 void BitcoinGUI::encryptWallet(bool status)

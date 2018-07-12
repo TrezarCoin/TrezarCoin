@@ -24,10 +24,10 @@ SignVerifyMessageDialog::SignVerifyMessageDialog(QWidget *parent) :
 
 #if (QT_VERSION >= 0x040700)
     /* Do not move this to the XML file, Qt before 4.7 will choke on it */
-    ui->addressIn_SM->setPlaceholderText(tr("Enter an Trezarcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)"));
+    ui->addressIn_SM->setPlaceholderText(tr("Enter an Trezarcoin address (e.g. TninUHdJX1yfXoWLPcgf4NxWttZmyXixNR)"));
     ui->signatureOut_SM->setPlaceholderText(tr("Click \"Sign Message\" to generate signature"));
 
-    ui->addressIn_VM->setPlaceholderText(tr("Enter an Trezarcoin address (e.g. oRBkGBRp3i8Cj1q4yeDh5nxz8ACj4TaH7D)"));
+    ui->addressIn_VM->setPlaceholderText(tr("Enter an Trezarcoin address (e.g. TninUHdJX1yfXoWLPcgf4NxWttZmyXixNR)"));
     ui->signatureIn_VM->setPlaceholderText(tr("Enter Trezarcoin signature"));
 #endif
 
