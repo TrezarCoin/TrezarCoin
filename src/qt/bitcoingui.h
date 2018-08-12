@@ -17,6 +17,7 @@ class TransactionView;
 class OverviewPage;
 class AddressBookPage;
 class SendCoinsDialog;
+class EasySplitDialog;
 class SignVerifyMessageDialog;
 class Notificator;
 class RPCConsole;
@@ -71,6 +72,7 @@ private:
     AddressBookPage *addressBookPage;
     AddressBookPage *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
+    EasySplitDialog *easySplitPage;
     BlockExplorer *blockExplorer;
     SignVerifyMessageDialog *signVerifyMessageDialog;
 
@@ -84,6 +86,7 @@ private:
     QMenuBar *appMenuBar;
     QAction *overviewAction;
     QAction *sendCoinsAction;
+    QAction *easySplitAction;
     QAction *receiveCoinsAction;
     QAction *historyAction;
     QAction *addressBookAction;
@@ -166,6 +169,8 @@ private slots:
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage();
+    /** Switch to easy split page */
+    void gotoEasySplitPage();
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
     /** Show Sign/Verify Message dialog and switch to verify message tab */

@@ -2,6 +2,7 @@
 #define EDITADDRESSDIALOG_H
 
 #include <QDialog>
+#include <QIntValidator>
 
 QT_BEGIN_NAMESPACE
 class QDataWidgetMapper;
@@ -33,7 +34,8 @@ public:
     void loadRow(int row);
 
     void accept();
-
+    int addressCounter;
+    const int &getAddressCounter() const { return addressCounter; }
     QString getAddress() const;
     void setAddress(const QString &address);
 private:

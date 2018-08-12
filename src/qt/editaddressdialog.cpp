@@ -13,6 +13,7 @@ EditAddressDialog::EditAddressDialog(Mode mode, QWidget *parent) :
     ui->setupUi(this);
 
     GUIUtil::setupAddressWidget(ui->addressEdit, this);
+    ui->lineEditAddressAmount->setValidator(new QIntValidator(1, 100, this));
 
     switch(mode)
     {
@@ -43,10 +44,10 @@ EditAddressDialog::~EditAddressDialog()
 
 void EditAddressDialog::setModel(AddressTableModel *model)
 {
-    this->model = model;
-    mapper->setModel(model);
-    mapper->addMapping(ui->labelEdit, AddressTableModel::Label);
-    mapper->addMapping(ui->addressEdit, AddressTableModel::Address);
+        this->model = model;
+        mapper->setModel(model);
+        mapper->addMapping(ui->labelEdit, AddressTableModel::Label);
+        mapper->addMapping(ui->addressEdit, AddressTableModel::Address);    
 }
 
 void EditAddressDialog::loadRow(int row)
@@ -80,40 +81,44 @@ bool EditAddressDialog::saveCurrentRow()
 
 void EditAddressDialog::accept()
 {
-    if(!model)
-        return;
-    if(!saveCurrentRow())
+    for (int i = 0; i < ui->lineEditAddressAmount->text().toInt(); i++)
     {
-        switch(model->getEditStatus())
-        {
-        case AddressTableModel::DUPLICATE_ADDRESS:
-            QMessageBox::warning(this, windowTitle(),
-                tr("The entered address \"%1\" is already in the address book.").arg(ui->addressEdit->text()),
-                QMessageBox::Ok, QMessageBox::Ok);
-            break;
-        case AddressTableModel::INVALID_ADDRESS:
-            QMessageBox::warning(this, windowTitle(),
-                tr("The entered address \"%1\" is not a valid Trezarcoin address.").arg(ui->addressEdit->text()),
-                QMessageBox::Ok, QMessageBox::Ok);
+        if (!model)
             return;
-        case AddressTableModel::WALLET_UNLOCK_FAILURE:
-            QMessageBox::critical(this, windowTitle(),
-                tr("Could not unlock wallet."),
-                QMessageBox::Ok, QMessageBox::Ok);
-            return;
-        case AddressTableModel::KEY_GENERATION_FAILURE:
-            QMessageBox::critical(this, windowTitle(),
-                tr("New key generation failed."),
-                QMessageBox::Ok, QMessageBox::Ok);
-            return;
-        case AddressTableModel::OK:
-            // Failed with unknown reason. Just reject.
-            break;
-        }
 
-        return;
+        if (!saveCurrentRow())
+        {
+            switch (model->getEditStatus())
+            {
+            case AddressTableModel::DUPLICATE_ADDRESS:
+                QMessageBox::warning(this, windowTitle(),
+                    tr("The entered address \"%1\" is already in the address book.").arg(ui->addressEdit->text()),
+                    QMessageBox::Ok, QMessageBox::Ok);
+                break;
+            case AddressTableModel::INVALID_ADDRESS:
+                QMessageBox::warning(this, windowTitle(),
+                    tr("The entered address \"%1\" is not a valid Trezarcoin address.").arg(ui->addressEdit->text()),
+                    QMessageBox::Ok, QMessageBox::Ok);
+                return;
+            case AddressTableModel::WALLET_UNLOCK_FAILURE:
+                QMessageBox::critical(this, windowTitle(),
+                    tr("Could not unlock wallet."),
+                    QMessageBox::Ok, QMessageBox::Ok);
+                return;
+            case AddressTableModel::KEY_GENERATION_FAILURE:
+                QMessageBox::critical(this, windowTitle(),
+                    tr("New key generation failed."),
+                    QMessageBox::Ok, QMessageBox::Ok);
+                return;
+            case AddressTableModel::OK:
+                // Failed with unknown reason. Just reject.
+                break;
+            }
+
+            return;
+        }
+        QDialog::accept();
     }
-    QDialog::accept();
 }
 
 QString EditAddressDialog::getAddress() const

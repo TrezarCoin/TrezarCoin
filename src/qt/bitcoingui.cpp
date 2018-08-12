@@ -8,6 +8,7 @@
 #include "transactiontablemodel.h"
 #include "addressbookpage.h"
 #include "sendcoinsdialog.h"
+#include "easysplitdialog.h"
 #include "signverifymessagedialog.h"
 #include "optionsdialog.h"
 #include "aboutdialog.h"
@@ -176,6 +177,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     sendCoinsPage = new SendCoinsDialog(this);
 
+    easySplitPage = new EasySplitDialog(this);
+
     signVerifyMessageDialog = new SignVerifyMessageDialog(this);
 
     centralWidget = new QStackedWidget(this);
@@ -184,6 +187,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralWidget->addWidget(addressBookPage);
     centralWidget->addWidget(receiveCoinsPage);
     centralWidget->addWidget(sendCoinsPage);
+    centralWidget->addWidget(easySplitPage);
     setCentralWidget(centralWidget);
 
     // Create status bar
@@ -279,6 +283,14 @@ void BitcoinGUI::createActions(int nQtStyle) {
     tabGroup->addAction(sendCoinsAction);
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(gotoSendCoinsPage()));
+
+    easySplitAction = new QAction(QIcon(":/icons/send"), tr("&EasySplit"), this);
+    easySplitAction->setToolTip(tr("EasySplitFeature"));
+    easySplitAction->setCheckable(true);
+    easySplitAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_2));
+    tabGroup->addAction(easySplitAction);
+    connect(easySplitAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(easySplitAction, SIGNAL(triggered()), this, SLOT(gotoEasySplitPage()));
 
     receiveCoinsAction = new QAction(QIcon(":/icons/receiving_addresses"), tr("&Receive"), this);
     receiveCoinsAction->setToolTip(tr("Show the list of addresses for receiving payments"));
@@ -417,6 +429,7 @@ void BitcoinGUI::createMenuBar()
 
 	QMenu *pos = appMenuBar->addMenu(tr("&PoS"));
 	pos->addAction(stakeMinerToggleAction);
+    pos->addAction(easySplitAction);
 
     QMenu *help = appMenuBar->addMenu(tr("&Help"));
 	help->addAction(optionsAction);
@@ -510,6 +523,7 @@ void BitcoinGUI::setWalletModel(WalletModel *walletModel)
         addressBookPage->setModel(walletModel->getAddressTableModel());
         receiveCoinsPage->setModel(walletModel->getAddressTableModel());
         sendCoinsPage->setModel(walletModel);
+        easySplitPage->setModel(walletModel);
         signVerifyMessageDialog->setModel(walletModel);
 
         setEncryptionStatus(walletModel->getEncryptionStatus());
@@ -546,6 +560,7 @@ void BitcoinGUI::createTrayIcon()
     trayIconMenu->addAction(toggleHideAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(sendCoinsAction);
+    trayIconMenu->addAction(easySplitAction);
     trayIconMenu->addAction(receiveCoinsAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(signMessageAction);
@@ -1247,5 +1262,15 @@ void BitcoinGUI::repairWallet() {
         .arg(nMismatchSpent)
         .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(),
           nBalanceInQuestion, true)));
+}
+
+void BitcoinGUI::gotoEasySplitPage() {
+
+    easySplitAction->setChecked(true);
+    centralWidget->setCurrentWidget(easySplitPage);
+
+    exportAction->setEnabled(false);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+    
 }
 

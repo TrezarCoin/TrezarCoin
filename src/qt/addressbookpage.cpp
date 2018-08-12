@@ -59,6 +59,11 @@ AddressBookPage::AddressBookPage(Mode mode, Tabs tab, QWidget *parent) :
         ui->deleteButton->setVisible(false);
         ui->signMessage->setVisible(true);
         break;
+    case EasySplitTab:
+        ui->deleteButton->setVisible(false);
+        ui->signMessage->setVisible(true);
+        ui->showQRCode->setVisible(false);
+        ui->tableView->setSelectionMode(QAbstractItemView::MultiSelection);
     }
 
     // Context menu actions
@@ -118,6 +123,11 @@ void AddressBookPage::setModel(AddressTableModel *model)
     switch(tab)
     {
     case ReceivingTab:
+        // Receive filter
+        proxyModel->setFilterRole(AddressTableModel::TypeRole);
+        proxyModel->setFilterFixedString(AddressTableModel::Receive);
+        break;
+    case EasySplitTab:
         // Receive filter
         proxyModel->setFilterRole(AddressTableModel::TypeRole);
         proxyModel->setFilterFixedString(AddressTableModel::Receive);
@@ -275,6 +285,16 @@ void AddressBookPage::selectionChanged()
             ui->verifyMessage->setEnabled(false);
             ui->verifyMessage->setVisible(false);
             break;
+        case EasySplitTab:
+            // Deleting receiving addresses, however, is not allowed
+            ui->deleteButton->setEnabled(false);
+            ui->deleteButton->setVisible(false);
+            deleteAction->setEnabled(false);
+            ui->signMessage->setEnabled(false);
+            ui->signMessage->setVisible(false);
+            ui->verifyMessage->setEnabled(false);
+            ui->verifyMessage->setVisible(false);
+            break;
         }
         ui->copyToClipboard->setEnabled(true);
         ui->showQRCode->setEnabled(true);
@@ -298,10 +318,19 @@ void AddressBookPage::done(int retval)
     if(mode == ForEditing)
         return;
 
+    
     // Figure out which address was selected, and return it
     QModelIndexList indexes = table->selectionModel()->selectedRows(AddressTableModel::Address);
 
-    foreach (QModelIndex index, indexes)
+    // tab specifig
+    foreach(QModelIndex index, indexes)
+    {
+        QVariant easySplitAddress = table->model()->data(index);
+        easySplitAddressList.append(easySplitAddress.toString());
+        easySplitCounter++;
+    }
+
+    foreach(QModelIndex index, indexes)
     {
         QVariant address = table->model()->data(index);
         returnValue = address.toString();

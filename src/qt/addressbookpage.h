@@ -2,6 +2,8 @@
 #define ADDRESSBOOKPAGE_H
 
 #include <QDialog>
+#include <QStringList>
+#include <QAbstractListModel>
 
 namespace Ui {
     class AddressBookPage;
@@ -10,6 +12,7 @@ class AddressTableModel;
 class OptionsModel;
 
 QT_BEGIN_NAMESPACE
+class QStringList;
 class QTableView;
 class QItemSelection;
 class QSortFilterProxyModel;
@@ -26,7 +29,8 @@ class AddressBookPage : public QDialog
 public:
     enum Tabs {
         SendingTab = 0,
-        ReceivingTab = 1
+        ReceivingTab = 1,
+        EasySplitTab = 2
     };
 
     enum Mode {
@@ -34,12 +38,17 @@ public:
         ForEditing  /**< Open address book for editing */
     };
 
+    int easySplitCounter;
+    QStringList easySplitAddressList;
+
     explicit AddressBookPage(Mode mode, Tabs tab, QWidget *parent = 0);
     ~AddressBookPage();
 
     void setModel(AddressTableModel *model);
     void setOptionsModel(OptionsModel *optionsModel);
     const QString &getReturnValue() const { return returnValue; }
+    const QStringList &getEasySplitList() const { return easySplitAddressList; }
+    const int &getEasySplitCounter() const { return easySplitCounter; }
 
 public slots:
     void done(int retval);
@@ -48,9 +57,9 @@ public slots:
 private:
     Ui::AddressBookPage *ui;
     AddressTableModel *model;
-    OptionsModel *optionsModel;
+    OptionsModel *optionsModel;    
     Mode mode;
-    Tabs tab;
+    Tabs tab;    
     QString returnValue;
     QSortFilterProxyModel *proxyModel;
     QMenu *contextMenu;
