@@ -8,6 +8,8 @@
 
 #include "crypto/common.h"
 #include "prevector.h"
+#include "utilstrencodings.h"
+#include "pubkey.h"
 
 #include <assert.h>
 #include <climits>
@@ -370,6 +372,11 @@ private:
     int64_t m_value;
 };
 
+inline std::string ValueString(const std::vector<unsigned char>& vch)
+{
+    return HexStr(vch);
+}
+
 typedef prevector<28, unsigned char> CScriptBase;
 
 /** Serialized script, used inside transaction inputs and outputs */
@@ -461,6 +468,14 @@ public:
             insert(end(), data, data + sizeof(data));
         }
         insert(end(), b.begin(), b.end());
+        return *this;
+    }
+
+    CScript& operator<<(const CPubKey& key)
+    {
+        assert(key.size() < OP_PUSHDATA1);
+        insert(end(), (unsigned char)key.size());
+        insert(end(), key.begin(), key.end());
         return *this;
     }
 
@@ -603,6 +618,29 @@ public:
             if (opcode == op)
                 ++nFound;
         return nFound;
+    }
+
+    std::string ToString(bool fShort=false) const
+    {
+        std::string str;
+        opcodetype opcode;
+        std::vector<unsigned char> vch;
+        const_iterator pc = begin();
+        while (pc < end())
+        {
+            if (!str.empty())
+                str += " ";
+            if (!GetOp(pc, opcode, vch))
+            {
+                str += "[error]";
+                return str;
+            }
+            if (0 <= opcode && opcode <= OP_PUSHDATA4)
+                str += fShort? ValueString(vch).substr(0, 10) : ValueString(vch);
+            else
+                str += GetOpName(opcode);
+        }
+        return str;
     }
 
     /**
