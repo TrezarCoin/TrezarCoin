@@ -16,7 +16,7 @@ double GetDifficulty(const CBlockIndex* blockindex)
 {
 
     if(!blockindex) {
-        if(!pindexBest) return(fTestNet ? dMinDiffTestNet : dMinDiff);
+        if(!pindexBest) return(dMinDiff);
         else blockindex = GetPrevBlockIndex(pindexBest, 0, false);
     }
 
@@ -187,7 +187,7 @@ Value getdifficulty(const Array& params, bool fHelp)
     obj.push_back(Pair("proof-of-work",        GetDifficulty()));
     const CBlockIndex *pindexPoS = GetPrevBlockIndex(pindexBest, 0, true);
     if(!pindexPoS)
-      obj.push_back(Pair("proof-of-stake", fTestNet ? dMinDiffTestNet : dMinDiff));
+      obj.push_back(Pair("proof-of-stake", dMinDiff));
     else
       obj.push_back(Pair("proof-of-stake", (double)GetDifficulty(pindexPoS)));
     obj.push_back(Pair("search-interval",      (int)nLastCoinStakeSearchInterval));

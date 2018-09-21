@@ -35,7 +35,7 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("powreward",     (float)(GetProofOfWorkReward(GetPrevBlockIndex(pindexBest, 0, false)->nHeight, (int64)NULL))/COIN));
     const CBlockIndex *pindexPoS = GetPrevBlockIndex(pindexBest, 0, true);
     if(!pindexPoS) {
-        obj.push_back(Pair("posdifficulty", fTestNet ? dMinDiffTestNet : dMinDiff));
+        obj.push_back(Pair("posdifficulty", dMinDiff));
         obj.push_back(Pair("posreward",     (float)(GetProofOfStakeReward((int)1, (int64)NULL))/COIN));
     } else {
         obj.push_back(Pair("posdifficulty", (double)GetDifficulty(pindexPoS)));

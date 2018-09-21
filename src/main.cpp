@@ -39,11 +39,7 @@ CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // 0.000244140625 PoW difficulty 
 CBigNum bnProofOfStakeLimit(~uint256(0) >> 20); // the same for PoS
 uint256 nPoWBase = uint256("0x00000000ffff0000000000000000000000000000000000000000000000000000"); // difficulty-1 target
 
-CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 16);
-CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 16);
-
 const double dMinDiff = 0.000244140625;
-const double dMinDiffTestNet = 0.000015258789;
 
 /* Positive time weight after 1 day for livenet */
 uint nStakeMinAge = 1 * 24 * 60 * 60;
@@ -1143,13 +1139,10 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     CBigNum bnTargetLimit, bnNew;
 
     /* Separate range limits */
-    if(fTestNet) {
-        if(fProofOfStake) bnTargetLimit = bnProofOfStakeLimitTestNet;
-        else bnTargetLimit = bnProofOfWorkLimitTestNet;
-    } else {
-        if(fProofOfStake) bnTargetLimit = bnProofOfStakeLimit;
-        else bnTargetLimit = bnProofOfWorkLimit;
-    }
+    if(fProofOfStake)
+        bnTargetLimit = bnProofOfStakeLimit;
+    else
+        bnTargetLimit = bnProofOfWorkLimit;
 
     /* The genesis block */
     if(pindexLast == NULL) return(bnTargetLimit.GetCompact());
@@ -1241,8 +1234,7 @@ bool CheckProofOfWork(uint256 hashPoW, uint nBits) {
     bnTarget.SetCompact(nBits);
 
     /* Range check */
-    if((bnTarget <= 0) || (fTestNet && (bnTarget > bnProofOfWorkLimitTestNet)) ||
-      (!fTestNet && (bnTarget > bnProofOfWorkLimit)))
+    if ((bnTarget <= 0) || (bnTarget > bnProofOfWorkLimit))
       return(error("CheckProofOfWork() : nBits (%08x) below minimum work", nBits));
 
     /* PoW hash check */
@@ -2850,9 +2842,6 @@ void InitTestnet() {
     pchMessageStart[2] = 0xF0;
     pchMessageStart[3] = 0xEF;
 
-    bnProofOfStakeLimit = bnProofOfStakeLimitTestNet;
-    bnProofOfWorkLimit  = bnProofOfWorkLimitTestNet;
-
     /* Positive time weight after 20 minutes */
     nStakeMinAge = 20 * 60;
     /* Full time weight at 20 hours (+20 minutes) */
@@ -2983,58 +2972,38 @@ bool LoadBlockIndex(bool fAllowNew) {
         CTransaction txNew;
         CBlock block;
 
-        if(!fTestNet) {
+        // The Trezarcoin genesis block:
+        // CBlock(hash=24502ba55d673d2ee9170d83dae2d1adb3bfb4718e4f200db9951382cc4f6ee6, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000, hashMerkleRoot=a95b9f457f70633fcff90450ed57bbfc4dd45cb2034619b7c54ee80a1d266e91, nTime=1504267200, nBits=1e0fffff, nNonce=3007239, vtx=1, vchBlockSig=)
+        //  Coinbase(hash=a95b9f457f, nTime=1504267100, ver=2, vin.size=1, vout.size=1, nLockTime=0, strTxComment=text:Trezarcoin genesis block)
+        //     CTxIn(COutPoint(0000000000, 4294967295), coinbase 04ffff001d020f274c6b416c69656e20736561726368206465746563747320726164696f207369676e616c732066726f6d2064776172662067616c6178792033626e206c696768742079656172732066726f6d204561727468202d2054686520477561726469616e202d20312f5365702f32303137)
+        //     CTxOut(empty)
+        //  vMerkleTree: a95b9f457f
 
-            // The Trezarcoin genesis block:
-            // CBlock(hash=24502ba55d673d2ee9170d83dae2d1adb3bfb4718e4f200db9951382cc4f6ee6, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000, hashMerkleRoot=a95b9f457f70633fcff90450ed57bbfc4dd45cb2034619b7c54ee80a1d266e91, nTime=1504267200, nBits=1e0fffff, nNonce=3007239, vtx=1, vchBlockSig=)
-            //  Coinbase(hash=a95b9f457f, nTime=1504267100, ver=2, vin.size=1, vout.size=1, nLockTime=0, strTxComment=text:Trezarcoin genesis block)
-            //     CTxIn(COutPoint(0000000000, 4294967295), coinbase 04ffff001d020f274c6b416c69656e20736561726368206465746563747320726164696f207369676e616c732066726f6d2064776172662067616c6178792033626e206c696768742079656172732066726f6d204561727468202d2054686520477561726469616e202d20312f5365702f32303137)
-            //     CTxOut(empty)
-            //  vMerkleTree: a95b9f457f
+        const char* pszTimestamp = "Alien search detects radio signals from dwarf galaxy 3bn light years from Earth - The Guardian - 1/Sep/2017";
+        txNew.vin.resize(1);
+        txNew.vout.resize(1);
+        txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+        txNew.vout[0].SetEmpty();
+        txNew.nTime = 1504267100;
+        txNew.strTxComment = "text:Trezarcoin genesis block";
+        block.vtx.push_back(txNew);
+        block.hashPrevBlock = 0;
+        block.hashMerkleRoot = block.BuildMerkleTree();
+        block.nVersion = 1;
+        block.nTime    = 1504267200;
+        block.nBits    = bnProofOfWorkLimit.GetCompact();
+        block.nNonce   = 3007239;
 
-            const char* pszTimestamp = "Alien search detects radio signals from dwarf galaxy 3bn light years from Earth - The Guardian - 1/Sep/2017";
-            txNew.vin.resize(1);
-            txNew.vout.resize(1);
-            txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-            txNew.vout[0].SetEmpty();
-            txNew.nTime = 1504267100;
-            txNew.strTxComment = "text:Trezarcoin genesis block";
-            block.vtx.push_back(txNew);
-            block.hashPrevBlock = 0;
-            block.hashMerkleRoot = block.BuildMerkleTree();
-            block.nVersion = 1;
-            block.nTime    = 1504267200;
-            block.nBits    = bnProofOfWorkLimit.GetCompact();
-            block.nNonce   = 3007239;
-
-        } else {
-
-            // The Trezarcoin testnet genesis block:
-
-            const char* pszTimestamp = "Asteroid 2000 EM26: 'potentially hazardous' space rock to fly close to Earth - The Guardian - 18/Feb/2014";
-            txNew.vin.resize(1);
-            txNew.vout.resize(1);
-            txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-            txNew.vout[0].nValue = 1 * COIN;
-            txNew.vout[0].scriptPubKey = CScript() << ParseHex("049023F10BCCDA76F971D6417D420C6BB5735D3286669CE03B49C5FEA07078F0E07B19518EE1C0A4F81BCF56A5497AD7D8200CE470EEA8C6E2CF65F1EE503F0D3E") << OP_CHECKSIG;
-            txNew.nTime = 1392724800;
-            txNew.strTxComment = "text:Trezarcoin testnet genesis block";
-            block.vtx.push_back(txNew);
-            block.hashPrevBlock = 0;
-            block.hashMerkleRoot = block.BuildMerkleTree();
-            block.nVersion = 1;
-            block.nTime    = 1392724800;
-            block.nBits    = bnProofOfWorkLimit.GetCompact();
-            block.nNonce   = 97337;
-
+        if (fTestNet) {
+            block.nTime    = 1537528800;
+            block.nNonce   = 368627;
         }
 
         //// debug print
         printf("%s\n", block.GetHash().ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
 
-        if(!fTestNet) assert(block.hashMerkleRoot == uint256("0xa95b9f457f70633fcff90450ed57bbfc4dd45cb2034619b7c54ee80a1d266e91"));
-        else assert(block.hashMerkleRoot == uint256("0x872a72de06678cd706521062eba11895314377ae1d4d1eb7eb83e864bbd497ef"));
+        assert(block.hashMerkleRoot == uint256("0xa95b9f457f70633fcff90450ed57bbfc4dd45cb2034619b7c54ee80a1d266e91"));
 
         // If no match on genesis block hash, then generate one
         if(false && ((fTestNet && (block.GetHash() != hashGenesisBlockTestNet)) ||
@@ -3069,8 +3038,10 @@ bool LoadBlockIndex(bool fAllowNew) {
         }
 
         block.print();
-        if(!fTestNet) assert(block.GetHash() == hashGenesisBlock);
-        else assert(block.GetHash() == hashGenesisBlockTestNet);
+        if (!fTestNet)
+            assert(block.GetHash() == hashGenesisBlock);
+        else
+            assert(block.GetHash() == hashGenesisBlockTestNet);
 
         // Start new block file
         unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
