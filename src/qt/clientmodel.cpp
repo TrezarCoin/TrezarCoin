@@ -37,7 +37,7 @@ ClientModel::~ClientModel()
 double ClientModel::getDifficulty(bool PoS) {
     const CBlockIndex *pindex = GetPrevBlockIndex(pindexBest, 0, PoS);
 
-    if(!pindex) return(fTestNet ? dMinDiffTestNet : dMinDiff);
+    if(!pindex) return(dMinDiff);
     else return(GetDifficulty(pindex));
 }
 

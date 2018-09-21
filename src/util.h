@@ -170,7 +170,6 @@ extern unsigned long long nMaxWeightInputs;
 extern unsigned long long nTotalStakeWeight;
 
 extern const double dMinDiff;
-extern const double dMinDiffTestNet;
 
 void RandAddSeed();
 void RandAddSeedPerfmon();
