@@ -6,13 +6,46 @@
 #include "primitives/block.h"
 
 #include "hash.h"
+#include "crypto/neoscrypt.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
 #include "crypto/common.h"
+#include "util.h"
 
 uint256 CBlockHeader::GetHash() const
 {
-    return SerializeHash(*this);
+    if(idCached != ((uint64_t)nNonce << 32 | (uint64_t)nTime)) {
+        /* BLAKE2s */
+
+        /* 80 + 32 bytes, no padding */
+        unsigned char input[112];
+        /* Copy the block header */
+        neoscrypt_copy(&input[0], &nVersion, 80);
+        /* Copy the merkle root once again */
+        neoscrypt_copy(&input[80], &hashMerkleRoot, 32);
+        /* Hash the data;
+         * key is higher and lower 10 bytes of merkle root
+         * with nTime, nBits, nNonce in between */
+        neoscrypt_blake2s(&input[0], 112, &input[58], 32, &hashCached, 32);
+
+        idCached = ((uint64_t)nNonce << 32 | (uint64_t)nTime);
+        nBlockHashCacheMisses++;
+    } else {
+        nBlockHashCacheHits++;
+    }
+
+    return(hashCached);
+}
+
+uint256 CBlockHeader::GetPoWHash() const
+{
+    unsigned int profile = 0x0;
+    uint256 hash;
+
+    profile |= nNeoScryptOptions;
+    neoscrypt((unsigned char *) &nVersion, (unsigned char *) &hash, profile);
+
+    return(hash);
 }
 
 std::string CBlock::ToString() const

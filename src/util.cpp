@@ -116,6 +116,13 @@ bool fLogIPs = DEFAULT_LOGIPS;
 std::atomic<bool> fReopenDebugLog(false);
 CTranslationInterface translationInterface;
 
+/* NeoScrypt related */
+unsigned int nNeoScryptOptions = 0;
+
+/* Performance counters shown in RPC call getcounters */
+uint64_t nBlockHashCacheHits = 0;
+uint64_t nBlockHashCacheMisses = 0;
+
 /** Init OpenSSL library multithreading support */
 static CCriticalSection** ppmutexOpenSSL;
 void locking_callback(int mode, int i, const char* file, int line) NO_THREAD_SAFETY_ANALYSIS

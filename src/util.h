@@ -54,6 +54,11 @@ extern bool fLogIPs;
 extern std::atomic<bool> fReopenDebugLog;
 extern CTranslationInterface translationInterface;
 
+extern unsigned int nNeoScryptOptions;
+
+extern uint64_t nBlockHashCacheHits;
+extern uint64_t nBlockHashCacheMisses;
+
 extern const char * const BITCOIN_CONF_FILENAME;
 extern const char * const BITCOIN_PID_FILENAME;
 
