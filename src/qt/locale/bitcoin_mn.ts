@@ -126,7 +126,7 @@
         <translation>Оношилгоо ба засварын консолыг онгойлго</translation>
     </message>
     <message>
-        <source>Bitcoin</source>
+        <source>Trezarcoin</source>
         <translation>Биткойн</translation>
     </message>
     <message>
