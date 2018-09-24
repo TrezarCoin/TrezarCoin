@@ -29,16 +29,16 @@
   <string>????</string>
 
   <key>CFBundleExecutable</key>
-  <string>TrezarCoin-Qt</string>
+  <string>Trezarcoin-Qt</string>
   
   <key>CFBundleName</key>
-  <string>TrezarCoin-Qt</string>
+  <string>Trezarcoin-Qt</string>
 
   <key>LSHasLocalizedDisplayName</key>
   <true/>
 
   <key>CFBundleIdentifier</key>
-  <string>com.trezarcoin.TrezarCoin-Qt</string>
+  <string>com.trezarcoin.Trezarcoin-Qt</string>
 
   <key>CFBundleURLTypes</key>
   <array>
@@ -60,7 +60,7 @@
       <key>UTTypeIdentifier</key>
       <string>com.trezarcoin.paymentrequest</string>
       <key>UTTypeDescription</key>
-      <string>TrezarCoin payment request</string>
+      <string>Trezarcoin payment request</string>
       <key>UTTypeConformsTo</key>
       <array>
         <string>public.data</string>

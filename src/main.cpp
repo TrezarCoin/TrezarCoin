@@ -51,7 +51,7 @@
 using namespace std;
 
 #if defined(NDEBUG)
-# error "TrezarCoin cannot be compiled without assertions."
+# error "Trezarcoin cannot be compiled without assertions."
 #endif
 
 /**

@@ -133,7 +133,7 @@ bool AppInit(int argc, char* argv[])
         fDaemon = GetBoolArg("-daemon", false);
         if (fDaemon)
         {
-            fprintf(stdout, "TrezarCoin server starting\n");
+            fprintf(stdout, "Trezarcoin server starting\n");
 
             // Daemonize
             pid_t pid = fork();

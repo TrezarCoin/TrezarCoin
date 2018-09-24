@@ -13,7 +13,7 @@
 - (NSString *)__bundleIdentifier
 {
     if (self == [NSBundle mainBundle]) {
-        return @"com.trezarcoin.TrezarCoin-Qt";
+        return @"com.trezarcoin.Trezarcoin-Qt";
     } else {
         return [self __bundleIdentifier];
     }

@@ -774,7 +774,7 @@ void InitLogging()
     fLogIPs = GetBoolArg("-logips", DEFAULT_LOGIPS);
 
     LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    LogPrintf("TrezarCoin version %s\n", FormatFullVersion());
+    LogPrintf("Trezarcoin version %s\n", FormatFullVersion());
 }
 
 /** Initialize bitcoin.

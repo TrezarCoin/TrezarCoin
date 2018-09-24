@@ -754,7 +754,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString& text)
         }
         else if (!addr.IsValid()) // Invalid address
         {
-            ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid TrezarCoin address"));
+            ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid Trezarcoin address"));
         }
         else // Valid address
         {

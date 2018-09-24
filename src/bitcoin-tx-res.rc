@@ -16,8 +16,8 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "TrezarCoin"
-            VALUE "FileDescription",    "trezarcoin-tx (CLI TrezarCoin transaction editor utility)"
+            VALUE "CompanyName",        "Trezarcoin"
+            VALUE "FileDescription",    "trezarcoin-tx (CLI Trezarcoin transaction editor utility)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
             VALUE "InternalName",       "trezarcoin-tx"
             VALUE "LegalCopyright",     COPYRIGHT_STR

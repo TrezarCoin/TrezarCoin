@@ -1409,7 +1409,7 @@ void ThreadMapPort()
             }
         }
 
-        std::string strDesc = "TrezarCoin " + FormatFullVersion();
+        std::string strDesc = "Trezarcoin " + FormatFullVersion();
 
         try {
             while (true) {

@@ -75,7 +75,7 @@ src/qt/test/moc*.cpp
 *.qm
 Makefile
 trezarcoin-qt
-TrezarCoin-Qt.app
+Trezarcoin-Qt.app
 
 # Unit-tests
 Makefile.test
