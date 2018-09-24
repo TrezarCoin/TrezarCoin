@@ -206,8 +206,8 @@
         <translation>Barra de pestañas</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and bitcoin: URIs)</source>
-        <translation>Pide pagos (genera codigos QR and bitcoin: URls)</translation>
+        <source>Request payments (generates QR codes and trezarcoin: URIs)</source>
+        <translation>Pide pagos (genera codigos QR and trezarcoin: URls)</translation>
     </message>
     <message>
         <source>%1 and %2</source>
