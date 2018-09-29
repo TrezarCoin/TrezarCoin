@@ -2817,7 +2817,6 @@ void InitTestnet() {
     nModifierIntervalOne = 60;
     /* [Current] interval of 30 seconds between stake modifiers */
     nModifierIntervalTwo = 30;
-    nBaseMaturity = BASE_MATURITY_TESTNET;
 }
 
 bool static LoadBlockIndexDB()

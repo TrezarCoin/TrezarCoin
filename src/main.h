@@ -30,7 +30,6 @@ class CBlockIndexTrustComparator;
 /* Maturity threshold for PoW/PoS base transactions, in blocks (confirmations) */
 extern int nBaseMaturity;
 static const int BASE_MATURITY = 200;
-static const int BASE_MATURITY_TESTNET = 10;
 /* Maturity threshold for regular transactions, in blocks (confirmations) */
 static const int TX_MATURITY = 6;
 
