@@ -1083,7 +1083,6 @@ int64 GetProofOfStakeReward(int nHeight, int64 nFees) {
 
 int64 inline GetTargetSpacingWorkMax() {
 
-    if(fTestNet) return 3 * nBaseTargetSpacing;
     return 12 * nBaseTargetSpacing;
 }
 
