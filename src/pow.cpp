@@ -7,69 +7,104 @@
 
 #include "arith_uint256.h"
 #include "chain.h"
+#include "key.h"
 #include "primitives/block.h"
 #include "uint256.h"
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
-{
-    unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
+#include <algorithm>
 
-    // Genesis block
-    if (pindexLast == NULL)
-        return nProofOfWorkLimit;
+/* Locate a block meeting the range and type specified down the block index;
+ * for instance, range 1 PoW means to search for the nearest PoW block including
+ * the starting one, then find the previous PoW one and return its position */
+const CBlockIndex *GetPrevBlockIndex(const CBlockIndex *pindex, unsigned int nRange, const bool fProofOfStake) {
 
-    // Only change once per difficulty adjustment interval
-    if ((pindexLast->nHeight+1) % params.DifficultyAdjustmentInterval() != 0)
-    {
-        if (params.fPowAllowMinDifficultyBlocks)
-        {
-            // Special difficulty rule for testnet:
-            // If the new block's timestamp is more than 2* 10 minutes
-            // then allow mining of a min-difficulty block.
-            if (pblock->GetBlockTime() > pindexLast->GetBlockTime() + params.nPowTargetSpacing*2)
-                return nProofOfWorkLimit;
-            else
-            {
-                // Return the last non-special-min-difficulty-rules-block
-                const CBlockIndex* pindex = pindexLast;
-                while (pindex->pprev && pindex->nHeight % params.DifficultyAdjustmentInterval() != 0 && pindex->nBits == nProofOfWorkLimit)
-                    pindex = pindex->pprev;
-                return pindex->nBits;
-            }
-        }
-        return pindexLast->nBits;
+    nRange++;
+
+    while(nRange) {
+        if (pindex->IsProofOfStake() == fProofOfStake)
+            if (!(--nRange))
+                return pindex;
+
+        if (pindex->pprev)
+            pindex = pindex->pprev;
+        else
+            break;
     }
 
-    // Go back by what we want to be 14 days worth of blocks
-    int nHeightFirst = pindexLast->nHeight - (params.DifficultyAdjustmentInterval()-1);
-    assert(nHeightFirst >= 0);
-    const CBlockIndex* pindexFirst = pindexLast->GetAncestor(nHeightFirst);
-    assert(pindexFirst);
-
-    return CalculateNextWorkRequired(pindexLast, pindexFirst->GetBlockTime(), params);
+    return NULL;
 }
 
-unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params& params)
+
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, bool fProofOfStake, const Consensus::Params& params)
 {
-    if (params.fPowNoRetargeting)
-        return pindexLast->nBits;
+    CBigNum bnNew, bnTargetLimit;
+    bnTargetLimit.SetCompact(UintToArith256(params.powLimit).GetCompact());
 
-    // Limit adjustment step
-    int64_t nActualTimespan = pindexLast->GetBlockTime() - nFirstBlockTime;
-    if (nActualTimespan < params.nPowTargetTimespan/4)
-        nActualTimespan = params.nPowTargetTimespan/4;
-    if (nActualTimespan > params.nPowTargetTimespan*4)
-        nActualTimespan = params.nPowTargetTimespan*4;
+    /* The genesis block */
+    if (pindexLast == NULL)
+        return bnTargetLimit.GetCompact();
 
-    // Retarget
-    const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
-    arith_uint256 bnNew;
-    bnNew.SetCompact(pindexLast->nBits);
+    /* The latest block of the type requested */
+    const CBlockIndex *pindexPrev = GetPrevBlockIndex(pindexLast, 0, fProofOfStake);
+    if(pindexPrev == NULL)
+        return(bnTargetLimit.GetCompact());
+
+    /* Orbitcoin Super Shield (OSS);
+     * retargets every block using two averaging windows of 5 and 20 blocks,
+     * 0.25 damping and further oscillation limiting */
+
+     int64_t nIntervalShort = 5, nIntervalLong = 20, nTargetSpacing, nTargetTimespan,
+          nActualTimespan, nActualTimespanShort, nActualTimespanLong, nActualTimespanAvg,
+          nActualTimespanMax, nActualTimespanMin;
+
+    if (fProofOfStake)
+        nTargetSpacing = 6 * params.nBaseTargetSpacing;
+    else
+        nTargetSpacing = 3 * params.nBaseTargetSpacing;
+
+    nTargetTimespan = nTargetSpacing * nIntervalLong;
+
+    /* The short averaging window */
+    const CBlockIndex *pindexShort = GetPrevBlockIndex(pindexPrev, nIntervalShort, fProofOfStake);
+    if (!pindexShort)
+        return(bnTargetLimit.GetCompact());
+    nActualTimespanShort = (int64_t)pindexPrev->nTime - (int64_t)pindexShort->nTime;
+
+    /* The long averaging window */
+    const CBlockIndex *pindexLong = GetPrevBlockIndex(pindexShort, nIntervalLong - nIntervalShort, fProofOfStake);
+    if (!pindexLong)
+        return(bnTargetLimit.GetCompact());
+    nActualTimespanLong = (int64_t)pindexPrev->nTime - (int64_t)pindexLong->nTime;
+
+    /* Time warp protection */
+    nActualTimespanShort = std::max(nActualTimespanShort, (nTargetSpacing * nIntervalShort / 2));
+    nActualTimespanShort = std::min(nActualTimespanShort, (nTargetSpacing * nIntervalShort * 2));
+    nActualTimespanLong  = std::max(nActualTimespanLong,  (nTargetSpacing * nIntervalLong  / 2));
+    nActualTimespanLong  = std::min(nActualTimespanLong,  (nTargetSpacing * nIntervalLong  * 2));
+
+    /* The average of both windows */
+    nActualTimespanAvg = (nActualTimespanShort * (nIntervalLong / nIntervalShort) + nActualTimespanLong) / 2;
+
+    /* 0.25 damping */
+    nActualTimespan = nActualTimespanAvg + 3 * nTargetTimespan;
+    nActualTimespan /= 4;
+
+    /* Oscillation limiters */
+    /* +5% to -10% */
+    nActualTimespanMin = nTargetTimespan * 100 / 105;
+    nActualTimespanMax = nTargetTimespan * 110 / 100;
+    if (nActualTimespan < nActualTimespanMin)
+        nActualTimespan = nActualTimespanMin;
+    if (nActualTimespan > nActualTimespanMax)
+        nActualTimespan = nActualTimespanMax;
+
+    /* Retarget */
+    bnNew.SetCompact(pindexPrev->nBits);
     bnNew *= nActualTimespan;
-    bnNew /= params.nPowTargetTimespan;
+    bnNew /= nTargetTimespan;
 
-    if (bnNew > bnPowLimit)
-        bnNew = bnPowLimit;
+    if (bnNew > bnTargetLimit)
+        bnNew = bnTargetLimit;
 
     return bnNew.GetCompact();
 }
