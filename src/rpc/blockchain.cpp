@@ -619,14 +619,12 @@ UniValue getblock(const UniValue& params, bool fHelp)
 struct CCoinsStats
 {
     int nHeight;
-    uint256 hashBlock;
     uint64_t nTransactions;
+    uint64_t nPrunedTransactions;
     uint64_t nTransactionOutputs;
     uint64_t nSerializedSize;
-    uint256 hashSerialized;
-    CAmount nTotalAmount;
 
-    CCoinsStats() : nHeight(0), nTransactions(0), nTransactionOutputs(0), nSerializedSize(0), nTotalAmount(0) {}
+    CCoinsStats() : nHeight(0), nTransactions(0), nPrunedTransactions(0), nTransactionOutputs(0), nSerializedSize(0) {}
 };
 
 //! Calculate statistics about the unspent transaction output set
@@ -634,39 +632,32 @@ static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats)
 {
     boost::scoped_ptr<CCoinsViewCursor> pcursor(view->Cursor());
 
-    CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
-    stats.hashBlock = pcursor->GetBestBlock();
     {
         LOCK(cs_main);
-        stats.nHeight = mapBlockIndex.find(stats.hashBlock)->second->nHeight;
+        stats.nHeight = mapBlockIndex.find(pcursor->GetBestBlock())->second->nHeight;
     }
-    ss << stats.hashBlock;
-    CAmount nTotalAmount = 0;
+
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
         uint256 key;
         CCoins coins;
         if (pcursor->GetKey(key) && pcursor->GetValue(coins)) {
-            stats.nTransactions++;
-            ss << key;
-            for (unsigned int i=0; i<coins.vout.size(); i++) {
-                const CTxOut &out = coins.vout[i];
-                if (!out.IsNull()) {
-                    stats.nTransactionOutputs++;
-                    ss << VARINT(i+1);
-                    ss << out;
-                    nTotalAmount += out.nValue;
+            if(!coins.IsPruned()) {
+                stats.nTransactions++;
+                for (auto const &out : coins.vout) {
+                    if (!out.IsNull())
+                        stats.nTransactionOutputs++;
                 }
+            } else {
+                stats.nPrunedTransactions++;
             }
             stats.nSerializedSize += 32 + pcursor->GetValueSize();
-            ss << VARINT(0);
         } else {
             return error("%s: unable to read value", __func__);
         }
         pcursor->Next();
     }
-    stats.hashSerialized = ss.GetHash();
-    stats.nTotalAmount = nTotalAmount;
+
     return true;
 }
 
@@ -681,11 +672,10 @@ UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
             "{\n"
             "  \"height\":n,     (numeric) The current block height (index)\n"
             "  \"bestblock\": \"hex\",   (string) the best block hash hex\n"
-            "  \"transactions\": n,      (numeric) The number of transactions\n"
+            "  \"availabletx\": n,      (numeric) The number of available transactions\n"
+            "  \"prunedtx\": n,      (numeric) The number of pruned transactions\n"
             "  \"txouts\": n,            (numeric) The number of output transactions\n"
             "  \"bytes_serialized\": n,  (numeric) The serialized size\n"
-            "  \"hash_serialized\": \"hash\",   (string) The serialized hash\n"
-            "  \"total_amount\": x.xxx          (numeric) The total amount\n"
             "}\n"
             "\nExamples:\n"
             + HelpExampleCli("gettxoutsetinfo", "")
@@ -697,13 +687,11 @@ UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
     CCoinsStats stats;
     FlushStateToDisk();
     if (GetUTXOStats(pcoinsTip, stats)) {
-        ret.push_back(Pair("height", (int64_t)stats.nHeight));
-        ret.push_back(Pair("bestblock", stats.hashBlock.GetHex()));
-        ret.push_back(Pair("transactions", (int64_t)stats.nTransactions));
+        ret.push_back(Pair("bestblock", pcoinsTip->GetBestBlock().GetHex()));
+        ret.push_back(Pair("availabletx", (int64_t)stats.nTransactions));
+        ret.push_back(Pair("prunedtx", (int64_t)stats.nPrunedTransactions));
         ret.push_back(Pair("txouts", (int64_t)stats.nTransactionOutputs));
         ret.push_back(Pair("bytes_serialized", (int64_t)stats.nSerializedSize));
-        ret.push_back(Pair("hash_serialized", stats.hashSerialized.GetHex()));
-        ret.push_back(Pair("total_amount", ValueFromAmount(stats.nTotalAmount)));
     } else {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Unable to read UTXO set");
     }

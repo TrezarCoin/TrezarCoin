@@ -43,8 +43,12 @@ static const struct {
 };
 
 struct CCoin {
+    bool fCoinBase;
+    bool fCoinStake;
     uint32_t nTxVer; // Don't call this nVersion, that name has a special meaning inside IMPLEMENT_SERIALIZE
     uint32_t nHeight;
+    unsigned int nTime;
+    unsigned int nBlockTime;
     CTxOut out;
 
     ADD_SERIALIZE_METHODS;
@@ -52,8 +56,12 @@ struct CCoin {
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
     {
+        READWRITE(fCoinBase);
+        READWRITE(fCoinStake);
         READWRITE(nTxVer);
         READWRITE(nHeight);
+        READWRITE(nTime);
+        READWRITE(nBlockTime);
         READWRITE(out);
     }
 };
@@ -524,7 +532,11 @@ static bool rest_getutxos(HTTPRequest* req, const std::string& strURIPart)
                     // Safe to index into vout here because IsAvailable checked if it's off the end of the array, or if
                     // n is valid but points to an already spent output (IsNull).
                     CCoin coin;
+                    coin.fCoinBase = coins.fCoinBase;
+                    coin.fCoinStake = coins.fCoinStake;
                     coin.nTxVer = coins.nVersion;
+                    coin.nTime = coins.nTime;
+                    coin.nBlockTime = coins.nBlockTime;
                     coin.nHeight = coins.nHeight;
                     coin.out = coins.vout.at(vOutPoints[i].n);
                     assert(!coin.out.IsNull());

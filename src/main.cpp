@@ -2150,38 +2150,32 @@ bool AbortNode(CValidationState& state, const std::string& strMessage, const std
  */
 static bool ApplyTxInUndo(const CTxInUndo& undo, CCoinsViewCache& view, const COutPoint& out)
 {
-    bool fClean = true;
-
     CCoinsModifier coins = view.ModifyCoins(out.hash);
-    if (undo.nHeight != 0) {
-        // undo data contains height: this is the last output of the prevout tx being spent
-        if (!coins->IsPruned())
-            fClean = fClean && error("%s: undo data overwriting existing transaction", __func__);
-        coins->Clear();
+    if (coins->IsPruned()) {
+        if (undo.nHeight == 0)
+            return error("DisconnectBlock() : undo data doesn't contain tx metadata? database corrupted");
         coins->fCoinBase = undo.fCoinBase;
+        coins->fCoinStake = undo.fCoinStake;
         coins->nHeight = undo.nHeight;
+        coins->nTime = undo.nTime;
+        coins->nBlockTime = undo.nBlockTime;
         coins->nVersion = undo.nVersion;
     } else {
-        if (coins->IsPruned())
-            fClean = fClean && error("%s: undo data adding output to missing transaction", __func__);
+        if (undo.nHeight != 0)
+            return error("DisconnectBlock() : undo data contains unneeded tx metadata? database corrupted");
     }
     if (coins->IsAvailable(out.n))
-        fClean = fClean && error("%s: undo data overwriting existing output", __func__);
+        return error("%s: undo data overwriting existing output", __func__);
     if (coins->vout.size() < out.n+1)
         coins->vout.resize(out.n+1);
     coins->vout[out.n] = undo.txout;
 
-    return fClean;
+    return true;
 }
 
 bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockIndex* pindex, CCoinsViewCache& view, bool* pfClean)
 {
     assert(pindex->GetBlockHash() == view.GetBestBlock());
-
-    if (pfClean)
-        *pfClean = false;
-
-    bool fClean = true;
 
     CBlockUndo blockUndo;
     CDiskBlockPos pos = pindex->GetUndoPos();
@@ -2211,7 +2205,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
         if (outsBlock.nVersion < 0)
             outs->nVersion = outsBlock.nVersion;
         if (*outs != outsBlock)
-            fClean = fClean && error("DisconnectBlock(): added transaction mismatch? database corrupted");
+            return error("DisconnectBlock(): added transaction mismatch? database corrupted");
 
         // remove outputs
         outs->Clear();
@@ -2226,20 +2220,17 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
                 const COutPoint &out = tx.vin[j].prevout;
                 const CTxInUndo &undo = txundo.vprevout[j];
                 if (!ApplyTxInUndo(undo, view, out))
-                    fClean = false;
+                    return false;
             }
         }
+        
+        SyncWithWallets(block.vtx[i], pindex, &block, false);
     }
 
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
 
-    if (pfClean) {
-        *pfClean = fClean;
-        return true;
-    }
-
-    return fClean;
+    return true;
 }
 
 void static FlushBlockFile(bool fFinalize = false)
@@ -3397,11 +3388,14 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         if (block.vtx[i].IsCoinBase())
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-multiple", false, "more than one coinbase");
 
+    CBlockIndex cBlock(block);
     // Check transactions
-    BOOST_FOREACH(const CTransaction& tx, block.vtx)
-        if (!CheckTransaction(tx, state))
-            return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
+    if (cBlock.pprev != NULL) { // Skip check on genesis, very long pszTimestamp is used which fails CheckTransaction
+        BOOST_FOREACH(const CTransaction& tx, block.vtx)
+            if (!CheckTransaction(tx, state))
+                return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
                                  strprintf("Transaction check failed (tx hash %s) %s", tx.GetHash().ToString(), state.GetDebugMessage()));
+    }
 
     unsigned int nSigOps = 0;
     BOOST_FOREACH(const CTransaction& tx, block.vtx)

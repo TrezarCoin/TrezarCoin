@@ -5,6 +5,8 @@
 
 #include "primitives/transaction.h"
 
+#include "key.h"
+#include "coins.h"
 #include "hash.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
@@ -56,11 +58,13 @@ uint256 CTxOut::GetHash() const
 
 std::string CTxOut::ToString() const
 {
-    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN, nValue % COIN, HexStr(scriptPubKey).substr(0, 30));
+    if (IsEmpty())
+        return "CTxOut(empty)";
+    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN, nValue % COIN, scriptPubKey.ToString());
 }
 
-CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::CURRENT_VERSION), nLockTime(0) {}
-CMutableTransaction::CMutableTransaction(const CTransaction& tx) : nVersion(tx.nVersion), vin(tx.vin), vout(tx.vout), wit(tx.wit), nLockTime(tx.nLockTime) {}
+CMutableTransaction::CMutableTransaction(int nTime) : nVersion(CTransaction::CURRENT_VERSION), nTime(nTime), nLockTime(0) {}
+CMutableTransaction::CMutableTransaction(const CTransaction& tx) : nVersion(tx.nVersion), nTime(tx.nTime), strTxComment(tx.strTxComment), vin(tx.vin), vout(tx.vout), wit(tx.wit), nLockTime(tx.nLockTime) {}
 
 uint256 CMutableTransaction::GetHash() const
 {
@@ -77,9 +81,9 @@ uint256 CTransaction::GetWitnessHash() const
     return SerializeHash(*this, SER_GETHASH, 0);
 }
 
-CTransaction::CTransaction() : nVersion(CTransaction::CURRENT_VERSION), vin(), vout(), nLockTime(0) { }
+CTransaction::CTransaction() : nVersion(CTransaction::CURRENT_VERSION), nTime(0), vin(), vout(), nLockTime(0) {}
 
-CTransaction::CTransaction(const CMutableTransaction &tx) : nVersion(tx.nVersion), vin(tx.vin), vout(tx.vout), wit(tx.wit), nLockTime(tx.nLockTime) {
+CTransaction::CTransaction(const CMutableTransaction &tx) : nVersion(tx.nVersion), nTime(tx.nTime), strTxComment(tx.strTxComment), vin(tx.vin), vout(tx.vout), wit(tx.wit), nLockTime(tx.nLockTime) {
     UpdateHash();
 }
 
@@ -90,6 +94,8 @@ CTransaction& CTransaction::operator=(const CTransaction &tx) {
     *const_cast<CTxWitness*>(&wit) = tx.wit;
     *const_cast<unsigned int*>(&nLockTime) = tx.nLockTime;
     *const_cast<uint256*>(&hash) = tx.hash;
+    *const_cast<unsigned int*>(&nTime) = tx.nTime;
+    *const_cast<std::string*>(&strTxComment) = tx.strTxComment;
     return *this;
 }
 
@@ -100,7 +106,7 @@ CAmount CTransaction::GetValueOut() const
     {
         nValueOut += it->nValue;
         if (!MoneyRange(it->nValue) || !MoneyRange(nValueOut))
-            throw std::runtime_error(std::string(__func__) + ": value out of range");
+            throw std::runtime_error("CTransaction::GetValueOut(): value out of range");
     }
     return nValueOut;
 }
@@ -131,15 +137,92 @@ unsigned int CTransaction::CalculateModifiedSize(unsigned int nTxSize) const
     return nTxSize;
 }
 
+// Total coin age spent in transaction, in the unit of coin-days.
+// Only those coins meeting minimum age requirement counts. As those
+// transactions not in main chain are not currently indexed so we
+// might not find out about their coin age. Older transactions are 
+// guaranteed to be in main chain by sync-checkpoint. This rule is
+// introduced to help nodes establish a consistent view of the coin
+// age (trust score) of competing branches.
+
+/* Reports the total coin age of all inputs of a transaction
+ * and the number of inputs failing to meet the min. coin age */
+bool CTransaction::GetCoinAge(unsigned int nStakeMinAge, CCoinsViewCache *pcoinsTip, uint64_t *pCoinAge, uint64_t *pCoinAgeFails) const {
+    uint64_t nCoinAgeFails = 0;
+    CCoinsViewCache &inputs = *pcoinsTip;
+    CBigNum bnCentSecond = 0;
+    unsigned int i;
+
+    if (IsCoinBase())
+        return(true);
+
+    if (!pCoinAge || !pCoinAgeFails)
+        return(false);
+
+    for (i = 0; i < vin.size(); i++) {
+        const COutPoint &prevout = vin[i].prevout;
+        CCoins coins;
+
+        if (!inputs.GetCoins(prevout.hash, coins))
+            continue;
+
+        /* Transaction earlier than input */
+        if (nTime < coins.nTime)
+            return false;
+
+        /* Minumum age requirement must be met */
+        if (nTime < (coins.nBlockTime + nStakeMinAge)) {
+            nCoinAgeFails++;
+        } else {
+            int64_t nValueIn = coins.vout[vin[i].prevout.n].nValue;
+            bnCentSecond += CBigNum(nValueIn) * (nTime - coins.nTime) / CENT;
+        }
+    }
+
+    CBigNum bnCoinDay = (bnCentSecond * CENT) / COIN / (24 * 60 * 60);
+
+    *pCoinAge = bnCoinDay.getuint64();
+    *pCoinAgeFails = nCoinAgeFails;
+
+    return(true);
+}
+
 std::string CTransaction::ToString() const
 {
-    std::string str;
-    str += strprintf("CTransaction(hash=%s, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u)\n",
-        GetHash().ToString().substr(0,10),
-        nVersion,
-        vin.size(),
-        vout.size(),
-        nLockTime);
+      std::string str;
+      str += IsCoinBase()? "Coinbase" : (IsCoinStake()? "Coinstake" : "CTransaction");
+      str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%d, strTxComment=%s))\n",
+          GetHash().ToString(),
+          nTime,
+          nVersion,
+          vin.size(),
+          vout.size(),
+          nLockTime,
+          strTxComment
+    );
+    for (unsigned int i = 0; i < vin.size(); i++)
+        str += "    " + vin[i].ToString() + "\n";
+    for (unsigned int i = 0; i < wit.vtxinwit.size(); i++)
+        str += "    " + wit.vtxinwit[i].scriptWitness.ToString() + "\n";
+    for (unsigned int i = 0; i < vout.size(); i++)
+        str += "    " + vout[i].ToString() + "\n";
+    return str;
+}
+
+std::string CMutableTransaction::ToString() const
+{
+      std::string str;
+      str += "Mutable";
+      str += IsCoinBase()? "Coinbase" : (IsCoinStake()? "Coinstake" : "CTransaction");
+      str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%d, strTxComment=%s))\n",
+          GetHash().ToString(),
+          nTime,
+          nVersion,
+          vin.size(),
+          vout.size(),
+          nLockTime,
+          strTxComment
+    );
     for (unsigned int i = 0; i < vin.size(); i++)
         str += "    " + vin[i].ToString() + "\n";
     for (unsigned int i = 0; i < wit.vtxinwit.size(); i++)
