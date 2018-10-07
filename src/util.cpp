@@ -122,6 +122,8 @@ unsigned int nNeoScryptOptions = 0;
 /* Performance counters shown in RPC call getcounters */
 uint64_t nBlockHashCacheHits = 0;
 uint64_t nBlockHashCacheMisses = 0;
+uint64_t nModifierCacheHits = 0;
+uint64_t nModifierCacheMisses = 0;
 
 /** Init OpenSSL library multithreading support */
 static CCriticalSection** ppmutexOpenSSL;

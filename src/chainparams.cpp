@@ -72,6 +72,10 @@ public:
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
         consensus.nPowTargetSpacing = 10 * 60;
+        consensus.nStakeMinAge = 24 * 60 * 60;
+        consensus.nStakeMaxAge = 15 * 24 * 60 * 60;
+        consensus.nBaseTargetSpacing = 30;
+        consensus.nModifierInterval = 40 * 60;
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 15120; // 75% of 20160
@@ -154,6 +158,10 @@ public:
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
         consensus.nPowTargetSpacing = 10 * 60;
+        consensus.nStakeMinAge = 20 * 60;
+        consensus.nStakeMaxAge = 20 * 60 * 60;
+        consensus.nBaseTargetSpacing = 30;
+        consensus.nModifierInterval = 40 * 60;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1512; // 75% of 2016
@@ -233,6 +241,10 @@ public:
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
         consensus.nPowTargetSpacing = 10 * 60;
+        consensus.nStakeMinAge = 24 * 60 * 60;
+        consensus.nStakeMaxAge = 15 * 24 * 60 * 60;
+        consensus.nBaseTargetSpacing = 30;
+        consensus.nModifierInterval = 40 * 60;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = true;
         consensus.nRuleChangeActivationThreshold = 108; // 75% for testchains

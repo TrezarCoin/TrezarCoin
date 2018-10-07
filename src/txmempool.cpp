@@ -557,7 +557,7 @@ void CTxMemPool::removeForReorg(const CCoinsViewCache *pcoins, unsigned int nMem
                     continue;
                 const CCoins *coins = pcoins->AccessCoins(txin.prevout.hash);
 		if (nCheckFrequency != 0) assert(coins);
-                if (!coins || (coins->IsCoinBase() && ((signed long)nMemPoolHeight) - coins->nHeight < COINBASE_MATURITY)) {
+                if (!coins || ((coins->IsCoinBase() || coins->IsCoinStake()) && ((signed long)nMemPoolHeight) - coins->nHeight < COINBASE_MATURITY)) {
                     transactionsToRemove.push_back(tx);
                     break;
                 }
@@ -739,7 +739,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const
             CValidationState state;
             PrecomputedTransactionData txdata(tx);
             assert(CheckInputs(tx, state, mempoolDuplicate, false, 0, false, txdata, NULL));
-            UpdateCoins(tx, mempoolDuplicate, 1000000);
+            UpdateCoins(tx, mempoolDuplicate, 1000000, 1000000);
         }
     }
     unsigned int stepsSinceLastRemove = 0;
@@ -754,7 +754,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const
         } else {
             PrecomputedTransactionData txdata(entry->GetTx());
             assert(CheckInputs(entry->GetTx(), state, mempoolDuplicate, false, 0, false, txdata, NULL));
-            UpdateCoins(entry->GetTx(), mempoolDuplicate, 1000000);
+            UpdateCoins(entry->GetTx(), mempoolDuplicate, 1000000, 1000000);
             stepsSinceLastRemove = 0;
         }
     }
@@ -972,7 +972,7 @@ bool CCoinsViewMemPool::GetCoins(const uint256 &txid, CCoins &coins) const {
     // transactions. First checking the underlying cache risks returning a pruned entry instead.
     shared_ptr<const CTransaction> ptx = mempool.get(txid);
     if (ptx) {
-        coins = CCoins(*ptx, MEMPOOL_HEIGHT);
+        coins = CCoins(*ptx, MEMPOOL_HEIGHT, -1);
         return true;
     }
     return (base->GetCoins(txid, coins) && !coins.IsPruned());
