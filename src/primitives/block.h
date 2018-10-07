@@ -9,6 +9,9 @@
 #include "primitives/transaction.h"
 #include "serialize.h"
 #include "uint256.h"
+#include "arith_uint256.h"
+
+#include <boost/foreach.hpp>
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
@@ -27,6 +30,10 @@ public:
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
+
+    // memory only
+    mutable uint256 hashCached;
+    mutable uint64_t idCached;
 
     CBlockHeader()
     {
@@ -53,6 +60,7 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+        idCached = 0x00000000FFFFFFFF;
     }
 
     bool IsNull() const
@@ -64,10 +72,19 @@ public:
 
     uint256 GetPoWHash() const;
 
+    unsigned int GetStakeEntropyBit() const
+    {
+        // Take last bit of block hash as entropy bit
+        unsigned int nEntropyBit = ((UintToArith256(GetHash()).GetLow64()) & 1llu);
+        return nEntropyBit;
+    }
+
     int64_t GetBlockTime() const
     {
         return (int64_t)nTime;
     }
+
+    std::string ToString() const;
 };
 
 
@@ -76,9 +93,12 @@ class CBlock : public CBlockHeader
 public:
     // network and disk
     std::vector<CTransaction> vtx;
+    // Block signature - signed by one of the coin base txout[N]'s owner
+    std::vector<unsigned char> vchBlockSig;
 
     // memory only
     mutable bool fChecked;
+    mutable std::vector<uint256> vMerkleTree;
 
     CBlock()
     {
@@ -96,14 +116,64 @@ public:
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         READWRITE(*(CBlockHeader*)this);
-        READWRITE(vtx);
+        // ConnectBlock depends on vtx following header to generate CDiskTxPos
+        if (!(nType & (SER_GETHASH|SER_BLOCKHEADERONLY)))
+        {
+            READWRITE(vtx);
+            READWRITE(vchBlockSig);
+        }
+        else if (ser_action.ForRead())
+        {
+            const_cast<CBlock*>(this)->vtx.clear();
+            const_cast<CBlock*>(this)->vchBlockSig.clear();
+        }
+    }
+
+    uint256 BuildMerkleTree() const
+    {
+        vMerkleTree.clear();
+        for (std::vector<CTransaction>::const_iterator it(vtx.begin()); it != vtx.end(); ++it)
+            vMerkleTree.push_back(it->GetHash());
+
+        int j = 0;
+        for (int nSize = vtx.size(); nSize > 1; nSize = (nSize + 1) / 2)
+        {
+            for (int i = 0; i < nSize; i += 2)
+            {
+                int i2 = std::min(i+1, nSize-1);
+                vMerkleTree.push_back(Hash(vMerkleTree[j+i].begin(), vMerkleTree[j+i].end(),
+                                           vMerkleTree[j+i2].begin(), vMerkleTree[j+i2].end()));
+            }
+            j += nSize;
+        }
+        return (vMerkleTree.empty() ? uint256() : vMerkleTree.back());
     }
 
     void SetNull()
     {
         CBlockHeader::SetNull();
         vtx.clear();
+        vchBlockSig.clear();
+        vMerkleTree.clear();
         fChecked = false;
+    }
+
+    bool IsProofOfStake() const
+    {
+        return (vtx.size() > 1 && vtx[1].IsCoinStake());
+    }
+
+    bool IsProofOfWork() const
+    {
+        return !IsProofOfStake();
+    }
+
+    int64_t GetMaxTransactionTime() const
+    {
+        int64_t maxTransactionTime = 0;
+        BOOST_FOREACH(const CTransaction& tx, vtx)
+            maxTransactionTime = std::max(maxTransactionTime, (int64_t)tx.nTime);
+        return maxTransactionTime;
     }
 
     CBlockHeader GetBlockHeader() const

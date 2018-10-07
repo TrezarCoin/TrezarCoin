@@ -141,6 +141,7 @@ private:
 protected:
     std::vector<uint64_t> shorttxids;
     std::vector<PrefilledTransaction> prefilledtxn;
+    std::vector<unsigned char> vchBlockSig;
 
 public:
     CBlockHeader header;
@@ -188,6 +189,8 @@ public:
 
         if (ser_action.ForRead())
             FillShortTxIDSelector();
+
+        READWRITE(vchBlockSig);
     }
 };
 

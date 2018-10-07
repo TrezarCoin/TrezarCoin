@@ -247,6 +247,23 @@ public:
         assert(WIDTH >= 2);
         return pn[0] | (uint64_t)pn[1] << 32;
     }
+
+    unsigned int GetSerializeSize(int nType, int nVersion) const
+    {
+        return sizeof(pn);
+    }
+
+    template<typename Stream>
+    void Serialize(Stream& s, int nType, int nVersion) const
+    {
+        s.write((char*)pn, sizeof(pn));
+    }
+
+    template<typename Stream>
+    void Unserialize(Stream& s, int nType, int nVersion)
+    {
+        s.read((char*)pn, sizeof(pn));
+    }
 };
 
 /** 256-bit unsigned big integer. */
@@ -279,6 +296,9 @@ public:
      */
     arith_uint256& SetCompact(uint32_t nCompact, bool *pfNegative = NULL, bool *pfOverflow = NULL);
     uint32_t GetCompact(bool fNegative = false) const;
+
+    void SetHex(const char* psz){};
+    void SetHex(const std::string& str){};
 
     friend uint256 ArithToUint256(const arith_uint256 &);
     friend arith_uint256 UintToArith256(const uint256 &);
