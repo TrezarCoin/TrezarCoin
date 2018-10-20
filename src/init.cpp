@@ -69,6 +69,9 @@ static const bool DEFAULT_REST_ENABLE = false;
 static const bool DEFAULT_DISABLE_SAFEMODE = false;
 static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 
+unsigned int nMinerSleep;
+unsigned int nStakeMinTime;
+unsigned int nStakeMinDepth;
 
 #if ENABLE_ZMQ
 static CZMQNotificationInterface* pzmqNotificationInterface = NULL;
@@ -475,7 +478,16 @@ std::string HelpMessage(HelpMessageMode mode)
         strUsage += HelpMessageOpt("-rpcworkqueue=<n>", strprintf("Set the depth of the work queue to service RPC calls (default: %d)", DEFAULT_HTTP_WORKQUEUE));
         strUsage += HelpMessageOpt("-rpcservertimeout=<n>", strprintf("Timeout during HTTP requests (default: %d)", DEFAULT_HTTP_SERVER_TIMEOUT));
     }
-
+#ifdef ENABLE_WALLET
+    strUsage += HelpMessageGroup(_("Staking options:"));
+    strUsage += HelpMessageOpt("-stakegen=<n>", _("Generate coin stakes (default: 1 = enabled)"));
+    strUsage += HelpMessageOpt("-stakemintime=<n>", _("Set the min. stake input block chain time in hours (default: 24 or testnet: 1)"));
+    strUsage += HelpMessageOpt("-stakemindepth=<n>", _("Set the min. stake input block chain depth in confirmations (default: follow -stakeminage)"));
+    strUsage += HelpMessageOpt("-stakeminvalue=<n>", _("Set the min. stake input value in coins (default: 1.0)"));
+    strUsage += HelpMessageOpt("-stakecombine=<n>", _("Try to combine inputs while staking up to this limit in coins (200 < n < 5000; default: 400)"));
+    strUsage += HelpMessageOpt("-stakesplit=<n>", _("Don't split outputs while staking below this limit in coins (400 < n < 10000; default: 800)"));
+    strUsage += HelpMessageOpt("-minersleep=<n>", strprintf(_("Sets the default sleep for the staking thread (default: %u)"), 500));
+#endif
     return strUsage;
 }
 
@@ -858,6 +870,17 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 #endif
     }
 
+    /* Polling delay for stake mining, in milliseconds */
+    nMinerSleep = GetArg("-minersleep", 500);
+
+    /* Minimal input time or depth in block chain for stake mining, in hours or confirmations */
+    nStakeMinTime = (unsigned int)GetArg("-stakemintime", 48);
+    nStakeMinDepth = (unsigned int)GetArg("-stakemindepth", 0);
+
+    /* Reset time if depth is specified */
+    if (nStakeMinDepth)
+        nStakeMinTime = 0;
+
     // Make sure enough file descriptors are available
     int nBind = std::max(
                 (mapMultiArgs.count("-bind") ? mapMultiArgs.at("-bind").size() : 0) +
@@ -1037,6 +1060,32 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                 return InitError(strprintf("Invalid deployment (%s)", vDeploymentParams[0]));
             }
         }
+    }
+
+    /* Inputs below this limit in value don't participate in staking */
+    if (mapArgs.count("-stakeminvalue")) {
+        if (!ParseMoney(mapArgs["-stakeminvalue"], nStakeMinValue))
+            return(InitError(strprintf(_("Invalid amount for -stakeminvalue=<amount>: '%s'"), mapArgs["-stakeminvalue"].c_str())));
+    }
+
+    /* Try to combine inputs while staking up to this limit */
+    if (mapArgs.count("-stakecombine")) {
+        if (!ParseMoney(mapArgs["-stakecombine"], nCombineThreshold))
+            return(InitError(strprintf(_("Invalid amount for -stakecombine=<amount>: '%s'"), mapArgs["-stakecombine"].c_str())));
+        if (nCombineThreshold < MIN_STAKE_AMOUNT)
+            nCombineThreshold = MIN_STAKE_AMOUNT;
+        if (nCombineThreshold > 25 * MIN_STAKE_AMOUNT)
+            nCombineThreshold = 25 * MIN_STAKE_AMOUNT;
+    }
+
+    /* Don't split outputs while staking below this limit */
+    if (mapArgs.count("-stakesplit")) {
+        if (!ParseMoney(mapArgs["-stakesplit"], nSplitThreshold))
+            return(InitError(strprintf(_("Invalid amount for -stakesplit=<amount>: '%s'"), mapArgs["-stakesplit"].c_str())));
+        if (nSplitThreshold < 2 * MIN_STAKE_AMOUNT)
+            nSplitThreshold = 2 * MIN_STAKE_AMOUNT;
+        if (nSplitThreshold > 50 * MIN_STAKE_AMOUNT)
+            nSplitThreshold = 50 * MIN_STAKE_AMOUNT;
     }
 
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
@@ -1521,6 +1570,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     // ********************************************************* Step 12: finished
 
     SetRPCWarmupFinished();
+
+#ifdef ENABLE_WALLET
+    // Generate coins in the background
+    SetStaking(GetBoolArg("-stakegen", true));
+    threadGroup.create_thread(boost::bind(&BitcoinStaker, boost::cref(chainparams)));
+#endif
+
     uiInterface.InitMessage(_("Done loading"));
 
 #ifdef ENABLE_WALLET

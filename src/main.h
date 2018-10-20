@@ -543,6 +543,10 @@ static const int MODIFIER_INTERVAL_RATIO = 3;
 
 static const int64_t MIN_STAKE_AMOUNT = 200 * COIN;
 static const int64_t MAX_STAKE_INPUTS = 10;
+extern int64_t nCombineThreshold;
+extern int64_t nSplitThreshold;
+extern int64_t nStakeMinValue;
+extern uint256 hashBestChain;
 
 // Check kernel hash target and coinstake signature
 // Sets hashProofOfStake on success return

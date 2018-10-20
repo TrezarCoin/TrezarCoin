@@ -82,6 +82,13 @@ uint64_t nPruneTarget = 0;
 int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 bool fEnableReplacement = DEFAULT_ENABLE_REPLACEMENT;
 
+/* Try to combine inputs while staking up to this limit */
+int64_t nCombineThreshold = MIN_STAKE_AMOUNT;
+/* Don't split outputs while staking below this limit */
+int64_t nSplitThreshold = 2 * MIN_STAKE_AMOUNT;
+
+int64_t nStakeMinValue = 1 * COIN;
+
 /* Cache of stake modifiers */
 static std::map<unsigned int, uint64_t> mapModifiers;
 
@@ -700,6 +707,7 @@ CBlockIndex* FindForkInGlobalIndex(const CChain& chain, const CBlockLocator& loc
 
 CCoinsViewCache *pcoinsTip = NULL;
 CBlockTreeDB *pblocktree = NULL;
+uint256 hashBestChain = uint256();
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -2225,6 +2233,11 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
 {
     assert(pindex->GetBlockHash() == view.GetBestBlock());
 
+    if (pfClean)
+        *pfClean = false;
+
+    bool fClean = true;
+
     CBlockUndo blockUndo;
     CDiskBlockPos pos = pindex->GetUndoPos();
     if (pos.IsNull())
@@ -2257,7 +2270,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
         if (outsBlock.nVersion < 0)
             outs->nVersion = outsBlock.nVersion;
         if (*outs != outsBlock)
-            return error("DisconnectBlock(): added transaction mismatch? database corrupted");
+            fClean = fClean && error("DisconnectBlock(): added transaction mismatch? database corrupted");
 
         // remove outputs
         outs->Clear();
@@ -2272,17 +2285,20 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
                 const COutPoint &out = tx.vin[j].prevout;
                 const CTxInUndo &undo = txundo.vprevout[j];
                 if (!ApplyTxInUndo(undo, view, out))
-                    return false;
+                    fClean = false;
             }
         }
-        
-        SyncWithWallets(block.vtx[i], pindex, &block, false);
     }
 
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
 
-    return true;
+    if (pfClean) {
+        *pfClean = fClean;
+        return true;
+    }
+
+    return fClean;
 }
 
 void static FlushBlockFile(bool fFinalize = false)
@@ -2385,7 +2401,6 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     }
 
     int64_t nTimeStart = GetTimeMicros();
-    int64_t nStakeReward = 0;
 
     // Check it again in case a previous version let a bad block in
     if (!CheckBlock(block, state, chainparams.GetConsensus(), !fJustCheck, !fJustCheck, !fJustCheck))
@@ -2831,6 +2846,7 @@ void static UpdateTip(CBlockIndex *pindexNew, const CChainParams& chainParams) {
             }
         }
     }
+    hashBestChain = chainActive.Tip()->GetBlockHash();
     LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu date='%s' progress=%f cache=%.1fMiB(%utx)", __func__,
       chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), chainActive.Tip()->nVersion,
       log(chainActive.Tip()->nChainWork.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx,
@@ -3643,8 +3659,15 @@ std::vector<unsigned char> GenerateCoinbaseCommitment(CBlock& block, const CBloc
 {
     std::vector<unsigned char> commitment;
     int commitpos = GetWitnessCommitmentIndex(block);
+    bool fHaveWitness = false;
+    for (size_t t = 1; t < block.vtx.size(); t++) {
+        if (!block.vtx[t].wit.IsNull()) {
+            fHaveWitness = true;
+            break;
+        }
+    }
     std::vector<unsigned char> ret(32, 0x00);
-    if (consensusParams.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout != 0) {
+    if (fHaveWitness && IsWitnessEnabled(pindexPrev, consensusParams)) {
         if (commitpos == -1) {
             uint256 witnessroot = BlockWitnessMerkleRoot(block, NULL);
             CHash256().Write(witnessroot.begin(), 32).Write(&ret[0], 32).Finalize(witnessroot.begin());
@@ -4232,6 +4255,8 @@ bool static LoadBlockIndexDB()
         chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
         DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
         Checkpoints::GuessVerificationProgress(chainparams.Checkpoints(), chainActive.Tip()));
+
+    hashBestChain = chainActive.Tip()->GetBlockHash();
 
     return true;
 }

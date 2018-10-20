@@ -56,6 +56,9 @@ extern CTranslationInterface translationInterface;
 
 extern unsigned int nNeoScryptOptions;
 
+extern unsigned int nStakeMinTime;
+extern unsigned int nStakeMinDepth;
+
 extern uint64_t nBlockHashCacheHits;
 extern uint64_t nBlockHashCacheMisses;
 extern uint64_t nModifierCacheHits;
@@ -146,6 +149,8 @@ inline bool IsSwitchChar(char c)
     return c == '-';
 #endif
 }
+
+void SetThreadPriority(int nPriority);
 
 /**
  * Return string argument or default value
