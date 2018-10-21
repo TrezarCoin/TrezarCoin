@@ -45,9 +45,6 @@ WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent):
     vbox->addWidget(transactionView);
     QPushButton *exportButton = new QPushButton(tr("&Export"), this);
     exportButton->setToolTip(tr("Export the data in the current tab to a file"));
-    if (platformStyle->getImagesOnButtons()) {
-        exportButton->setIcon(platformStyle->SingleColorIcon(":/icons/export"));
-    }
     hbox_buttons->addStretch();
     hbox_buttons->addWidget(exportButton);
     vbox->addLayout(hbox_buttons);
@@ -109,6 +106,11 @@ void WalletView::setClientModel(ClientModel *clientModel)
     sendCoinsPage->setClientModel(clientModel);
 }
 
+void WalletView::requestAddressHistory()
+{
+    Q_EMIT openAddressHistory();
+}
+
 void WalletView::setWalletModel(WalletModel *walletModel)
 {
     this->walletModel = walletModel;
@@ -165,6 +167,7 @@ void WalletView::processNewTransaction(const QModelIndex& parent, int start, int
 void WalletView::gotoOverviewPage()
 {
     setCurrentWidget(overviewPage);
+    overviewPage->updateStakeReportNow();
 }
 
 void WalletView::gotoHistoryPage()
@@ -183,6 +186,16 @@ void WalletView::gotoSendCoinsPage(QString addr)
 
     if (!addr.isEmpty())
         sendCoinsPage->setAddress(addr);
+}
+
+void WalletView::setStakingStatus(QString text)
+{
+    overviewPage->setStakingStatus(text);
+}
+
+void WalletView::showLockStaking(bool status)
+{
+    overviewPage->showLockStaking(status);
 }
 
 void WalletView::gotoSignMessageTab(QString addr)
@@ -261,6 +274,11 @@ void WalletView::changePassphrase()
     dlg.exec();
 }
 
+void WalletView::setStakingStats(QString day, QString week, QString month)
+{
+    overviewPage->setStakingStats(day,week,month);
+}
+
 void WalletView::unlockWallet()
 {
     if(!walletModel)
@@ -272,6 +290,27 @@ void WalletView::unlockWallet()
         dlg.setModel(walletModel);
         dlg.exec();
     }
+}
+
+void WalletView::unlockWalletStaking()
+{
+    if(!walletModel)
+        return;
+    // Unlock wallet when requested by wallet model
+    if (walletModel->getEncryptionStatus() == WalletModel::Locked)
+    {
+        AskPassphraseDialog dlg(AskPassphraseDialog::UnlockStaking, this);
+        dlg.setModel(walletModel);
+        dlg.exec();
+    }
+}
+
+void WalletView::lockWallet()
+{
+    if(!walletModel)
+        return;
+
+    walletModel->setWalletLocked(true);
 }
 
 void WalletView::usedSendingAddresses()

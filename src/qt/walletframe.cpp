@@ -6,6 +6,7 @@
 
 #include "bitcoingui.h"
 #include "walletview.h"
+#include "util.h"
 
 #include <cstdio>
 
@@ -56,6 +57,7 @@ bool WalletFrame::addWallet(const QString& name, WalletModel *walletModel)
 
     // Ensure a walletView is able to show the main window
     connect(walletView, SIGNAL(showNormalIfMinimized()), gui, SLOT(showNormalIfMinimized()));
+    connect(walletView, SIGNAL(openAddressHistory()), this, SLOT(usedReceivingAddresses()));
 
     return true;
 }
@@ -111,6 +113,27 @@ void WalletFrame::gotoOverviewPage()
     QMap<QString, WalletView*>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
         i.value()->gotoOverviewPage();
+}
+
+void WalletFrame::setStakingStatus(QString text)
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->setStakingStatus(text);
+}
+
+void WalletFrame::setStakingStats(QString day, QString week, QString month)
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->setStakingStats(day,week,month);
+}
+
+void WalletFrame::showLockStaking(bool status)
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->showLockStaking(status);
 }
 
 void WalletFrame::gotoHistoryPage()
@@ -174,6 +197,20 @@ void WalletFrame::unlockWallet()
     WalletView *walletView = currentWalletView();
     if (walletView)
         walletView->unlockWallet();
+}
+
+void WalletFrame::unlockWalletStaking()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+        walletView->unlockWalletStaking();
+}
+
+void WalletFrame::lockWallet()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+        walletView->lockWallet();
 }
 
 void WalletFrame::usedSendingAddresses()

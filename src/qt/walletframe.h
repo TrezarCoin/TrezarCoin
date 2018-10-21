@@ -7,6 +7,8 @@
 
 #include <QFrame>
 #include <QMap>
+#include <QHBoxLayout>
+#include <QPushButton>
 
 class BitcoinGUI;
 class ClientModel;
@@ -37,6 +39,7 @@ public:
     bool handlePaymentRequest(const SendCoinsRecipient& recipient);
 
     void showOutOfSyncWarning(bool fShow);
+    WalletView *currentWalletView();
 
 private:
     QStackedWidget *walletStack;
@@ -47,8 +50,6 @@ private:
     bool bOutOfSync;
 
     const PlatformStyle *platformStyle;
-
-    WalletView *currentWalletView();
 
 public Q_SLOTS:
     /** Switch to overview (home) page */
@@ -73,6 +74,13 @@ public Q_SLOTS:
     void changePassphrase();
     /** Ask for passphrase to unlock wallet temporarily */
     void unlockWallet();
+    void unlockWalletStaking();
+    void lockWallet();
+
+    void showLockStaking(bool status);
+
+    void setStakingStatus(QString text);
+    void setStakingStats(QString day, QString week, QString month);
 
     /** Show used sending addresses */
     void usedSendingAddresses();

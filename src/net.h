@@ -98,6 +98,7 @@ bool BindListenPort(const CService &bindAddr, std::string& strError, bool fWhite
 void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler);
 bool StopNode();
 void SocketSendData(CNode *pnode);
+double GetPoSKernelPS();
 
 struct CombinerAll
 {

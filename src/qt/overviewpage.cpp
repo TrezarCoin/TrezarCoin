@@ -14,6 +14,9 @@
 #include "transactionfilterproxy.h"
 #include "transactiontablemodel.h"
 #include "walletmodel.h"
+#include "walletframe.h"
+#include "askpassphrasedialog.h"
+#include "util.h"
 
 #include <QAbstractItemDelegate>
 #include <QPainter>
@@ -115,6 +118,7 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
     walletModel(0),
     currentBalance(-1),
     currentUnconfirmedBalance(-1),
+    currentStakingBalance(-1),
     currentImmatureBalance(-1),
     currentWatchOnlyBalance(-1),
     currentWatchUnconfBalance(-1),
@@ -126,7 +130,6 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
     // use a SingleColorIcon for the "out of sync warning" icon
     QIcon icon = platformStyle->SingleColorIcon(":/icons/warning");
     icon.addPixmap(icon.pixmap(QSize(64,64), QIcon::Normal), QIcon::Disabled); // also set the disabled icon because we are using a disabled QPushButton to work around missing HiDPI support of QLabel (https://bugreports.qt.io/browse/QTBUG-42503)
-    ui->labelTransactionsStatus->setIcon(icon);
     ui->labelWalletStatus->setIcon(icon);
 
     // Recent transactions
@@ -136,9 +139,11 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
     ui->listTransactions->setAttribute(Qt::WA_MacShowFocusRect, false);
 
     connect(ui->listTransactions, SIGNAL(clicked(QModelIndex)), this, SLOT(handleTransactionClicked(QModelIndex)));
+    connect(ui->unlockStakingButton, SIGNAL(clicked()), this, SLOT(unlockWalletStaking()));
 
     // start with displaying the "out of sync" warnings
     showOutOfSyncWarning(true);
+    updateStakeReportNow();
 }
 
 void OverviewPage::handleTransactionClicked(const QModelIndex &index)
@@ -147,52 +152,63 @@ void OverviewPage::handleTransactionClicked(const QModelIndex &index)
         Q_EMIT transactionClicked(filter->mapToSource(index));
 }
 
+void OverviewPage::showLockStaking(bool status)
+{
+    ui->unlockStakingButton->setVisible(status);
+}
+
 OverviewPage::~OverviewPage()
 {
     delete ui;
 }
 
-void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance)
+void OverviewPage::setStakingStats(QString day, QString week, QString month)
+{
+    ui->label24hStakingStats->setText(day);
+    ui->label7dStakingStats->setText(week);
+    ui->label30dStakingStats->setText(month);
+}
+
+void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& stakingBalance, const CAmount& immatureBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance)
 {
     int unit = walletModel->getOptionsModel()->getDisplayUnit();
     currentBalance = balance;
     currentUnconfirmedBalance = unconfirmedBalance;
+    currentStakingBalance = stakingBalance;
     currentImmatureBalance = immatureBalance;
     currentWatchOnlyBalance = watchOnlyBalance;
     currentWatchUnconfBalance = watchUnconfBalance;
     currentWatchImmatureBalance = watchImmatureBalance;
     ui->labelBalance->setText(BitcoinUnits::formatWithUnit(unit, balance, false, BitcoinUnits::separatorAlways));
     ui->labelUnconfirmed->setText(BitcoinUnits::formatWithUnit(unit, unconfirmedBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelStaking->setText(BitcoinUnits::formatWithUnit(unit, stakingBalance, false, BitcoinUnits::separatorAlways));
     ui->labelImmature->setText(BitcoinUnits::formatWithUnit(unit, immatureBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelTotal->setText(BitcoinUnits::formatWithUnit(unit, balance + unconfirmedBalance + immatureBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchAvailable->setText(BitcoinUnits::formatWithUnit(unit, watchOnlyBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchPending->setText(BitcoinUnits::formatWithUnit(unit, watchUnconfBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchImmature->setText(BitcoinUnits::formatWithUnit(unit, watchImmatureBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchTotal->setText(BitcoinUnits::formatWithUnit(unit, watchOnlyBalance + watchUnconfBalance + watchImmatureBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelTotal->setText(BitcoinUnits::formatWithUnit(unit, balance + unconfirmedBalance + stakingBalance, false, BitcoinUnits::separatorAlways));
+
+    bool showStaking = stakingBalance != 0;
+
+    ui->labelStaking->setVisible(showStaking);
+    ui->labelStakingText->setVisible(showStaking);
 
     // only show immature (newly mined) balance if it's non-zero, so as not to complicate things
     // for the non-mining users
-    bool showImmature = immatureBalance != 0;
+    bool showImmature = false;
     bool showWatchOnlyImmature = watchImmatureBalance != 0;
 
     // for symmetry reasons also show immature label when the watch-only one is shown
-    ui->labelImmature->setVisible(showImmature || showWatchOnlyImmature);
-    ui->labelImmatureText->setVisible(showImmature || showWatchOnlyImmature);
-    ui->labelWatchImmature->setVisible(showWatchOnlyImmature); // show watch-only immature balance
+    ui->labelImmature->setVisible(false);
+    ui->labelImmatureText->setVisible(false);
 }
 
 // show/hide watch-only labels
 void OverviewPage::updateWatchOnlyLabels(bool showWatchOnly)
 {
-    ui->labelSpendable->setVisible(showWatchOnly);      // show spendable label (only when watch-only is active)
-    ui->labelWatchonly->setVisible(showWatchOnly);      // show watch-only label
-    ui->lineWatchBalance->setVisible(showWatchOnly);    // show watch-only balance separator line
-    ui->labelWatchAvailable->setVisible(showWatchOnly); // show watch-only available balance
-    ui->labelWatchPending->setVisible(showWatchOnly);   // show watch-only pending balance
-    ui->labelWatchTotal->setVisible(showWatchOnly);     // show watch-only total balance
 
-    if (!showWatchOnly)
-        ui->labelWatchImmature->hide();
+}
+
+void OverviewPage::setStakingStatus(QString text)
+{
+    ui->stakingStatusLabel->setText(text);
 }
 
 void OverviewPage::setClientModel(ClientModel *model)
@@ -224,9 +240,10 @@ void OverviewPage::setWalletModel(WalletModel *model)
         ui->listTransactions->setModelColumn(TransactionTableModel::ToAddress);
 
         // Keep up to date with wallet
-        setBalance(model->getBalance(), model->getUnconfirmedBalance(), model->getImmatureBalance(),
+        setBalance(model->getBalance(), model->getUnconfirmedBalance(), model->getStake(), model->getImmatureBalance(),
                    model->getWatchBalance(), model->getWatchUnconfirmedBalance(), model->getWatchImmatureBalance());
-        connect(model, SIGNAL(balanceChanged(CAmount,CAmount,CAmount,CAmount,CAmount,CAmount)), this, SLOT(setBalance(CAmount,CAmount,CAmount,CAmount,CAmount,CAmount)));
+        connect(model, SIGNAL(balanceChanged(CAmount,CAmount,CAmount,CAmount,CAmount,CAmount,CAmount)), this, SLOT(setBalance(CAmount,CAmount,CAmount,CAmount,CAmount,CAmount,CAmount)));
+        connect(model, SIGNAL(balanceChanged(CAmount, CAmount, CAmount, CAmount,CAmount,CAmount,CAmount)), this, SLOT(updateStakeReportbalanceChanged(CAmount, CAmount, CAmount,CAmount, CAmount,CAmount,CAmount)));
 
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
 
@@ -243,13 +260,26 @@ void OverviewPage::updateDisplayUnit()
     if(walletModel && walletModel->getOptionsModel())
     {
         if(currentBalance != -1)
-            setBalance(currentBalance, currentUnconfirmedBalance, currentImmatureBalance,
+            setBalance(currentBalance, currentUnconfirmedBalance, currentStakingBalance, currentImmatureBalance,
                        currentWatchOnlyBalance, currentWatchUnconfBalance, currentWatchImmatureBalance);
 
         // Update txdelegate->unit with the current unit
         txdelegate->unit = walletModel->getOptionsModel()->getDisplayUnit();
 
         ui->listTransactions->update();
+    }
+}
+
+void OverviewPage::unlockWalletStaking()
+{
+    if(!walletModel)
+        return;
+    // Unlock wallet when requested by wallet model
+    if (walletModel->getEncryptionStatus() == WalletModel::Locked)
+    {
+        AskPassphraseDialog dlg(AskPassphraseDialog::UnlockStaking, this);
+        dlg.setModel(walletModel);
+        dlg.exec();
     }
 }
 
@@ -262,5 +292,69 @@ void OverviewPage::updateAlerts(const QString &warnings)
 void OverviewPage::showOutOfSyncWarning(bool fShow)
 {
     ui->labelWalletStatus->setVisible(fShow);
-    ui->labelTransactionsStatus->setVisible(fShow);
+}
+
+using namespace boost;
+using namespace std;
+
+struct StakePeriodRange_T {
+    int64_t Start;
+    int64_t End;
+    int64_t Total;
+    int Count;
+    string Name;
+};
+
+typedef vector<StakePeriodRange_T> vStakePeriodRange_T;
+
+extern vStakePeriodRange_T PrepareRangeForStakeReport();
+extern int GetsStakeSubTotal(vStakePeriodRange_T& aRange);
+
+void OverviewPage::updateStakeReport(bool fImmediate=false)
+{
+    static vStakePeriodRange_T aRange;
+    int nItemCounted=0;
+
+    if (fImmediate) nLastReportUpdate = 0;
+
+    if (this->isHidden())
+        return;
+
+    int64_t nTook = GetTimeMillis();
+
+    // Skip report recalc if not immediate or before 5 minutes from last
+    if (GetTime() - nLastReportUpdate > 300)
+    {
+
+        aRange = PrepareRangeForStakeReport();
+
+        // get subtotal calc
+        nItemCounted = GetsStakeSubTotal(aRange);
+
+        nLastReportUpdate = GetTime();
+
+        nTook = GetTimeMillis() - nTook;
+
+    }
+
+    int64_t nTook2 = GetTimeMillis();
+
+    int i=30;
+
+    int unit = walletModel->getOptionsModel()->getDisplayUnit();
+
+    ui->label24hStakingStats->setText(BitcoinUnits::formatWithUnit(unit, aRange[i++].Total, false, BitcoinUnits::separatorAlways));
+    ui->label7dStakingStats->setText(BitcoinUnits::formatWithUnit(unit, aRange[i++].Total, false, BitcoinUnits::separatorAlways));
+    ui->label30dStakingStats->setText(BitcoinUnits::formatWithUnit(unit, aRange[i++].Total, false, BitcoinUnits::separatorAlways));
+
+}
+
+void OverviewPage::updateStakeReportbalanceChanged(qint64, qint64, qint64, qint64, qint64, qint64, qint64)
+{
+    OverviewPage::updateStakeReportNow();
+}
+
+void OverviewPage::updateStakeReportNow()
+{
+    updateStakeReport(true);
 }

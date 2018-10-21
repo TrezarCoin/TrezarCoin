@@ -5,8 +5,16 @@
 #include "bitcoinunits.h"
 
 #include "primitives/transaction.h"
+#include "util.h"
+
+#include <math.h>
 
 #include <QStringList>
+#include <QSettings>
+
+#include <sstream>
+#include <string>
+#include <iomanip>
 
 BitcoinUnits::BitcoinUnits(QObject *parent):
         QAbstractListModel(parent),
@@ -60,6 +68,8 @@ QString BitcoinUnits::description(int unit)
 
 qint64 BitcoinUnits::factor(int unit)
 {
+    QSettings settings;
+
     switch(unit)
     {
     case BTC:  return 1000000;

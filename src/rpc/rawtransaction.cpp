@@ -489,7 +489,7 @@ UniValue decoderawtransaction(const UniValue& params, bool fHelp)
             "         \"reqSigs\" : n,            (numeric) The required sigs\n"
             "         \"type\" : \"pubkeyhash\",  (string) The type, eg 'pubkeyhash'\n"
             "         \"addresses\" : [           (json array of string)\n"
-            "           \"TxMQBVc9Ekw7gSxEJgqut5wCLeaAUwj1dW\"   (string) bitcoin address\n"
+            "           \"TxMQBVc9Ekw7gSxEJgqut5wCLeaAUwj1dW\"   (string) trezarcoin address\n"
             "           ,...\n"
             "         ]\n"
             "       }\n"

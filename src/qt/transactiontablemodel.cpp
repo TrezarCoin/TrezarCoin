@@ -360,7 +360,9 @@ QString TransactionTableModel::lookupAddress(const std::string &address, bool to
     }
     if(label.isEmpty() || tooltip)
     {
-        description += QString(" (") + QString::fromStdString(address) + QString(")");
+        if(!label.isEmpty())
+            description += QString(" ");
+        description += QString("(") + QString::fromStdString(address) + QString(")");
     }
     return description;
 }
@@ -379,7 +381,7 @@ QString TransactionTableModel::formatTxType(const TransactionRecord *wtx) const
     case TransactionRecord::SendToSelf:
         return tr("Payment to yourself");
     case TransactionRecord::Generated:
-        return tr("Mined");
+        return tr("Staked");
     default:
         return QString();
     }
@@ -574,7 +576,7 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
         }
         break;
     case Qt::ToolTipRole:
-        return formatTooltip(rec);
+        return "";
     case Qt::TextAlignmentRole:
         return column_alignments[index.column()];
     case Qt::ForegroundRole:

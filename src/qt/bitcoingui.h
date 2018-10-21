@@ -13,10 +13,16 @@
 
 #include <QLabel>
 #include <QMainWindow>
+#include <QEvent>
+#include <QHoverEvent>
 #include <QMap>
 #include <QMenu>
 #include <QPoint>
+#include <QPushButton>
 #include <QSystemTrayIcon>
+#include <QtNetwork>
+#include <QAbstractButton>
+#include <QPainter>
 
 class ClientModel;
 class NetworkStyle;
@@ -36,6 +42,7 @@ QT_BEGIN_NAMESPACE
 class QAction;
 class QProgressBar;
 class QProgressDialog;
+class QAbstractButton;
 QT_END_NAMESPACE
 
 /**
@@ -85,6 +92,8 @@ private:
     QLabel *labelEncryptionIcon;
     QLabel *labelConnectionsIcon;
     QLabel *labelBlocksIcon;
+    QLabel *labelStakingIcon;
+    QLabel *labelPrice;
     QLabel *progressBarLabel;
     QProgressBar *progressBar;
     QProgressDialog *progressDialog;
@@ -111,6 +120,9 @@ private:
     QAction *openRPCConsoleAction;
     QAction *openAction;
     QAction *showHelpMessageAction;
+    QAction *unlockWalletAction;
+    QAction *lockWalletAction;
+    QAction *toggleStakingAction;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
@@ -121,6 +133,8 @@ private:
     /** Keep track of previous number of blocks, to detect progress */
     int prevBlocks;
     int spinnerFrame;
+
+    uint64_t nWeight;
 
     const PlatformStyle *platformStyle;
 
@@ -142,6 +156,8 @@ private:
     void subscribeToCoreSignals();
     /** Disconnect core signals from GUI client */
     void unsubscribeFromCoreSignals();
+
+    void updateWeight();
 
 Q_SIGNALS:
     /** Signal raised when a URI was entered or dragged to the GUI */
@@ -193,7 +209,11 @@ private Q_SLOTS:
 
     /** Show open dialog */
     void openClicked();
+    /** Update Staking status **/
+    void updateStakingStatus();
+
 #endif // ENABLE_WALLET
+    void toggleStaking();
     /** Show configuration dialog */
     void optionsClicked();
     /** Show about dialog */

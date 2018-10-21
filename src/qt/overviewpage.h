@@ -8,6 +8,9 @@
 #include "amount.h"
 
 #include <QWidget>
+#include <QPushButton>
+#include <QListView>
+#include <QPainter>
 #include <memory>
 
 class ClientModel;
@@ -38,8 +41,14 @@ public:
     void showOutOfSyncWarning(bool fShow);
 
 public Q_SLOTS:
-    void setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance,
+    void setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& stakingBalance, const CAmount& immatureBalance,
                     const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
+
+    void showLockStaking(bool status);
+    void setStakingStatus(QString text);
+    void setStakingStats(QString day, QString week, QString month);
+    void updateStakeReportNow();
+    void updateStakeReportbalanceChanged(qint64, qint64, qint64, qint64, qint64,qint64, qint64);
 
 Q_SIGNALS:
     void transactionClicked(const QModelIndex &index);
@@ -50,6 +59,7 @@ private:
     WalletModel *walletModel;
     CAmount currentBalance;
     CAmount currentUnconfirmedBalance;
+    CAmount currentStakingBalance;
     CAmount currentImmatureBalance;
     CAmount currentWatchOnlyBalance;
     CAmount currentWatchUnconfBalance;
@@ -57,12 +67,15 @@ private:
 
     TxViewDelegate *txdelegate;
     std::unique_ptr<TransactionFilterProxy> filter;
+    qint64 nLastReportUpdate;
+    void updateStakeReport(bool fImmediate);
 
 private Q_SLOTS:
     void updateDisplayUnit();
     void handleTransactionClicked(const QModelIndex &index);
     void updateAlerts(const QString &warnings);
     void updateWatchOnlyLabels(bool showWatchOnly);
+    void unlockWalletStaking();
 };
 
 #endif // BITCOIN_QT_OVERVIEWPAGE_H
