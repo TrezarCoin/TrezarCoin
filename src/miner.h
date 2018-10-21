@@ -24,6 +24,7 @@ namespace Consensus { struct Params; };
 
 static const bool DEFAULT_PRINTPRIORITY = false;
 static bool fStaking;
+extern uint64_t nLastCoinStakeSearchInterval;
 
 struct CBlockTemplate
 {

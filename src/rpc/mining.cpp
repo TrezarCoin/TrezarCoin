@@ -246,7 +246,10 @@ UniValue getmininginfo(const UniValue& params, bool fHelp)
     obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
     obj.push_back(Pair("currentblockweight", (uint64_t)nLastBlockWeight));
     obj.push_back(Pair("currentblocktx",   (uint64_t)nLastBlockTx));
-    obj.push_back(Pair("difficulty",       (double)GetDifficulty()));
+    UniValue diff(UniValue::VOBJ);
+    diff.push_back(Pair("proof-of-work",        GetDifficulty()));
+    diff.push_back(Pair("proof-of-stake",       GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true))));
+    obj.push_back(Pair("difficulty",    diff));
     obj.push_back(Pair("errors",           GetWarnings("statusbar")));
     obj.push_back(Pair("networkhashps",    getnetworkhashps(params, false)));
     obj.push_back(Pair("pooledtx",         (uint64_t)mempool.size()));
@@ -911,6 +914,27 @@ UniValue estimatesmartpriority(const UniValue& params, bool fHelp)
     return result;
 }
 
+UniValue staking(const UniValue& params, bool fHelp)
+{
+    if (fHelp || !(params.size() >= 0 && params.size() <= 1))
+        throw runtime_error(
+            "staking bool\n"
+            "Turns staking on or off\n"
+            );
+
+    UniValue result(UniValue::VOBJ);
+    if (params.size() == 1) {
+        if (!params[0].isBool())
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, argument 1 must be a boolean");
+
+        SetStaking(params[0].get_bool());
+    }
+
+    result.push_back(Pair("staking", (GetStaking() ? "true" : "false")));
+
+    return result;
+}
+
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         okSafeMode
   //  --------------------- ------------------------  -----------------------  ----------
@@ -920,6 +944,7 @@ static const CRPCCommand commands[] =
     { "mining",             "getblocktemplate",       &getblocktemplate,       true  },
     { "mining",             "submitblock",            &submitblock,            true  },
 
+    { "generating",         "staking",                &staking,                true  },
     { "generating",         "generate",               &generate,               true  },
     { "generating",         "generatetoaddress",      &generatetoaddress,      true  },
 

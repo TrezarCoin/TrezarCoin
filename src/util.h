@@ -61,8 +61,6 @@ extern unsigned int nStakeMinDepth;
 
 extern uint64_t nBlockHashCacheHits;
 extern uint64_t nBlockHashCacheMisses;
-extern uint64_t nModifierCacheHits;
-extern uint64_t nModifierCacheMisses;
 
 extern const char * const BITCOIN_CONF_FILENAME;
 extern const char * const BITCOIN_PID_FILENAME;

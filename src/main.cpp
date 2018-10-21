@@ -7370,24 +7370,8 @@ bool CheckStakeKernelHash(unsigned int nBits, CBlock& blockFrom, unsigned int nT
     int64_t nStakeModifierTime = 0;
     int nStakeModifierHeight = 0;
 
-    unsigned int nSize = (unsigned int)mapModifiers.size();
-    if (nSize >= MODIFIER_CACHE_LIMIT) {
-        LogPrintf("%s: cleared %u stake modifier cache records\n", __func__, nSize);
-        mapModifiers.clear();
-    }
-
-    /* Stake modifiers for PoS mining are calculated repeatedly
-     * and can be cached to speed up the whole process */
-    if (mapModifiers.count(nTimeBlockFrom)) {
-        nStakeModifier = mapModifiers[nTimeBlockFrom];
-        nModifierCacheHits++;
-    } else {
-        if (!GetKernelStakeModifier(hashBlock, nStakeModifier, nStakeModifierTime, nStakeModifierHeight)) {
-            return false;
-        }
-        mapModifiers.insert(make_pair(nTimeBlockFrom, nStakeModifier));
-        nModifierCacheMisses++;
-    }
+    if (!GetKernelStakeModifier(hashBlock, nStakeModifier, nStakeModifierTime, nStakeModifierHeight))
+        return error("%s: Returned false at height %d\n", __func__, mapBlockIndex[hashBlock]->nHeight);
 
     ss << nStakeModifier << nTimeBlockFrom << nTxPrevOffset << txPrev.nTime << prevout.n << nTimeTx;
     hashProofOfStake = UintToArith256(Hash(ss.begin(), ss.end()));
@@ -7477,4 +7461,12 @@ bool CheckProofOfStake(const CTransaction& tx, unsigned int nBits, arith_uint256
         return error("%s: failed on coinstake %s, hashProof=%s", __func__, tx.GetHash().ToString(), hashProofOfStake.ToString()); // may occur during initial download or if behind on block chain sync
 
     return true;
+}
+
+// Find last block index up to pindex
+const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake)
+{
+    while (pindex && pindex->pprev && (pindex->IsProofOfStake() != fProofOfStake))
+        pindex = pindex->pprev;
+    return pindex;
 }

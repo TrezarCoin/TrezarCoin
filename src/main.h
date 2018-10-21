@@ -535,9 +535,6 @@ static const unsigned int REJECT_ALREADY_KNOWN = 0x101;
 /** Transaction conflicts with a transaction already known */
 static const unsigned int REJECT_CONFLICT = 0x102;
 
-/* Stake modifier cache size limit */
-static const unsigned int MODIFIER_CACHE_LIMIT = 16384;
-
 // Ratio of group interval length between the last group and the first group
 static const int MODIFIER_INTERVAL_RATIO = 3;
 
@@ -561,5 +558,7 @@ int64_t GetWeight(int64_t nIntervalBeginning, int64_t nIntervalEnd);
 
 inline int64_t PastDrift(int64_t nTime)   { return nTime - 15 * 60; } // max. 15 minutes from the past
 inline int64_t FutureDrift(int64_t nTime) { return nTime + 15 * 60; } // max. 15 minutes to the future
+
+const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
 
 #endif // BITCOIN_MAIN_H

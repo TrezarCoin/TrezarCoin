@@ -37,10 +37,10 @@ double GetDifficulty(const CBlockIndex* blockindex)
     // minimum difficulty = 1.0.
     if (blockindex == NULL)
     {
-        if (chainActive.Tip() == NULL)
+        if (pindexBestHeader == NULL)
             return 1.0;
         else
-            blockindex = chainActive.Tip();
+            blockindex = GetLastBlockIndex(pindexBestHeader, false);
     }
 
     int nShift = (blockindex->nBits >> 24) & 0xff;
@@ -81,6 +81,10 @@ UniValue blockheaderToJSON(const CBlockIndex* blockindex)
     result.push_back(Pair("bits", strprintf("%08x", blockindex->nBits)));
     result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
     result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
+    result.push_back(Pair("flags", strprintf("%s%s", blockindex->IsProofOfStake()? "proof-of-stake" : "proof-of-work", blockindex->GeneratedStakeModifier()? " stake-modifier": "")));
+    result.push_back(Pair("proofhash", blockindex->hashProof.GetHex()));
+    result.push_back(Pair("entropybit", (int)blockindex->GetStakeEntropyBit()));
+    result.push_back(Pair("modifier", strprintf("%016x", blockindex->nStakeModifier)));
 
     if (blockindex->pprev)
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
@@ -106,6 +110,7 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     result.push_back(Pair("version", block.nVersion));
     result.push_back(Pair("versionHex", strprintf("%08x", block.nVersion)));
     result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
+    result.push_back(Pair("mint", ValueFromAmount(blockindex->nMint)));
     UniValue txs(UniValue::VARR);
     BOOST_FOREACH(const CTransaction&tx, block.vtx)
     {
@@ -119,12 +124,21 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
             txs.push_back(tx.GetHash().GetHex());
     }
     result.push_back(Pair("tx", txs));
+    if (block.IsProofOfStake())
+        result.push_back(Pair("signature", HexStr(block.vchBlockSig.begin(), block.vchBlockSig.end())));
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("mediantime", (int64_t)blockindex->GetMedianTimePast()));
     result.push_back(Pair("nonce", (uint64_t)block.nNonce));
     result.push_back(Pair("bits", strprintf("%08x", block.nBits)));
-    result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
+    UniValue diff(UniValue::VOBJ);
+    diff.push_back(Pair("proof-of-work",        GetDifficulty()));
+    diff.push_back(Pair("proof-of-stake",       GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true))));
+    result.push_back(Pair("difficulty",    diff));
     result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
+    result.push_back(Pair("flags", strprintf("%s%s", blockindex->IsProofOfStake() ? "proof-of-stake" : "proof-of-work", blockindex->GeneratedStakeModifier() ? " stake-modifier": "")));
+    result.push_back(Pair("proofhash", blockindex->IsProofOfStake() ? blockindex->hashProof.GetHex() : blockindex->GetBlockHash().GetHex()));
+    result.push_back(Pair("entropybit", (int)blockindex->GetStakeEntropyBit()));
+    result.push_back(Pair("modifier", strprintf("%016x", blockindex->nStakeModifier)));
 
     if (blockindex->pprev)
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
@@ -182,7 +196,10 @@ UniValue getdifficulty(const UniValue& params, bool fHelp)
         );
 
     LOCK(cs_main);
-    return GetDifficulty();
+    UniValue obj(UniValue::VOBJ);
+    obj.push_back(Pair("proof-of-work",        GetDifficulty()));
+    obj.push_back(Pair("proof-of-stake",       GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true))));
+    return obj;
 }
 
 std::string EntryDescriptionString()
@@ -1049,6 +1066,8 @@ UniValue getchaintips(const UniValue& params, bool fHelp)
         } else if (block->IsValid(BLOCK_VALID_SCRIPTS)) {
             // This block is fully validated, but no longer part of the active chain. It was probably the active block once, but was reorganized.
             status = "valid-fork";
+        } else if (block->IsValid(BLOCK_VALID_STAKE)) {
+            status = "valid-stake";
         } else if (block->IsValid(BLOCK_VALID_TREE)) {
             // The headers for this block are valid, but it has not been validated. It was probably never part of the most-work chain.
             status = "valid-headers";

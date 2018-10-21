@@ -7,6 +7,7 @@
 #include "chainparams.h"
 #include "clientversion.h"
 #include "main.h"
+#include "miner.h"
 #include "net.h"
 #include "netbase.h"
 #include "protocol.h"
@@ -16,6 +17,7 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #include "version.h"
+#include "wallet/wallet.h"
 
 #include <boost/foreach.hpp>
 
@@ -571,10 +573,71 @@ UniValue clearbanned(const UniValue& params, bool fHelp)
     return NullUniValue;
 }
 
+double GetPoSKernelPS()
+{
+    int nPoSInterval = 72;
+    double dStakeKernelsTriedAvg = 0;
+    int nStakesHandled = 0, nStakesTime = 0;
+
+    CBlockIndex* pindex = pindexBestHeader;
+    CBlockIndex* pindexPrevStake = NULL;
+
+    while (pindex && nStakesHandled < nPoSInterval)
+    {
+        if (pindex->IsProofOfStake())
+        {
+            dStakeKernelsTriedAvg += GetDifficulty(pindexPrevStake) * 4294967296.0;
+            nStakesTime += pindexPrevStake ? (pindexPrevStake->nTime - pindex->nTime) : 0;
+            pindexPrevStake = pindex;
+            nStakesHandled++;
+        }
+
+        pindex = pindex->pprev;
+    }
+
+    return nStakesTime ? dStakeKernelsTriedAvg / nStakesTime : 0;
+}
+
+UniValue getstakinginfo(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "getstakinginfo\n"
+            "Returns an object containing staking-related information.");
+
+    uint64_t nMinWeight = 0, nMaxWeight = 0, nWeight = 0;
+    if (pwalletMain)
+        pwalletMain->GetStakeWeight(nMinWeight, nMaxWeight, nWeight);
+
+    uint64_t nNetworkWeight = GetPoSKernelPS();
+    bool staking = nLastCoinStakeSearchInterval && nWeight;
+    uint64_t nExpectedTime = staking ? (Params().GetConsensus().nPowTargetSpacing * nNetworkWeight / nWeight) : 0;
+
+    UniValue obj(UniValue::VOBJ);
+
+    obj.push_back(Pair("enabled", GetStaking()));
+    obj.push_back(Pair("staking", staking));
+    obj.push_back(Pair("errors", GetWarnings("statusbar")));
+
+    obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
+    obj.push_back(Pair("currentblocktx", (uint64_t)nLastBlockTx));
+
+    obj.push_back(Pair("difficulty", GetDifficulty(GetLastBlockIndex(pindexBestHeader, true))));
+    obj.push_back(Pair("search-interval", (int)nLastCoinStakeSearchInterval));
+
+    obj.push_back(Pair("weight", (uint64_t)nWeight));
+    obj.push_back(Pair("netstakeweight", (uint64_t)nNetworkWeight));
+
+    obj.push_back(Pair("expectedtime", nExpectedTime));
+
+    return obj;
+}
+
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         okSafeMode
   //  --------------------- ------------------------  -----------------------  ----------
     { "network",            "getconnectioncount",     &getconnectioncount,     true  },
+    { "network",            "getstakinginfo",         &getstakinginfo,         true  },
     { "network",            "ping",                   &ping,                   true  },
     { "network",            "getpeerinfo",            &getpeerinfo,            true  },
     { "network",            "addnode",                &addnode,                true  },
