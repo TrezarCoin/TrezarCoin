@@ -90,6 +90,7 @@ private:
 
     UnitDisplayStatusBarControl *unitDisplayControl;
     QLabel *labelEncryptionIcon;
+    QLabel *labelStakeMining;
     QLabel *labelConnectionsIcon;
     QLabel *labelBlocksIcon;
     QLabel *labelStakingIcon;
@@ -157,8 +158,6 @@ private:
     /** Disconnect core signals from GUI client */
     void unsubscribeFromCoreSignals();
 
-    void updateWeight();
-
 Q_SIGNALS:
     /** Signal raised when a URI was entered or dragged to the GUI */
     void receivedURI(const QString &uri);
@@ -184,6 +183,8 @@ public Q_SLOTS:
        @see WalletModel::EncryptionStatus
     */
     void setEncryptionStatus(int status);
+    /** Set stake mining status */
+    void setStakeMining();
 
     bool handlePaymentRequest(const SendCoinsRecipient& recipient);
 

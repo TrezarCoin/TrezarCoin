@@ -12,6 +12,7 @@
 #include "clientmodel.h"
 #include "guiconstants.h"
 #include "guiutil.h"
+#include "miner.h"
 #include "net.h"
 #include "networkstyle.h"
 #include "notificator.h"
@@ -103,6 +104,7 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *n
     walletFrame(0),
     unitDisplayControl(0),
     labelEncryptionIcon(0),
+    labelStakeMining(0),
     labelConnectionsIcon(0),
     labelBlocksIcon(0),
     labelStakingIcon(0),
@@ -222,6 +224,7 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *n
     frameBlocksLayout->setSpacing(3);
     unitDisplayControl = new UnitDisplayStatusBarControl(platformStyle);
     labelEncryptionIcon = new QLabel();
+    labelStakeMining = new QLabel();
     labelStakingIcon = new QLabel();
     labelPrice = new QLabel();
     labelConnectionsIcon = new QLabel();
@@ -236,6 +239,8 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *n
         frameBlocksLayout->addWidget(unitDisplayControl);
         frameBlocksLayout->addStretch();
         frameBlocksLayout->addWidget(labelEncryptionIcon);
+        frameBlocksLayout->addStretch();
+        frameBlocksLayout->addWidget(labelStakeMining);
     }
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(labelConnectionsIcon);
@@ -243,12 +248,14 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *n
     frameBlocksLayout->addWidget(labelBlocksIcon);
     frameBlocksLayout->addStretch();
 
-    if (GetBoolArg("-staking", true))
+    if (GetBoolArg("-stakegen", true))
     {
         QTimer *timerStakingIcon = new QTimer(labelStakingIcon);
         connect(timerStakingIcon, SIGNAL(timeout()), this, SLOT(updateStakingStatus()));
-        timerStakingIcon->start(150 * 1000);
+        connect(timerStakingIcon, SIGNAL(timeout()), this, SLOT(setStakeMining()));
+        timerStakingIcon->start(60 * 1000);
         updateStakingStatus();
+        setStakeMining();
     }
     else
     {
@@ -684,6 +691,76 @@ void BitcoinGUI::aboutClicked()
     dlg.exec();
 }
 
+void BitcoinGUI::setStakeMining() {
+    if (!pwalletMain)
+        return;
+
+    TRY_LOCK(cs_main, lockMain);
+    if (!lockMain)
+        return;
+
+    TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
+    if (!lockWallet)
+        return;
+
+    QString tooltip;
+    bool fStakeIcon = true;
+
+    uint64_t nMinWeight = 0, nMaxWeight = 0, nWeight = 0;
+    if (pwalletMain)
+        pwalletMain->GetStakeWeight(nMinWeight, nMaxWeight, nWeight);
+
+    bool staking = nLastCoinStakeSearchInterval && nWeight;
+    double nNetworkWeight = GetPoSKernelPS();
+    unsigned int nEstimateTime = 0;
+    if (staking && nWeight != 0 && nNetworkWeight != 0)
+        nEstimateTime = nNetworkWeight / nWeight * 3.00;
+
+    if (!GetStaking()) {
+        fStakeIcon = false;
+        tooltip = tr("Staking disabled");
+    } else {
+        if (vNodes.empty()) {
+            fStakeIcon = false;
+            tooltip = tr("Not staking - Wallet offline");
+        } else if (IsInitialBlockDownload()) {
+            fStakeIcon = false;
+            tooltip = tr("Not staking - Wallet syncing");
+        } else if(pwalletMain->IsLocked()) {
+            fStakeIcon = false;
+            tooltip = tr("Not staking - Wallet locked");
+        } else {
+            if (!nWeight) {
+                fStakeIcon = false;
+                tooltip = tr("Not staking - Immature coins");
+            } else if (nEstimateTime != 0) {
+                fStakeIcon = true;
+                if ((nEstimateTime / 60) > 24) {
+                    nEstimateTime /= 24;
+                    tooltip += tr("Estimated Stake Time: %1 days").arg(nEstimateTime);
+                } else if ((nEstimateTime / 60.00) < 0) {
+                    tooltip += tr("Estimated Stake Time: %1 minutes").arg(nEstimateTime);
+                } else {
+                    nEstimateTime /= 60.00;
+                    tooltip += tr("Estimated Stake Time: %1 hours").arg(nEstimateTime);
+                }
+            } else {
+                tooltip += tr("You are staking");
+            }
+        }
+    }
+
+    /* Don't wrap words */
+    tooltip = QString("<nobr>") + tooltip + QString("</nobr>");
+
+    labelStakeMining->setToolTip(tooltip);
+
+    if (fStakeIcon)
+        labelStakeMining->setPixmap(QIcon(":/icons/staking_on").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
+    else
+        labelStakeMining->setPixmap(QIcon(":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
+}
+
 void BitcoinGUI::showDebugWindow()
 {
     rpcConsole->showNormal();
@@ -1101,6 +1178,7 @@ void BitcoinGUI::setEncryptionStatus(int status)
     }
     }
     updateStakingStatus();
+    setStakeMining();
 }
 #endif // ENABLE_WALLET
 
@@ -1289,7 +1367,7 @@ void BitcoinGUI::toggleStaking()
 }
 
 #ifdef ENABLE_WALLET
-void BitcoinGUI::updateWeight()
+void BitcoinGUI::updateStakingStatus()
 {
     if (!pwalletMain)
         return;
@@ -1302,63 +1380,47 @@ void BitcoinGUI::updateWeight()
     if (!lockWallet)
         return;
 
-    uint64_t nMinWeight = 0, nMaxWeight = 0;
-    pwalletMain->GetStakeWeight(nMinWeight, nMaxWeight, this->nWeight);
-}
+    uint64_t nMinWeight = 0, nMaxWeight = 0, nWeight = 0;
+    if (pwalletMain)
+        pwalletMain->GetStakeWeight(nMinWeight, nMaxWeight, nWeight);
 
-void BitcoinGUI::updateStakingStatus()
-{
-    updateWeight();
-
+    bool staking = nLastCoinStakeSearchInterval && nWeight;
+    double nNetworkWeight = GetPoSKernelPS();
+    unsigned int nEstimateTime = 0;
+    if (staking && nWeight != 0 && nNetworkWeight != 0)
+        nEstimateTime = nNetworkWeight / nWeight * 3.00;
+    
     if(walletFrame){
-        if (!GetBoolArg("-staking",true))
+        if (!GetStaking())
         {
-            walletFrame->setStakingStatus(tr("Staking is turned off."));
+            walletFrame->setStakingStatus(tr("Staking disabled"));
             walletFrame->showLockStaking(false);
-        }
-        else if (nLastCoinStakeSearchInterval && nWeight)
-        {
-
-            uint64_t nWeight = this->nWeight;
-            uint64_t nNetworkWeight = GetPoSKernelPS();
-            int nBestHeight = pindexBestHeader->nHeight;
-
-            unsigned nEstimateTime = Params().GetConsensus().nPowTargetSpacing * nNetworkWeight / nWeight;
-
-            QString text;
-            if (nEstimateTime > 60)
-            {
-                if (nEstimateTime < 60*60)
-                {
-                    text = tr("Expected time to earn reward is %n minute(s)", "", nEstimateTime/60);
-                }
-                else if (nEstimateTime < 24*60*60)
-                {
-                    text = tr("Expected time to earn reward is %n hour(s)", "", nEstimateTime/(60*60));
-                }
-                else
-                {
-                    text = tr("Expected time to earn reward is %n day(s)", "", nEstimateTime/(60*60*24));
-                }
-            }
-
-            nWeight /= COIN;
-            nNetworkWeight /= COIN;
-
-            walletFrame->setStakingStatus(text!=""?text:tr("You are staking"));
         }
         else
         {
-            if (pwalletMain && pwalletMain->IsLocked())
-                walletFrame->setStakingStatus(tr("Not staking - Wallet locked"));
-            else if (vNodes.empty())
+            if (vNodes.empty()) {
                 walletFrame->setStakingStatus(tr("Not staking - Wallet offline"));
-            else if (IsInitialBlockDownload())
+            } else if (IsInitialBlockDownload()) {
                 walletFrame->setStakingStatus(tr("Not staking - Wallet syncing"));
-            else if (!nWeight)
-                walletFrame->setStakingStatus(tr("Not staking - Immature coins"));
-            else
-                walletFrame->setStakingStatus(tr("Not staking - Please wait"));
+            } else if (pwalletMain && pwalletMain->IsLocked()) {
+                walletFrame->setStakingStatus(tr("Not staking - Wallet locked"));
+            } else {
+                QString text;
+                if (!nWeight) {
+                    text = tr("Not staking - Immature coins");
+                } else if (nEstimateTime != 0) {
+                    if ((nEstimateTime / 60) > 24) {
+                        nEstimateTime /= 24;
+                        text = tr("Expected time to earn reward is %n days(s)", "", nEstimateTime);
+                    } else if ((nEstimateTime / 60.00) < 0) {
+                        text = tr("Expected time to earn reward is %n minutes(s)", "", nEstimateTime);
+                    } else {
+                        nEstimateTime /= 60.00;
+                        text = tr("Expected time to earn reward is %n hours(s)", "", nEstimateTime);
+                    }
+                }
+                walletFrame->setStakingStatus(text != "" ? text : tr("You are staking"));
+            }
         }
     }
 }
