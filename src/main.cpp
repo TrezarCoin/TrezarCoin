@@ -881,7 +881,7 @@ static std::pair<int, int64_t> CalculateSequenceLocks(const CTransaction &tx, in
     // tx.nVersion is signed integer so requires cast to unsigned otherwise
     // we would be doing a signed comparison and half the range of nVersion
     // wouldn't support BIP 68.
-    bool fEnforceBIP68 = static_cast<uint32_t>(tx.nVersion) >= 2
+    bool fEnforceBIP68 = static_cast<uint32_t>(tx.nVersion) >= 3
                       && flags & LOCKTIME_VERIFY_SEQUENCE;
 
     // Do not enforce sequence numbers as a relative lock time
@@ -1168,11 +1168,11 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
     if (tx.IsCoinBase())
         return state.DoS(100, false, REJECT_INVALID, "coinbase");
 
-    // Don't relay version 2 transactions until CSV is active, and we can be
+    // Don't relay version 3 transactions until CSV is active, and we can be
     // sure that such transactions will be mined (unless we're on
     // -testnet/-regtest).
     const CChainParams& chainparams = Params();
-    if (fRequireStandard && tx.nVersion >= 2 && VersionBitsTipState(chainparams.GetConsensus(), Consensus::DEPLOYMENT_CSV) != THRESHOLD_ACTIVE) {
+    if (fRequireStandard && tx.nVersion >= 3 && VersionBitsTipState(chainparams.GetConsensus(), Consensus::DEPLOYMENT_CSV) != THRESHOLD_ACTIVE) {
         return state.DoS(0, false, REJECT_NONSTANDARD, "premature-version2-tx");
     }
 
