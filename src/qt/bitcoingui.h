@@ -219,6 +219,8 @@ private Q_SLOTS:
     void optionsClicked();
     /** Show about dialog */
     void aboutClicked();
+    /** Utility to get stake status text */
+    bool getStakingStatus(double nEstimateTime, uint64_t nWeight, QString &stakeText);
     /** Show debug window */
     void showDebugWindow();
     /** Show debug window and set focus to the console */

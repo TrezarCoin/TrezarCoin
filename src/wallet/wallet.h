@@ -73,6 +73,8 @@ class CScript;
 class CTxMemPool;
 class CWalletTx;
 
+double GetStakeEstimate(uint64_t& nWeight);
+
 /** (client) version numbers for particular wallet features */
 enum WalletFeature
 {
