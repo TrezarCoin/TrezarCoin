@@ -18,33 +18,6 @@
     <number>8</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayoutTxComment">
-     <property name="spacing">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QLabel" name="labelTxComment">
-       <property name="text">
-        <string>Transaction comment: </string>
-       </property>
-       <property name="buddy">
-        <cstring>editTxComment</cstring>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QValidatedLineEdit" name="editTxComment">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="toolTip">
-        <string>Enter a transaction comment up to 140 characters (ATTENTION: this information is public)</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
     <widget class="QFrame" name="frameCoinControl">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -92,29 +65,27 @@
          <number>10</number>
         </property>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayoutCoinControl1">
-          <property name="bottomMargin">
-           <number>15</number>
+         <layout class="QHBoxLayout" name="horizontalLayoutTxComment">
+          <property name="spacing">
+           <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="labelCoinControlFeatures">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">font-weight:bold;</string>
-            </property>
+           <widget class="QLabel" name="labelTxComment">
             <property name="text">
-             <string>Coin Control Features</string>
+             <string>Transaction comment: </string>
+            </property>
+            <property name="buddy">
+             <cstring>editTxComment</cstring>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QValidatedLineEdit" name="editTxComment">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string>Enter a transaction comment up to 140 characters (ATTENTION: this information is public)</string>
             </property>
            </widget>
           </item>
@@ -134,7 +105,7 @@
              <string notr="true"/>
             </property>
             <property name="text">
-             <string>Inputs...</string>
+             <string>Coin Control</string>
             </property>
             <property name="autoDefault">
              <bool>false</bool>
