@@ -479,6 +479,11 @@
      </column>
      <column>
       <property name="text">
+       <string>Weight</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string/>
       </property>
      </column>

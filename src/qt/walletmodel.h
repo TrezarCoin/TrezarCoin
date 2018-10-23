@@ -164,6 +164,8 @@ public:
     bool changePassphrase(const SecureString &oldPass, const SecureString &newPass);
     // Wallet backup
     bool backupWallet(const QString &filename);
+    // Stake weight calculation
+    void getStakeWeightQuick(const qint64& nTime, const qint64& nValue, quint64& nWeight);
 
     // RAI object for unlocking wallet, returned by requestUnlock()
     class UnlockContext

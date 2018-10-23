@@ -3700,6 +3700,19 @@ int64_t CWallet::GetNewMint() const
     return nTotal;
 }
 
+bool CWallet::GetStakeWeightQuick(const int64_t& nTime, const int64_t& nValue, uint64_t& nWeight) {
+    CBigNum bnCoinDayWeight = 0;
+    int64_t nTimeWeight;
+
+    /* Stake weight reported is zero if time weight isn't positive */
+    nTimeWeight = GetWeight(nTime, (int64_t)GetTime());
+    if(nTimeWeight > 0)
+      /* Two divides to avoid overflows on 32-bit systems */
+      bnCoinDayWeight = (CBigNum(nValue) * nTimeWeight) / COIN / (24 * 60 * 60);
+    nWeight = bnCoinDayWeight.getuint64();
+    return(true);
+}
+
 void CWallet::GetStakeWeight(uint64_t& nMinWeight, uint64_t& nMaxWeight, uint64_t& nWeight)
 {
     // Choose coins to use
