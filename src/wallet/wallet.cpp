@@ -2189,7 +2189,7 @@ bool CWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, bool ov
 }
 
 bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet,
-                                int& nChangePosInOut, std::string& strFailReason, const CCoinControl* coinControl, bool sign)
+                                int& nChangePosInOut, std::string& strFailReason, const CCoinControl* coinControl, bool sign, std::string strTxComment)
 {
     CAmount nValue = 0;
     int nChangePosRequest = nChangePosInOut;
@@ -2216,6 +2216,11 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
     wtxNew.nTime = GetAdjustedTime();
     wtxNew.BindWallet(this);
     CMutableTransaction txNew;
+
+    // transaction comment
+    txNew.strTxComment = strTxComment;
+    if (txNew.strTxComment.length() > MAX_TX_COMMENT_LEN)
+        txNew.strTxComment.resize(MAX_TX_COMMENT_LEN);
 
     // Discourage fee sniping.
     //
@@ -2257,6 +2262,15 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
             AvailableCoins(vAvailableCoins, true, coinControl);
 
             nFeeRet = 0;
+            /* Transactions with comments require additional fees to deal with spam */
+            unsigned int nCommentLength = txNew.strTxComment.length();
+            if (nCommentLength) {
+                if (nCommentLength > 15) // Long comment, high fee
+                    nFeeRet += 10 * CENT;
+                else // Short comment, low fee
+                    nFeeRet += CENT;
+            }
+
             // Start with no fee and loop until there is enough fee
             while (true)
             {
@@ -2478,7 +2492,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                         break;
                 }
 
-                CAmount nFeeNeeded = GetMinimumFee(nBytes, nTxConfirmTarget, mempool);
+                CAmount nFeeNeeded = GetMinimumFee(nBytes, nTxConfirmTarget, mempool, txNew.strTxComment);
                 if (coinControl && nFeeNeeded > 0 && coinControl->nMinimumTotalFee > nFeeNeeded) {
                     nFeeNeeded = coinControl->nMinimumTotalFee;
                 }
@@ -2590,10 +2604,18 @@ CAmount CWallet::GetRequiredFee(unsigned int nTxBytes)
     return std::max(minTxFee.GetFee(nTxBytes), ::minRelayTxFee.GetFee(nTxBytes));
 }
 
-CAmount CWallet::GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget, const CTxMemPool& pool)
+CAmount CWallet::GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget, const CTxMemPool& pool, std::string strTxComment)
 {
     // payTxFee is user-set "I want to pay this much"
     CAmount nFeeNeeded = payTxFee.GetFee(nTxBytes);
+    /* Transactions with comments require additional fees to deal with spam */
+    unsigned int nCommentLength = strTxComment.length();
+    if (nCommentLength) {
+        if (nCommentLength > 15) // Long comment, high fee
+            nFeeNeeded += 10 * CENT;
+        else // Short comment, low fee
+            nFeeNeeded += CENT;
+    }
     // User didn't set: use -txconfirmtarget to estimate...
     if (nFeeNeeded == 0) {
         int estimateFoundTarget = nConfirmTarget;

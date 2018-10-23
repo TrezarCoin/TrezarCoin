@@ -18,6 +18,33 @@
     <number>8</number>
    </property>
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayoutTxComment">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="labelTxComment">
+       <property name="text">
+        <string>Transaction comment: </string>
+       </property>
+       <property name="buddy">
+        <cstring>editTxComment</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QValidatedLineEdit" name="editTxComment">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="toolTip">
+        <string>Enter a transaction comment up to 140 characters (ATTENTION: this information is public)</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
     <widget class="QFrame" name="frameCoinControl">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">

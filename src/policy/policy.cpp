@@ -63,6 +63,12 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason, const bool witnes
         return false;
     }
 
+    // Disallow large transaction comments
+    if (tx.strTxComment.length() > MAX_TX_COMMENT_LEN) {
+        reason = "comment-size";
+        return false;
+    }
+
     // Extremely large transactions with lots of inputs can cost the network
     // almost as much to process as they cost the sender in fees, because
     // computing signature hashes is O(ninputs*txsize). Limiting transactions
