@@ -16,6 +16,10 @@ FORMS += \
     ../src/qt/forms/sendcoinsentry.ui \
     ../src/qt/forms/signverifymessagedialog.ui \
     ../src/qt/forms/transactiondescdialog.ui \
+    ../src/qt/forms/sendcoinsdialog_kopie.ui \
+    ../src/qt/forms/sendcoinsentry_kopie.ui \
+    ../src/qt/forms/easysplitdialog.ui \
+    ../src/qt/forms/easysplitentry.ui
 
 RESOURCES += \
     ../src/qt/bitcoin.qrc

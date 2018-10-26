@@ -81,7 +81,11 @@
             </sizepolicy>
            </property>
            <property name="font">
-            <font/>
+            <font>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
            </property>
            <property name="text">
             <string>Balance</string>
@@ -176,7 +180,7 @@
              </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -194,9 +198,9 @@
             <widget class="QLabel" name="labelBalance">
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
+               <pointsize>8</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
               </font>
              </property>
@@ -230,7 +234,7 @@
              </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -248,7 +252,7 @@
             <widget class="QLabel" name="labelUnconfirmed">
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -284,7 +288,7 @@
              </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -302,7 +306,7 @@
             <widget class="QLabel" name="labelImmature">
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -338,7 +342,7 @@
              </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -356,9 +360,9 @@
             <widget class="QLabel" name="labelTotal">
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
+               <pointsize>8</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
               </font>
              </property>
@@ -374,7 +378,7 @@
             <widget class="QLabel" name="labelStaking">
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -410,7 +414,7 @@
              </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -452,7 +456,11 @@
          <item>
           <widget class="QLabel" name="label_11">
            <property name="font">
-            <font/>
+            <font>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
            </property>
            <property name="text">
             <string>Staking</string>
@@ -528,7 +536,7 @@
              </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -546,7 +554,7 @@
             <widget class="QLabel" name="label24hStakingStats">
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -583,7 +591,7 @@
              </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -602,7 +610,7 @@
             <widget class="QLabel" name="label7dStakingStats">
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -639,7 +647,7 @@
              </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -658,7 +666,7 @@
             <widget class="QLabel" name="label30dStakingStats">
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>8</pointsize>
                <weight>50</weight>
                <bold>false</bold>
                <stylestrategy>PreferAntialias</stylestrategy>
@@ -670,6 +678,93 @@
              </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Network</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <layout class="QFormLayout" name="formLayout_4">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Blockheight</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="label_Blockheight">
+             <property name="text">
+              <string>TODO</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Difficulty</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="label_DiffPoW">
+             <property name="text">
+              <string>TODO</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLabel" name="label_DiffPoS">
+             <property name="text">
+              <string>TODO</string>
              </property>
             </widget>
            </item>

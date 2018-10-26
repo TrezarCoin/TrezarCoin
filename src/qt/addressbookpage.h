@@ -6,6 +6,8 @@
 #define BITCOIN_QT_ADDRESSBOOKPAGE_H
 
 #include <QDialog>
+#include <QStringList>
+#include <QAbstractListModel>
 
 class AddressTableModel;
 class OptionsModel;
@@ -21,6 +23,7 @@ class QMenu;
 class QModelIndex;
 class QSortFilterProxyModel;
 class QTableView;
+class QStringList;
 QT_END_NAMESPACE
 
 /** Widget that shows a list of sending or receiving addresses.
@@ -32,7 +35,8 @@ class AddressBookPage : public QDialog
 public:
     enum Tabs {
         SendingTab = 0,
-        ReceivingTab = 1
+        ReceivingTab = 1,
+        EasySplitTab = 2
     };
 
     enum Mode {
@@ -40,11 +44,17 @@ public:
         ForEditing  /**< Open address book for editing */
     };
 
+    int easySplitCounter;
+    QStringList easySplitAddressList;
+
     explicit AddressBookPage(const PlatformStyle *platformStyle, Mode mode, Tabs tab, QWidget *parent);
     ~AddressBookPage();
 
     void setModel(AddressTableModel *model);
     const QString &getReturnValue() const { return returnValue; }
+
+    const QStringList &getEasySplitList() const { return easySplitAddressList; }
+    const int &getEasySplitCounter() const { return easySplitCounter; }
 
 public Q_SLOTS:
     void done(int retval);

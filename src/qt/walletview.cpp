@@ -11,6 +11,7 @@
 #include "guiutil.h"
 #include "optionsmodel.h"
 #include "overviewpage.h"
+#include "easysplitdialog.h"
 #include "platformstyle.h"
 #include "receivecoinsdialog.h"
 #include "sendcoinsdialog.h"
@@ -52,6 +53,7 @@ WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent):
 
     receiveCoinsPage = new ReceiveCoinsDialog(platformStyle);
     sendCoinsPage = new SendCoinsDialog(platformStyle);
+    easySplitPage = new EasySplitDialog(platformStyle);
 
     usedSendingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::SendingTab, this);
     usedReceivingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::ReceivingTab, this);
@@ -60,6 +62,7 @@ WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent):
     addWidget(transactionsPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
+    addWidget(easySplitPage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
@@ -74,6 +77,8 @@ WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent):
     connect(sendCoinsPage, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
     // Pass through messages from transactionView
     connect(transactionView, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
+    //Pass through messages from easySplitPage
+    connect(easySplitPage, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
 }
 
 WalletView::~WalletView()
@@ -104,6 +109,7 @@ void WalletView::setClientModel(ClientModel *clientModel)
 
     overviewPage->setClientModel(clientModel);
     sendCoinsPage->setClientModel(clientModel);
+    easySplitPage->setClientModel(clientModel);
 }
 
 void WalletView::requestAddressHistory()
@@ -120,6 +126,7 @@ void WalletView::setWalletModel(WalletModel *walletModel)
     overviewPage->setWalletModel(walletModel);
     receiveCoinsPage->setModel(walletModel);
     sendCoinsPage->setModel(walletModel);
+    easySplitPage->setModel(walletModel);
     usedReceivingAddressesPage->setModel(walletModel->getAddressTableModel());
     usedSendingAddressesPage->setModel(walletModel->getAddressTableModel());
 
@@ -191,6 +198,11 @@ void WalletView::gotoSendCoinsPage(QString addr)
 void WalletView::setStakingStatus(QString text)
 {
     overviewPage->setStakingStatus(text);
+}
+
+void WalletView::gotoEasySplitPage()
+{
+    setCurrentWidget(easySplitPage);
 }
 
 void WalletView::showLockStaking(bool status)
@@ -277,6 +289,11 @@ void WalletView::changePassphrase()
 void WalletView::setStakingStats(QString day, QString week, QString month)
 {
     overviewPage->setStakingStats(day,week,month);
+}
+
+void WalletView::setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS)
+{
+    overviewPage->setNetworkStats(blockheight, diffPoW, diffPoS);
 }
 
 void WalletView::unlockWallet()

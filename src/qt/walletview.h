@@ -18,6 +18,7 @@ class SendCoinsDialog;
 class SendCoinsRecipient;
 class TransactionView;
 class WalletModel;
+class EasySplitDialog;
 class AddressBookPage;
 
 QT_BEGIN_NAMESPACE
@@ -64,6 +65,7 @@ private:
     SendCoinsDialog *sendCoinsPage;
     AddressBookPage *usedSendingAddressesPage;
     AddressBookPage *usedReceivingAddressesPage;
+    EasySplitDialog *easySplitPage;
 
     TransactionView *transactionView;
 
@@ -77,6 +79,8 @@ public Q_SLOTS:
     void gotoHistoryPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
+    /** Switch to overview (home) page */
+    void gotoEasySplitPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
 
@@ -115,6 +119,7 @@ public Q_SLOTS:
     void showLockStaking(bool status);
     void setStakingStatus(QString text);
     void setStakingStats(QString day, QString week, QString month);
+    void setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS);
     void requestAddressHistory();
 
 Q_SIGNALS:

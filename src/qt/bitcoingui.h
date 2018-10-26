@@ -124,6 +124,7 @@ private:
     QAction *unlockWalletAction;
     QAction *lockWalletAction;
     QAction *toggleStakingAction;
+    QAction *easysplitAction;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
@@ -212,6 +213,8 @@ private Q_SLOTS:
     void openClicked();
     /** Update Staking status **/
     void updateStakingStatus();
+    /** Switch to receive coins page */
+    void gotoEasySplitPage();
 
 #endif // ENABLE_WALLET
     void toggleStaking();

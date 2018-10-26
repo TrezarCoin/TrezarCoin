@@ -47,6 +47,7 @@ public Q_SLOTS:
     void showLockStaking(bool status);
     void setStakingStatus(QString text);
     void setStakingStats(QString day, QString week, QString month);
+    void setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS);
     void updateStakeReportNow();
     void updateStakeReportbalanceChanged(qint64, qint64, qint64, qint64, qint64,qint64, qint64);
 

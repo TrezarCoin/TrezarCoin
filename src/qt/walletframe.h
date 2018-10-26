@@ -58,6 +58,8 @@ public Q_SLOTS:
     void gotoHistoryPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
+    /**Switch to easy split page */
+    void gotoEasySplitPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
 
@@ -81,6 +83,7 @@ public Q_SLOTS:
 
     void setStakingStatus(QString text);
     void setStakingStats(QString day, QString week, QString month);
+    void setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS);
 
     /** Show used sending addresses */
     void usedSendingAddresses();

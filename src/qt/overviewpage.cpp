@@ -169,6 +169,13 @@ void OverviewPage::setStakingStats(QString day, QString week, QString month)
     ui->label30dStakingStats->setText(month);
 }
 
+void OverviewPage::setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS)
+{
+    ui->label_Blockheight->setText(blockheight);
+    ui->label_DiffPoW->setText(diffPoW);
+    ui->label_DiffPoS->setText(diffPoS);
+}
+
 void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& stakingBalance, const CAmount& immatureBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance)
 {
     int unit = walletModel->getOptionsModel()->getDisplayUnit();

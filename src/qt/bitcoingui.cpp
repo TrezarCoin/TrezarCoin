@@ -21,6 +21,7 @@
 #include "optionsmodel.h"
 #include "platformstyle.h"
 #include "rpcconsole.h"
+#include "rpc/server.h"
 #include "utilitydialog.h"
 #include "walletmodel.h"
 #include "wallet/rpcwallet.h"
@@ -144,6 +145,7 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *n
     unlockWalletAction(0),
     lockWalletAction(0),
     toggleStakingAction(0),
+    easysplitAction(0),
     platformStyle(platformStyle)
 {
     GUIUtil::restoreWindowGeometry("nWindow", QSize(840, 600), this);
@@ -341,7 +343,7 @@ void BitcoinGUI::createActions()
     receiveCoinsMenuAction->setStatusTip(receiveCoinsAction->statusTip());
     receiveCoinsMenuAction->setToolTip(receiveCoinsMenuAction->statusTip());
 
-    toggleStakingAction = new QAction(tr("Toggle &Staking"), this);
+    toggleStakingAction = new QAction(platformStyle->SingleColorIcon(":/icons/staking_off"),tr("Toggle &Staking"), this);
     toggleStakingAction->setStatusTip(tr("Toggle Staking"));
 
     historyAction = new QAction(platformStyle->SingleColorIcon(":/icons/history"), tr("&Transactions"), this);
@@ -350,6 +352,12 @@ void BitcoinGUI::createActions()
     historyAction->setCheckable(true);
     historyAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4));
     tabGroup->addAction(historyAction);
+
+    easysplitAction = new QAction(platformStyle->SingleColorIcon(":/icons/send"), tr("&EasySplit"), this);
+    easysplitAction->setStatusTip(tr("Split your Coins easily"));
+    easysplitAction->setToolTip(easysplitAction->statusTip());
+    easysplitAction->setCheckable(true);
+    tabGroup->addAction(easysplitAction);
 
 #ifdef ENABLE_WALLET
     // These showNormalIfMinimized are needed because Send Coins and Receive Coins
@@ -367,6 +375,8 @@ void BitcoinGUI::createActions()
     connect(historyAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(toggleStakingAction, SIGNAL(triggered()), this, SLOT(toggleStaking()));
+    connect(easysplitAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(easysplitAction, SIGNAL(triggered()), this, SLOT(gotoEasySplitPage()));
 #endif // ENABLE_WALLET
 
     quitAction = new QAction(platformStyle->TextColorIcon(":/icons/quit"), tr("E&xit"), this);
@@ -478,10 +488,15 @@ void BitcoinGUI::createMenuBar()
         settings->addAction(unlockWalletAction);
         settings->addAction(changePassphraseAction);
         settings->addSeparator();
-        settings->addAction(toggleStakingAction);
-        settings->addSeparator();
     }
     settings->addAction(optionsAction);
+
+    QMenu *pos = appMenuBar->addMenu(tr("&PoS"));
+    if (walletFrame)
+    {
+        pos->addAction(toggleStakingAction);
+        pos->addAction(easysplitAction);
+    }
 
     QMenu *help = appMenuBar->addMenu(tr("&Help"));
     if(walletFrame)
@@ -492,6 +507,7 @@ void BitcoinGUI::createMenuBar()
     help->addSeparator();
     help->addAction(aboutAction);
     help->addAction(aboutQtAction);
+
 }
 
 void BitcoinGUI::createToolBars()
@@ -602,6 +618,7 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     receiveCoinsAction->setEnabled(enabled);
     receiveCoinsMenuAction->setEnabled(enabled);
     historyAction->setEnabled(enabled);
+    easysplitAction->setEnabled(enabled);
     encryptWalletAction->setEnabled(enabled);
     backupWalletAction->setEnabled(enabled);
     changePassphraseAction->setEnabled(enabled);
@@ -792,6 +809,11 @@ void BitcoinGUI::gotoHistoryPage()
     if (walletFrame) walletFrame->gotoHistoryPage();
 }
 
+void BitcoinGUI::gotoEasySplitPage()
+{
+    if (walletFrame) walletFrame->gotoEasySplitPage();
+}
+
 void BitcoinGUI::gotoReceiveCoinsPage()
 {
     receiveCoinsAction->setChecked(true);
@@ -878,6 +900,9 @@ void BitcoinGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVer
     {
         tooltip = tr("Up to date") + QString(".<br>") + tooltip;
         labelBlocksIcon->setPixmap(platformStyle->SingleColorIcon(":/icons/synced").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+
+        tooltip += QString("<br>") + tr("The current PoW difficulty is %1").arg(GetDifficulty());
+        tooltip += QString("<br>") + tr("The current PoS difficulty is %1").arg(GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true)));
 
 #ifdef ENABLE_WALLET
         if(walletFrame)

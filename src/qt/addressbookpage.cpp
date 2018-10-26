@@ -49,6 +49,9 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode mode, 
         {
         case SendingTab: setWindowTitle(tr("Choose the address to send coins to")); break;
         case ReceivingTab: setWindowTitle(tr("Choose the address to receive coins with")); break;
+        case EasySplitTab: setWindowTitle(tr("Choose the addresses you would like to send coins to"));
+             ui->tableView->setSelectionMode(QAbstractItemView::MultiSelection);
+             break;
         }
         connect(ui->tableView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(accept()));
         ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -61,6 +64,7 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode mode, 
         {
         case SendingTab: setWindowTitle(tr("Sending addresses")); break;
         case ReceivingTab: setWindowTitle(tr("Receiving addresses")); break;
+        case EasySplitTab: setWindowTitle(tr("EasySplit Addresses")); break;
         }
         break;
     }
@@ -72,6 +76,10 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode mode, 
         break;
     case ReceivingTab:
         ui->labelExplanation->setText(tr("These are your Trezarcoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction."));
+        ui->deleteAddress->setVisible(false);
+        break;
+    case EasySplitTab:
+        ui->labelExplanation->setText(tr("These are your Trezarcoin addresses for EasySplit"));
         ui->deleteAddress->setVisible(false);
         break;
     }
@@ -122,6 +130,11 @@ void AddressBookPage::setModel(AddressTableModel *model)
     {
     case ReceivingTab:
         // Receive filter
+        proxyModel->setFilterRole(AddressTableModel::TypeRole);
+        proxyModel->setFilterFixedString(AddressTableModel::Receive);
+        break;
+    case EasySplitTab:
+        // EasySplit filter
         proxyModel->setFilterRole(AddressTableModel::TypeRole);
         proxyModel->setFilterFixedString(AddressTableModel::Receive);
         break;
@@ -235,6 +248,12 @@ void AddressBookPage::selectionChanged()
             ui->deleteAddress->setVisible(false);
             deleteAction->setEnabled(false);
             break;
+        case EasySplitTab:
+            // Deleting receiving addresses, however, is not allowed
+            ui->deleteAddress->setEnabled(false);
+            ui->deleteAddress->setVisible(false);
+            deleteAction->setEnabled(false);
+            break;
         }
         ui->copyAddress->setEnabled(true);
     }
@@ -257,6 +276,13 @@ void AddressBookPage::done(int retval)
     Q_FOREACH (const QModelIndex& index, indexes) {
         QVariant address = table->model()->data(index);
         returnValue = address.toString();
+    }
+
+    Q_FOREACH (const QModelIndex& index, indexes)
+    {
+        QVariant easySplitAddress = table->model()->data(index);
+        easySplitAddressList.append(easySplitAddress.toString());
+        easySplitCounter++;
     }
 
     if(returnValue.isEmpty())
