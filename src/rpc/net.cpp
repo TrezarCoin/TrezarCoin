@@ -600,7 +600,8 @@ double GetPoSKernelPS()
 
 UniValue getstakinginfo(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
+    TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
+    if (fHelp || params.size() != 0 || !pwalletMain || !lockWallet)
         throw runtime_error(
             "getstakinginfo\n"
             "Returns an object containing staking-related information.");

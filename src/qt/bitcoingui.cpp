@@ -709,6 +709,12 @@ void BitcoinGUI::aboutClicked()
 }
 
 bool BitcoinGUI::getStakingStatus(double nEstimateTime, uint64_t nWeight, QString &stakeText) {
+    if (!pwalletMain)
+        return nEstimateTime;
+
+    TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
+    if (!lockWallet)
+        return nEstimateTime;
 
     TRY_LOCK(cs_main, lockMain);
     if (!lockMain) {
@@ -720,6 +726,7 @@ bool BitcoinGUI::getStakingStatus(double nEstimateTime, uint64_t nWeight, QStrin
     if (!GetStaking()) {
         stakeText = tr("Staking disabled");
     } else {
+        LOCK(cs_vNodes);
         if (vNodes.empty()) {
             stakeText = tr("Not staking - Wallet offline");
         } else if (IsInitialBlockDownload()) {
