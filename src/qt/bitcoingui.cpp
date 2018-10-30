@@ -1408,8 +1408,8 @@ void BitcoinGUI::updateStakingStatus()
         labelStakeMining->setPixmap(QIcon(":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
 
     //Update NetworkInfo
-    QString diffPoW = QString::number((GetDifficulty()));
-    QString diffPoS = QString::number((GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true))));
+    QString diffPoW = QString("%1 PoW").arg(GetDifficulty());
+    QString diffPoS = QString("%1 PoS").arg(GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true)));
 
     if (walletFrame) {
         walletFrame->setNetworkStats(bheight, diffPoW, diffPoS);
