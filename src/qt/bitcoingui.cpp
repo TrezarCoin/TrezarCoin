@@ -254,10 +254,8 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *n
     {
         QTimer *timerStakingIcon = new QTimer(labelStakingIcon);
         connect(timerStakingIcon, SIGNAL(timeout()), this, SLOT(updateStakingStatus()));
-        connect(timerStakingIcon, SIGNAL(timeout()), this, SLOT(setStakeMining()));
         timerStakingIcon->start(60 * 1000);
         updateStakingStatus();
-        setStakeMining();
     }
     else
     {
@@ -708,24 +706,12 @@ void BitcoinGUI::aboutClicked()
     dlg.exec();
 }
 
-bool BitcoinGUI::getStakingStatus(double nEstimateTime, uint64_t nWeight, QString &stakeText) {
-    if (!pwalletMain)
-        return nEstimateTime;
-
-    TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
-    if (!lockWallet)
-        return nEstimateTime;
-
-    TRY_LOCK(cs_main, lockMain);
-    if (!lockMain) {
-        stakeText = tr("Staking disabled");
-        return false;
-    }
-
+bool BitcoinGUI::getStakingStatus(double nEstimateTime, uint64_t nWeight, QString &stakeText)
+{
+    stakeText = tr("Staking disabled");
     bool staking = false;
-    if (!GetStaking()) {
-        stakeText = tr("Staking disabled");
-    } else {
+
+    if (GetStaking()) {
         LOCK(cs_vNodes);
         if (vNodes.empty()) {
             stakeText = tr("Not staking - Wallet offline");
@@ -755,24 +741,6 @@ bool BitcoinGUI::getStakingStatus(double nEstimateTime, uint64_t nWeight, QStrin
     }
 
     return staking;
-}
-
-void BitcoinGUI::setStakeMining()
-{
-    uint64_t nWeight = 0;
-    double nEstimateTime = GetStakeEstimate(nWeight);
-    QString stakeText;
-    bool fStakeIcon = getStakingStatus(nEstimateTime, nWeight, stakeText);
-
-    /* Don't wrap words */
-    stakeText = QString("<nobr>") + stakeText + QString("</nobr>");
-
-    labelStakeMining->setToolTip(stakeText);
-
-    if (fStakeIcon)
-        labelStakeMining->setPixmap(QIcon(":/icons/staking_on").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-    else
-        labelStakeMining->setPixmap(QIcon(":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
 }
 
 void BitcoinGUI::showDebugWindow()
@@ -1200,7 +1168,6 @@ void BitcoinGUI::setEncryptionStatus(int status)
     }
     }
     updateStakingStatus();
-    setStakeMining();
 }
 #endif // ENABLE_WALLET
 
@@ -1391,14 +1358,45 @@ void BitcoinGUI::toggleStaking()
 #ifdef ENABLE_WALLET
 void BitcoinGUI::updateStakingStatus()
 {
-    uint64_t nWeight = 0;
-    double nEstimateTime = GetStakeEstimate(nWeight);
+    if (!pwalletMain)
+        return;
+
+    TRY_LOCK(cs_main, lockMain);
+    if (!lockMain)
+        return;
+
+    TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
+    if (!lockWallet)
+        return;
+
+    uint64_t nWeight = 0, nMinWeight = 0, nMaxWeight = 0;
+    if (pwalletMain)
+        pwalletMain->GetStakeWeight(nMinWeight, nMaxWeight, nWeight);
+
+    bool staking = nLastCoinStakeSearchInterval && nWeight;
+    double nNetworkWeight = GetPoSKernelPS();
+    double nEstimateTime = 0;
+
+    if (staking && nWeight != 0 && nNetworkWeight != 0)
+        nEstimateTime = nNetworkWeight / nWeight * 3.00;
+    
     QString stakeText;
-    getStakingStatus(nEstimateTime, nWeight, stakeText);
+    bool fStakeIcon = getStakingStatus(nEstimateTime, nWeight, stakeText);
+
+    /* Don't wrap words */
+    stakeText = QString("<nobr>") + stakeText + QString("</nobr>");
+
+    labelStakeMining->setToolTip(stakeText);
+
     if(walletFrame) {
         walletFrame->setStakingStatus(stakeText);
         if (!GetStaking())
             walletFrame->showLockStaking(false);
     }
+
+    if (fStakeIcon)
+        labelStakeMining->setPixmap(QIcon(":/icons/staking_on").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
+    else
+        labelStakeMining->setPixmap(QIcon(":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
 }
 #endif

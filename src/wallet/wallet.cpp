@@ -14,7 +14,6 @@
 #include "key.h"
 #include "keystore.h"
 #include "main.h"
-#include "miner.h"
 #include "net.h"
 #include "policy/policy.h"
 #include "primitives/block.h"
@@ -46,28 +45,6 @@ bool fWalletUnlockStakingOnly = false;
 
 const char * DEFAULT_WALLET_DAT = "wallet.dat";
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
-
-double GetStakeEstimate(uint64_t& nWeight) {
-    double nEstimateTime = 0;
-    uint64_t nMinWeight = 0, nMaxWeight = 0;
-
-    if (!pwalletMain)
-        return nEstimateTime;
-
-    TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
-    if (!lockWallet)
-        return nEstimateTime;
-
-    if (pwalletMain)
-        pwalletMain->GetStakeWeight(nMinWeight, nMaxWeight, nWeight);
-
-    bool staking = nLastCoinStakeSearchInterval && nWeight;
-    double nNetworkWeight = GetPoSKernelPS();
-    if (staking && nWeight != 0 && nNetworkWeight != 0)
-        nEstimateTime = nNetworkWeight / nWeight * 3.00;
-
-    return nEstimateTime;
-}
 
 /**
  * Fees smaller than this (in satoshi) are considered zero fee (for transaction creation)

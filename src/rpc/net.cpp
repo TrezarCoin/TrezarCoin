@@ -600,15 +600,13 @@ double GetPoSKernelPS()
 
 UniValue getstakinginfo(const UniValue& params, bool fHelp)
 {
-    TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
-    if (fHelp || params.size() != 0 || !pwalletMain || !lockWallet)
+    if (fHelp || params.size() != 0 || !pwalletMain)
         throw runtime_error(
             "getstakinginfo\n"
             "Returns an object containing staking-related information.");
 
     uint64_t nMinWeight = 0, nMaxWeight = 0, nWeight = 0;
-    if (pwalletMain)
-        pwalletMain->GetStakeWeight(nMinWeight, nMaxWeight, nWeight);
+    pwalletMain->GetStakeWeight(nMinWeight, nMaxWeight, nWeight);
 
     uint64_t nNetworkWeight = GetPoSKernelPS();
     bool staking = nLastCoinStakeSearchInterval && nWeight;

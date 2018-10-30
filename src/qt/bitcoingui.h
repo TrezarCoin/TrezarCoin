@@ -184,8 +184,6 @@ public Q_SLOTS:
        @see WalletModel::EncryptionStatus
     */
     void setEncryptionStatus(int status);
-    /** Set stake mining status */
-    void setStakeMining();
 
     bool handlePaymentRequest(const SendCoinsRecipient& recipient);
 
