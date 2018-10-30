@@ -117,7 +117,7 @@ public Q_SLOTS:
     void showProgress(const QString &title, int nProgress);
 
     void showLockStaking(bool status);
-    void setStakingStatus(QString text);
+    void setStakingStatus(QString text, bool fStake);
     void setStakingStats(QString day, QString week, QString month);
     void setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS);
     void requestAddressHistory();

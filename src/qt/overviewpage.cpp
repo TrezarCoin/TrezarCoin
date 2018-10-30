@@ -213,8 +213,14 @@ void OverviewPage::updateWatchOnlyLabels(bool showWatchOnly)
 
 }
 
-void OverviewPage::setStakingStatus(QString text)
+void OverviewPage::setStakingStatus(QString text, bool fStake)
 {
+    if (fStake) {
+        ui->labelStakingStatus->setText(QString("<font color='green'>Active</font>"));
+    }
+    else {
+        ui->labelStakingStatus->setText(QString("<font color='red'>Idle</font>"));
+    }
     ui->stakingStatusLabel->setText(text);
 }
 

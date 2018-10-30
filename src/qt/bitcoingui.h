@@ -56,6 +56,7 @@ class BitcoinGUI : public QMainWindow
 public:
     static const QString DEFAULT_WALLET;
     static const std::string DEFAULT_UIPLATFORM;
+    QString bheight;
 
     explicit BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *networkStyle, QWidget *parent = 0);
     ~BitcoinGUI();
@@ -221,7 +222,7 @@ private Q_SLOTS:
     /** Show about dialog */
     void aboutClicked();
     /** Utility to get stake status text */
-    bool getStakingStatus(double nEstimateTime, uint64_t nWeight, QString &stakeText);
+    bool getStakingStatus(double nEstimateTime, uint64_t nWeight, QString &stakeText, QString &stakeTime);
     /** Show debug window */
     void showDebugWindow();
     /** Show debug window and set focus to the console */

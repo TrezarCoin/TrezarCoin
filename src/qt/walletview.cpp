@@ -195,9 +195,9 @@ void WalletView::gotoSendCoinsPage(QString addr)
         sendCoinsPage->setAddress(addr);
 }
 
-void WalletView::setStakingStatus(QString text)
+void WalletView::setStakingStatus(QString text, bool fStake)
 {
-    overviewPage->setStakingStatus(text);
+    overviewPage->setStakingStatus(text,fStake);
 }
 
 void WalletView::gotoEasySplitPage()

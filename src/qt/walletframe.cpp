@@ -115,11 +115,11 @@ void WalletFrame::gotoOverviewPage()
         i.value()->gotoOverviewPage();
 }
 
-void WalletFrame::setStakingStatus(QString text)
+void WalletFrame::setStakingStatus(QString text, bool fStake)
 {
     QMap<QString, WalletView*>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
-        i.value()->setStakingStatus(text);
+        i.value()->setStakingStatus(text,fStake);
 }
 
 void WalletFrame::setStakingStats(QString day, QString week, QString month)

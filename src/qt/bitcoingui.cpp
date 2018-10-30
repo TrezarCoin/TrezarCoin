@@ -259,7 +259,7 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *n
     }
     else
     {
-        walletFrame->setStakingStatus(tr("Staking is turned off."));
+        walletFrame->setStakingStatus(tr("Staking is turned off."),false);
     }
 
     // Progress bar and label for blocks download
@@ -706,9 +706,10 @@ void BitcoinGUI::aboutClicked()
     dlg.exec();
 }
 
-bool BitcoinGUI::getStakingStatus(double nEstimateTime, uint64_t nWeight, QString &stakeText)
+bool BitcoinGUI::getStakingStatus(double nEstimateTime, uint64_t nWeight, QString &stakeText, QString &stakeTime)
 {
     stakeText = tr("Staking disabled");
+    stakeTime = tr("Calculating time..");
     bool staking = false;
 
     if (GetStaking()) {
@@ -727,11 +728,14 @@ bool BitcoinGUI::getStakingStatus(double nEstimateTime, uint64_t nWeight, QStrin
                 if ((nEstimateTime / 60) > 24) {
                     nEstimateTime /= 60 * 24;
                     stakeText = tr("Estimated Stake Time: %1 day(s)").arg(nEstimateTime);
+                    stakeTime = tr("%1 day(s)").arg(nEstimateTime);
                 } else if ((nEstimateTime / 60.00) < 0) {
                     stakeText = tr("Estimated Stake Time: %1 minute(s)").arg(nEstimateTime);
+                    stakeTime = tr("%1 minute(s)").arg(nEstimateTime);
                 } else {
                     nEstimateTime /= 60.00;
                     stakeText = tr("Estimated Stake Time: %1 hour(s)").arg(nEstimateTime);
+                    stakeTime = tr("%1 hour(s)").arg(nEstimateTime);
                 }
             } else {
                 staking = true;
@@ -878,6 +882,9 @@ void BitcoinGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVer
 
         tooltip += QString("<br>") + tr("The current PoW difficulty is %1").arg(GetDifficulty());
         tooltip += QString("<br>") + tr("The current PoS difficulty is %1").arg(GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true)));
+        
+        bheight = QString::number(count);
+
 
 #ifdef ENABLE_WALLET
         if(walletFrame)
@@ -1381,7 +1388,8 @@ void BitcoinGUI::updateStakingStatus()
         nEstimateTime = nNetworkWeight / nWeight * 3.00;
     
     QString stakeText;
-    bool fStakeIcon = getStakingStatus(nEstimateTime, nWeight, stakeText);
+    QString stakeTime;
+    bool fStakeIcon = getStakingStatus(nEstimateTime, nWeight, stakeText, stakeTime);
 
     /* Don't wrap words */
     stakeText = QString("<nobr>") + stakeText + QString("</nobr>");
@@ -1389,14 +1397,22 @@ void BitcoinGUI::updateStakingStatus()
     labelStakeMining->setToolTip(stakeText);
 
     if(walletFrame) {
-        walletFrame->setStakingStatus(stakeText);
+        walletFrame->setStakingStatus(stakeTime,fStakeIcon);
         if (!GetStaking())
             walletFrame->showLockStaking(false);
     }
 
     if (fStakeIcon)
-        labelStakeMining->setPixmap(QIcon(":/icons/staking_on").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
+        labelStakeMining->setPixmap(QIcon(":/icons/staking_on").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
     else
-        labelStakeMining->setPixmap(QIcon(":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
+        labelStakeMining->setPixmap(QIcon(":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+
+    //Update NetworkInfo
+    QString diffPoW = QString::number((GetDifficulty()));
+    QString diffPoS = QString::number((GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true))));
+
+    if (walletFrame) {
+        walletFrame->setNetworkStats(bheight, diffPoW, diffPoS);
+    }
 }
 #endif

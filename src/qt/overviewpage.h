@@ -45,7 +45,7 @@ public Q_SLOTS:
                     const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
 
     void showLockStaking(bool status);
-    void setStakingStatus(QString text);
+    void setStakingStatus(QString text, bool fStake);
     void setStakingStats(QString day, QString week, QString month);
     void setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS);
     void updateStakeReportNow();
