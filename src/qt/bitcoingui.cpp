@@ -1357,7 +1357,7 @@ void UnitDisplayStatusBarControl::onMenuSelection(QAction* action)
 void BitcoinGUI::toggleStaking()
 {
     SetStaking(!GetStaking());
-
+    updateStakingStatus();
     Q_EMIT message(tr("Staking"), GetStaking() ? tr("Staking has been enabled") : tr("Staking has been disabled"),
                    CClientUIInterface::MSG_INFORMATION);
 }
