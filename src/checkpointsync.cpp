@@ -171,9 +171,10 @@ uint256 AutoSelectSyncCheckpoint()
 }
 
 // Check against synchronized checkpoint
-bool CheckSyncCheckpoint(const uint256& hashBlock, const CBlockIndex* pindexPrev)
+bool CheckSyncCheckpoint(const CBlockIndex* pindexNew)
 {
-    int nHeight = pindexPrev->nHeight + 1;
+    const uint256& hashBlock = pindexNew->GetBlockHash();
+    int nHeight = pindexNew->nHeight;
 
     LOCK(cs_hashSyncCheckpoint);
     // Reset checkpoint to Genesis block if not found or initialised
@@ -186,7 +187,7 @@ bool CheckSyncCheckpoint(const uint256& hashBlock, const CBlockIndex* pindexPrev
     if (nHeight > pindexSync->nHeight)
     {
         // Trace back to same height as sync-checkpoint
-        const CBlockIndex* pindex = pindexPrev;
+        const CBlockIndex* pindex = pindexNew;
         while (pindex->nHeight > pindexSync->nHeight && !chainActive.Contains(pindex))
             if (!(pindex = pindex->pprev))
                 return error("%s: pprev null - block index structure failure", __func__);
@@ -198,9 +199,9 @@ bool CheckSyncCheckpoint(const uint256& hashBlock, const CBlockIndex* pindexPrev
             return false; // only descendant of sync-checkpoint can pass check
     }
     if (nHeight == pindexSync->nHeight && hashBlock != hashSyncCheckpoint)
-        return false; // Same height with sync-checkpoint
+        return error("%s: Same height with sync-checkpoint", __func__);
     if (nHeight < pindexSync->nHeight && !mapBlockIndex.count(hashBlock))
-        return false; // Lower height than sync-checkpoint
+        return error("%s: Lower height than sync-checkpoint", __func__);
     return true;
 }
 
