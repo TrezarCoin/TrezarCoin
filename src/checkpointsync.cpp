@@ -187,7 +187,7 @@ bool CheckSyncCheckpoint(const uint256& hashBlock, const CBlockIndex* pindexPrev
     {
         // Trace back to same height as sync-checkpoint
         const CBlockIndex* pindex = pindexPrev;
-        while (pindex->nHeight > pindexSync->nHeight)
+        while (pindex->nHeight > pindexSync->nHeight && !chainActive.Contains(pindex))
             if (!(pindex = pindex->pprev))
                 return error("%s: pprev null - block index structure failure", __func__);
 
