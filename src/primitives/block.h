@@ -149,6 +149,12 @@ public:
         return (vMerkleTree.empty() ? uint256() : vMerkleTree.back());
     }
 
+    const uint256 &GetTxHash(unsigned int nIndex) const {
+        assert(vMerkleTree.size() > 0); // BuildMerkleTree must have been called first
+        assert(nIndex < vtx.size());
+        return vMerkleTree[nIndex];
+    }
+
     void SetNull()
     {
         CBlockHeader::SetNull();

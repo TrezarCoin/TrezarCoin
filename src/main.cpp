@@ -2009,6 +2009,10 @@ bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoins
                       strprintf("tried to spend %s at depth %d", coins->IsCoinBase() ? "coinbase" : "coinstake", nSpendHeight - coins->nHeight));
             }
 
+            // Check transaction timestamp
+            if (coins->nTime > tx.nTime)
+                return state.DoS(100, false, REJECT_INVALID, "timestamp-earlier-than-input");
+
             // Check for negative or overflow input values
             nValueIn += coins->vout[prevout.n].nValue;
             if (!MoneyRange(coins->vout[prevout.n].nValue) || !MoneyRange(nValueIn))
@@ -2400,6 +2404,10 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         pindex->nStakeTime = 0;
     }
 
+    /* One more merkle root verification */
+    if (block.hashMerkleRoot != block.BuildMerkleTree())
+        return(error("%s: merkle root verification failed", __func__));
+
     int64_t nTimeStart = GetTimeMicros();
 
     // Check it again in case a previous version let a bad block in
@@ -2466,6 +2474,15 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     int64_t nTime1 = GetTimeMicros(); nTimeCheck += nTime1 - nTimeStart;
     LogPrint("bench", "    - Sanity checks: %.2fms [%.2fs]\n", 0.001 * (nTime1 - nTimeStart), nTimeCheck * 0.000001);
+
+    /* Work around duplicate transactions (BIP30) */
+    for (int i = 0; i < block.vtx.size(); i++) {
+        uint256 hash = block.GetTxHash(i);
+        CCoins coins;
+        view.GetCoins(hash, coins);
+        if (view.HaveCoins(hash) && !coins.IsPruned())
+            return error("%s: transaction overwrite attempt detected", __func__);
+    }
 
     unsigned int flags = SCRIPT_VERIFY_P2SH;
     flags |= SCRIPT_VERIFY_STRICTENC;
@@ -3535,12 +3552,10 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         if (block.vtx[i].IsCoinBase())
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-multiple", false, "more than one coinbase");
 
-    if (block.GetBlockTime() > FutureDrift((int64_t)GetAdjustedTime()))
-        return error("block has a time stamp too far in the future");
     if (block.GetBlockTime() > FutureDrift((int64_t)block.vtx[0].nTime))
         return state.DoS(50, false, REJECT_INVALID, "bad-coinbase-nTime", false, "coinbase timestamp is too early");
 
-     if (block.IsProofOfStake())
+    if (block.IsProofOfStake())
     {
         // Coinbase output should be empty if proof-of-stake block
         if ((block.vtx[0].vout.size() != 1 || !block.vtx[0].vout[0].IsEmpty()))
@@ -3596,6 +3611,17 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
                 return state.DoS(50, false, REJECT_INVALID, "block-timestamp-early", true, "block timestamp earlier than transaction timestamp");
         }
     }
+
+    /* Merkle root verification */
+    if(block.hashMerkleRoot != block.BuildMerkleTree())
+        return state.DoS(100, false, REJECT_INVALID, "merkle-verification-failed", false, "merkle root verification failed");
+
+    /* Check for duplicate transactions */
+    std::set<uint256> uniqueTx;
+    for (unsigned int i = 0; i < block.vtx.size(); i++)
+        uniqueTx.insert(block.GetTxHash(i));
+    if (uniqueTx.size() != block.vtx.size())
+        return state.DoS(100, false, REJECT_INVALID, "duplicate-transactions", false, "duplicate transaction found");
 
     unsigned int nSigOps = 0;
     BOOST_FOREACH(const CTransaction& tx, block.vtx)
@@ -3699,6 +3725,11 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     unsigned int nOurTime = (unsigned int)GetAdjustedTime();
     int nHeight = pindexPrev->nHeight+1;
 
+    /* Check for time stamp (past limit #1) */
+    if (block.GetBlockTime() <= (unsigned int)pindexPrev->GetMedianTimePast())
+        return(state.DoS(20, false, REJECT_INVALID, "timestamp-too-new", false, 
+          strprintf("%s: block %s height %d has a time stamp behind the median", __func__, block.GetHash().ToString(), nHeight)));
+
     /* Check for time stamp (future limit) */
     if (block.GetBlockTime() > (nOurTime + 3 * 60))
         return(state.DoS(5, false, REJECT_INVALID, "timestamp-too-new", false, 
@@ -3712,6 +3743,23 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     // Check timestamp
     if (block.GetBlockTime() > nAdjustedTime + 2 * 60 * 60)
         return state.Invalid(false, REJECT_INVALID, "time-too-new", "block timestamp too far in the future");
+
+    if (block.GetBlockTime() > FutureDrift((int64_t)GetAdjustedTime()))
+        return error("block has a time stamp too far in the future");
+
+    if (!IsInitialBlockDownload()) {
+        /* Block limiter */
+        if (block.GetBlockTime() <= ((unsigned int)pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME)) {
+            return(state.DoS(5, false, REJECT_INVALID, "blocklimiter-time", false,
+              strprintf("%s: block %s height %d rejected by the block limiter", __func__, block.GetHash().ToString(), nHeight)));
+        }
+
+        /* Future travel detector for the block limiter */
+        if ((block.GetBlockTime() > (nOurTime + 60)) && ((pindexPrev->GetAverageTimePast(5, 40) + BLOCK_LIMITER_TIME) > nOurTime)) {
+            return(state.DoS(5, false, REJECT_INVALID, "blocklimiter-timetravel", false,
+              strprintf("%s: block %s height %d rejected by the future travel detector", __func__, block.GetHash().ToString(), nHeight)));
+        }
+    }
 
     // Reject outdated version blocks when 95% (75% on testnet) of the network has upgraded:
     for (int32_t version = 2; version < 5; ++version) // check for version 2, 3 and 4 upgrades

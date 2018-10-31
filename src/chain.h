@@ -402,6 +402,45 @@ public:
             nFlags |= BLOCK_STAKE_MODIFIER;
     }
 
+    /* Advanced average block time calculator */
+    unsigned int GetAverageTimePast(unsigned int nAvgTimeSpan, unsigned int nMinDelay) const {
+        unsigned int avg[nAvgTimeSpan], nTempTime, i;
+        uint64_t nAvgAccum;
+        const CBlockIndex* pindex = this;
+
+        /* Keep it fail safe */
+        if (!nAvgTimeSpan)
+            return(0);
+
+        /* Initialise the elements to zero */
+        for (i = 0; i < nAvgTimeSpan; i++)
+          avg[i] = 0;
+
+        /* Fill with the time stamps */
+        for (i = nAvgTimeSpan; i && pindex; i--, pindex = pindex->pprev)
+          avg[i-1] = pindex->nTime;
+
+        /* Not enough input blocks */
+        if (!avg[0])
+            return(0);
+
+        /* Time travel aware accumulator */
+        nTempTime = avg[0];
+        for (i = 1, nAvgAccum = nTempTime; i < nAvgTimeSpan; i++) { 
+            /* Update the accumulator either with an actual or minimal
+             * delay supplied to prevent extremely fast blocks */
+            if (avg[i] < (nTempTime + nMinDelay))
+                nTempTime += nMinDelay;
+            else
+                nTempTime  = avg[i];
+            nAvgAccum += nTempTime;
+        }
+
+        nTempTime = (unsigned int)(nAvgAccum/(uint64_t)nAvgTimeSpan);
+
+        return nTempTime;
+    }
+
     //! Build the skiplist pointer for this entry.
     void BuildSkip();
 
