@@ -155,6 +155,7 @@ void OverviewPage::handleTransactionClicked(const QModelIndex &index)
 void OverviewPage::showLockStaking(bool status)
 {
     ui->unlockStakingButton->setVisible(status);
+    ui->unlockStakingButton->setIcon(QIcon(":/icons/lock_closed"));
 }
 
 OverviewPage::~OverviewPage()
