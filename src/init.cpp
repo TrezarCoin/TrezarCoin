@@ -34,6 +34,7 @@
 #include "torcontrol.h"
 #include "ui_interface.h"
 #include "util.h"
+#include "checkpointsync.h"
 #include "utilmoneystr.h"
 #include "validationinterface.h"
 #ifdef ENABLE_WALLET
@@ -1061,6 +1062,12 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
             }
         }
     }
+	
+	if (mapArgs.count("-checkpointkey")) // ppcoin: checkpoint master priv key
+	{
+		if (!SetCheckpointPrivKey(GetArg("-checkpointkey", "")))
+			return InitError(_("Unable to sign checkpoint, wrong checkpointkey?"));
+	}
 
     /* Inputs below this limit in value don't participate in staking */
     if (mapArgs.count("-stakeminvalue")) {
