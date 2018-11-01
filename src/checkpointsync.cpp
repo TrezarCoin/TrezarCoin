@@ -74,7 +74,6 @@ uint256 hashPendingCheckpoint = ArithToUint256(arith_uint256(0));
 CSyncCheckpoint checkpointMessage;
 CSyncCheckpoint checkpointMessagePending;
 uint256 hashInvalidCheckpoint = ArithToUint256(arith_uint256(0));
-CCriticalSection cs_hashSyncCheckpoint;
 string strCheckpointWarning;
 
 // Only descendant of current sync-checkpoint is allowed
@@ -122,14 +121,16 @@ bool WriteSyncCheckpoint(const uint256& hashCheckpoint)
     if (!pblocktree->WriteSyncCheckpoint(hashCheckpoint))
         return error("%s: failed to write to txdb sync checkpoint %s", __func__, hashCheckpoint.ToString());
 
-    FlushStateToDisk();
+    if (!pblocktree->Sync())
+        return error("%s: failed to commit to txdb sync checkpoint %s", __func__, hashCheckpoint.ToString().c_str());
+
     hashSyncCheckpoint = hashCheckpoint;
     return true;
 }
 
 bool AcceptPendingSyncCheckpoint()
 {
-    LOCK(cs_hashSyncCheckpoint);
+    LOCK(cs_main);
     bool havePendingCheckpoint = hashPendingCheckpoint != ArithToUint256(arith_uint256(0)) && mapBlockIndex.count(hashPendingCheckpoint);
     if (!havePendingCheckpoint)
         return false;
@@ -173,10 +174,10 @@ uint256 AutoSelectSyncCheckpoint()
 // Check against synchronized checkpoint
 bool CheckSyncCheckpoint(const CBlockIndex* pindexNew)
 {
+    LOCK(cs_main);
     const uint256& hashBlock = pindexNew->GetBlockHash();
     int nHeight = pindexNew->nHeight;
 
-    LOCK(cs_hashSyncCheckpoint);
     // Reset checkpoint to Genesis block if not found or initialised
     if (hashSyncCheckpoint == ArithToUint256(arith_uint256(0)) || !(mapBlockIndex.count(hashSyncCheckpoint))) {
         WriteSyncCheckpoint(Params().GetConsensus().hashGenesisBlock);
@@ -208,7 +209,7 @@ bool CheckSyncCheckpoint(const CBlockIndex* pindexNew)
 // Reset synchronized checkpoint to last hardened checkpoint
 bool ResetSyncCheckpoint()
 {
-    LOCK(cs_hashSyncCheckpoint);
+    LOCK(cs_main);
 
     // Hash of latest checkpoint
     uint256 checkpointHash = Checkpoints::GetLatestHardenedCheckpoint(Params().Checkpoints());
@@ -223,13 +224,6 @@ bool ResetSyncCheckpoint()
         return error("%s: failed to write sync checkpoint %s", __func__, checkpointHash.ToString());
 
     return true;
-}
-
-void AskForPendingSyncCheckpoint(CNode* pfrom)
-{
-    LOCK(cs_hashSyncCheckpoint);
-    if (pfrom && hashPendingCheckpoint != ArithToUint256(arith_uint256(0)) && !mapBlockIndex.count(hashPendingCheckpoint))
-        pfrom->AskFor(CInv(MSG_BLOCK, hashPendingCheckpoint));
 }
 
 // Verify sync checkpoint master pubkey and reset sync checkpoint if changed
@@ -317,7 +311,7 @@ bool CSyncCheckpoint::ProcessSyncCheckpoint(CNode* pfrom)
     if (!CheckSignature())
         return false;
 
-    LOCK(cs_hashSyncCheckpoint);
+    LOCK(cs_main);
     if (!mapBlockIndex.count(hashCheckpoint))
     {
         // We haven't received the checkpoint chain, keep the checkpoint as pending

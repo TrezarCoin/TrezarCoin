@@ -20,7 +20,6 @@ class CCoinsViewCache;
 extern uint256 hashSyncCheckpoint;
 extern CSyncCheckpoint checkpointMessage;
 extern uint256 hashInvalidCheckpoint;
-extern CCriticalSection cs_hashSyncCheckpoint;
 extern std::string strCheckpointWarning;
 
 bool WriteSyncCheckpoint(const uint256& hashCheckpoint);
@@ -28,7 +27,6 @@ bool AcceptPendingSyncCheckpoint();
 uint256 AutoSelectSyncCheckpoint();
 bool CheckSyncCheckpoint(const CBlockIndex* pindexNew);
 bool ResetSyncCheckpoint();
-void AskForPendingSyncCheckpoint(CNode* pfrom);
 bool CheckCheckpointPubKey();
 bool SetCheckpointPrivKey(std::string strPrivKey);
 bool SendSyncCheckpoint(uint256 hashCheckpoint);
