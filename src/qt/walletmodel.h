@@ -165,8 +165,7 @@ public:
     // Wallet backup
     bool backupWallet(const QString &filename);
     // Stake weight calculation
-    void getStakeWeightQuick(const qint64& nTime, const qint64& nValue, quint64& nWeight);
-
+    void getStakeWeightQuick(const int64_t& nTime, const int64_t& nValue, uint64_t& nWeight);
     // RAI object for unlocking wallet, returned by requestUnlock()
     class UnlockContext
     {
