@@ -3703,7 +3703,7 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     if (block.GetBlockTime() > FutureDrift((int64_t)GetAdjustedTime()))
         return error("block has a time stamp too far in the future");
 
-    if (!IsInitialBlockDownload()) {
+    if (!(Params().NetworkIDString() == CBaseChainParams::REGTEST) && !IsInitialBlockDownload()) {
         /* Block limiter */
         if (block.GetBlockTime() <= ((unsigned int)pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME)) {
             return(state.DoS(5, false, REJECT_INVALID, "blocklimiter-time", false,
