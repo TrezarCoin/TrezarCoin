@@ -526,6 +526,33 @@ void ClearDatadirCache()
     pathCachedNetSpecific = boost::filesystem::path();
 }
 
+// Autocreate Config
+void Create_Config(const string& path)
+{
+    const int KEY_SIZE = 16;
+    unsigned char key[KEY_SIZE];
+    char keystr[KEY_SIZE * 2 + 1];
+    RAND_bytes(key, KEY_SIZE);
+    for (int i = 0; i < KEY_SIZE; i++)
+        sprintf(keystr + 2*i, "%02X", key[i]);
+	boost::filesystem::ofstream file(path);
+	file << "server=1\n";
+	file << "listen=1\n";
+	file << "stakemintime=24\n";
+	file << "stakecombine=2000\n";
+	file << "stakesplit=4000\n";
+	file << "stakegen=1\n";
+	file << "rpcuser=SOMEUSERNAME\n";
+	file << "rpcpassword=" << keystr << "\n";
+	file << "port=17298\n";
+	file << "rpcport=17299\n";
+	file << "rpcallowip=127.0.0.1\n";
+	file << "addnode=seed0.trezarcoin.com\n";
+	file << "addnode=seed1.trezarcoin.com\n";
+
+	file.close();
+}
+
 boost::filesystem::path GetConfigFile()
 {
     boost::filesystem::path pathConfigFile(GetArg("-conf", BITCOIN_CONF_FILENAME));
@@ -540,7 +567,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 {
     boost::filesystem::ifstream streamConfig(GetConfigFile());
     if (!streamConfig.good())
-        return; // No bitcoin.conf file is OK
+        Create_Config(GetConfigFile().string());
 
     set<string> setOptions;
     setOptions.insert("*");
