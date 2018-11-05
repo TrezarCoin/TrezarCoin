@@ -295,7 +295,7 @@
               </font>
              </property>
              <property name="text">
-              <string>Immature</string>
+              <string>Immature:</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -349,7 +349,7 @@
               </font>
              </property>
              <property name="text">
-              <string>Total</string>
+              <string>Total:</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -421,7 +421,7 @@
               </font>
              </property>
              <property name="text">
-              <string>Staking</string>
+              <string>Staking:</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -696,6 +696,33 @@
            </item>
            <item row="5" column="0">
             <widget class="QLabel" name="label_3">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>100</width>
+               <height>17</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>100</width>
+               <height>17</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+               <stylestrategy>PreferAntialias</stylestrategy>
+               <kerning>false</kerning>
+              </font>
+             </property>
              <property name="text">
               <string>Staking Status:</string>
              </property>
@@ -703,10 +730,18 @@
            </item>
            <item row="5" column="1">
             <widget class="QLabel" name="labelStakingStatus">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="font">
               <font>
+               <pointsize>8</pointsize>
                <weight>75</weight>
                <bold>true</bold>
+               <stylestrategy>PreferAntialias</stylestrategy>
               </font>
              </property>
              <property name="text">
@@ -717,22 +752,22 @@
            <item row="4" column="1">
             <widget class="QLabel" name="stakingStatusLabel">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="minimumSize">
               <size>
-               <width>235</width>
+               <width>0</width>
                <height>0</height>
               </size>
              </property>
-             <property name="maximumSize">
-              <size>
-               <width>100</width>
-               <height>80</height>
-              </size>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+               <stylestrategy>PreferAntialias</stylestrategy>
+              </font>
              </property>
              <property name="text">
               <string>Fetching..</string>
@@ -744,6 +779,33 @@
            </item>
            <item row="4" column="0">
             <widget class="QLabel" name="label_15">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>100</width>
+               <height>17</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>130</width>
+               <height>17</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+               <stylestrategy>PreferAntialias</stylestrategy>
+               <kerning>false</kerning>
+              </font>
+             </property>
              <property name="text">
               <string>Estimated Stake Time:</string>
              </property>
@@ -767,21 +829,41 @@
         </layout>
        </item>
        <item>
-        <widget class="QLabel" name="label">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
+        <layout class="QHBoxLayout" name="horizontalLayout_9">
+         <property name="topMargin">
+          <number>0</number>
          </property>
-         <property name="text">
-          <string>Network</string>
-         </property>
-        </widget>
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Network</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,0">
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -804,24 +886,46 @@
            </property>
            <item row="1" column="0">
             <widget class="QLabel" name="label_6">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="minimumSize">
               <size>
-               <width>130</width>
-               <height>0</height>
+               <width>100</width>
+               <height>17</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>100</width>
+               <height>17</height>
               </size>
              </property>
              <property name="font">
               <font>
                <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+               <stylestrategy>PreferAntialias</stylestrategy>
+               <kerning>false</kerning>
               </font>
              </property>
              <property name="text">
-              <string>Blockheight</string>
+              <string>Blockheight:</string>
              </property>
             </widget>
            </item>
            <item row="1" column="1">
             <widget class="QLabel" name="label_Blockheight">
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+               <stylestrategy>PreferAntialias</stylestrategy>
+              </font>
+             </property>
              <property name="text">
               <string>fetching..</string>
              </property>
@@ -829,19 +933,46 @@
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_2">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="minimumSize">
               <size>
-               <width>130</width>
-               <height>0</height>
+               <width>100</width>
+               <height>17</height>
               </size>
              </property>
+             <property name="maximumSize">
+              <size>
+               <width>100</width>
+               <height>17</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+               <stylestrategy>PreferAntialias</stylestrategy>
+               <kerning>false</kerning>
+              </font>
+             </property>
              <property name="text">
-              <string>Difficulty</string>
+              <string>Difficulty:</string>
              </property>
             </widget>
            </item>
            <item row="2" column="1">
             <widget class="QLabel" name="label_DiffPoW">
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+               <stylestrategy>PreferAntialias</stylestrategy>
+              </font>
+             </property>
              <property name="text">
               <string>fetching..</string>
              </property>
@@ -856,12 +987,31 @@
            </item>
            <item row="3" column="1">
             <widget class="QLabel" name="label_DiffPoS">
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+               <stylestrategy>PreferAntialias</stylestrategy>
+              </font>
+             </property>
              <property name="text">
               <string>fetching..</string>
              </property>
             </widget>
            </item>
           </layout>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </item>
