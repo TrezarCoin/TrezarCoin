@@ -49,6 +49,9 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, bool fProofOfSta
     if(pindexPrev == NULL)
         return(bnTargetLimit.GetCompact());
 
+    if (params.fPowNoRetargeting)
+        return pindexLast->nBits;
+
     /* Orbitcoin Super Shield (OSS);
      * retargets every block using two averaging windows of 5 and 20 blocks,
      * 0.25 damping and further oscillation limiting */
