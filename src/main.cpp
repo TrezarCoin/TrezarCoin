@@ -3523,7 +3523,8 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         if (block.vtx[i].IsCoinBase())
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-multiple", false, "more than one coinbase");
 
-    if (block.GetBlockTime() > FutureDrift((int64_t)block.vtx[0].nTime))
+    CBlockIndex cBlock(block);
+    if (cBlock.pprev != NULL && block.GetBlockTime() > FutureDrift((int64_t)block.vtx[0].nTime))
         return state.DoS(50, false, REJECT_INVALID, "bad-coinbase-nTime", false, "coinbase timestamp is too early");
 
     if (block.IsProofOfStake())
@@ -3552,7 +3553,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams))
             return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
 
-        CBlockIndex cBlock(block);
         if (cBlock.pprev != NULL && block.vtx[0].vout[0].IsEmpty())
             return (state.DoS(100, error("%s: coinbase vout should not be empty", __func__)));
 
@@ -3570,7 +3570,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_BASE_SIZE || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) > MAX_BLOCK_BASE_SIZE)
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false, "size limits failed");
 
-    CBlockIndex cBlock(block);
     // Check transactions
     if (cBlock.pprev != NULL) { // Skip check on genesis, very long pszTimestamp is used which fails CheckTransaction
         BOOST_FOREACH(const CTransaction& tx, block.vtx) {
