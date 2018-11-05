@@ -3687,7 +3687,7 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
           strprintf("%s: block %s height %d has a time stamp behind the median", __func__, block.GetHash().ToString(), nHeight)));
 
     /* Check for time stamp (future limit) */
-    if (block.GetBlockTime() > (nOurTime + 3 * 60))
+    if (!(Params().NetworkIDString() == CBaseChainParams::REGTEST) && block.GetBlockTime() > (nOurTime + 3 * 60))
         return(state.DoS(5, false, REJECT_INVALID, "timestamp-too-new", false, 
           strprintf("%s: block %s height %d has a time stamp too far in the future", __func__, block.GetHash().ToString(), nHeight)));
 
