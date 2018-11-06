@@ -198,7 +198,7 @@ bool CheckSyncCheckpoint(const CBlockIndex* pindexNew)
         // 1. found block in our blockchain
         // 2. reached pindexSync->nHeight without finding it
         if (!chainActive.Contains(pindex))
-            return false; // only descendant of sync-checkpoint can pass check
+            return error("%s: Only descendants of checkpoint accepted", __func__);
     }
     if (nHeight == pindexSync->nHeight && hashBlock != hashSyncCheckpoint)
         return error("%s: Same height with sync-checkpoint", __func__);
