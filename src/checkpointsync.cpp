@@ -211,17 +211,8 @@ bool ResetSyncCheckpoint()
 {
     LOCK(cs_main);
 
-    // Hash of latest checkpoint
-    uint256 checkpointHash = Checkpoints::GetLatestHardenedCheckpoint(Params().Checkpoints());
-
-    // Checkpoint block not yet accepted
-    if (!mapBlockIndex.count(checkpointHash)) {
-        checkpointMessagePending.SetNull();
-        hashPendingCheckpoint = checkpointHash;
-    }
-
-    if (!WriteSyncCheckpoint((mapBlockIndex.count(checkpointHash) && chainActive.Contains(mapBlockIndex[checkpointHash]))? checkpointHash : Params().GetConsensus().hashGenesisBlock))
-        return error("%s: failed to write sync checkpoint %s", __func__, checkpointHash.ToString());
+    if (!WriteSyncCheckpoint(Params().GetConsensus().hashGenesisBlock))
+        return error("%s: failed to write sync checkpoint %s", __func__, Params().GetConsensus().hashGenesisBlock.ToString());
 
     return true;
 }

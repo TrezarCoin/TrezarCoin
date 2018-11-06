@@ -4226,9 +4226,6 @@ bool static LoadBlockIndexDB()
         }
     }
 
-    // Load hashSyncCheckpoint
-    pblocktree->ReadSyncCheckpoint(hashSyncCheckpoint);
-
     // Check presence of blk files
     LogPrintf("Checking all blk files are present...\n");
     set<int> setBlkDataFiles;
@@ -4246,6 +4243,9 @@ bool static LoadBlockIndexDB()
             return false;
         }
     }
+
+    if (!pblocktree->ReadSyncCheckpoint(hashSyncCheckpoint))
+        hashSyncCheckpoint = chainparams.GetConsensus().hashGenesisBlock;
 
     // Check whether we have ever pruned block & undo files
     pblocktree->ReadFlag("prunedblockfiles", fHavePruned);
