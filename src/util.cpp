@@ -536,17 +536,28 @@ void Create_Config(const string& path)
     for (int i = 0; i < KEY_SIZE; i++)
         sprintf(keystr + 2*i, "%02X", key[i]);
 	boost::filesystem::ofstream file(path);
-	file << "server=1\n";
+    file << "## Trezarcoin Config ##\n";
+    file << "server=1\n";
 	file << "listen=1\n";
+    file << "## StakeModifier ##\n";
 	file << "stakemintime=24\n";
-	file << "stakecombine=2000\n";
-	file << "stakesplit=4000\n";
+	file << "stakecombine=5000\n";
+	file << "stakesplit=10000\n";
 	file << "stakegen=1\n";
+    file << "## RPCUser | RPCPassword ##\n";
 	file << "rpcuser=SOMEUSERNAME\n";
 	file << "rpcpassword=" << keystr << "\n";
-	file << "port=17298\n";
-	file << "rpcport=17299\n";
+    file << "## Mainnet Ports ##\n";
+    file << "#port=17298\n";
+    file << "#rpcport=17299\n";
+    file << "## Testnet Ports ##\n";
+    file << "#port=27298\n";
+    file << "#rpcport=27299\n";
+    file << "## Regtest Ports ##\n";
+    file << "#port=18331\n";
+    file << "#rpcport=18332\n";
 	file << "rpcallowip=127.0.0.1\n";
+    file << "## Addnodes ##\n";
 	file << "addnode=seed0.trezarcoin.com\n";
 	file << "addnode=seed1.trezarcoin.com\n";
 
