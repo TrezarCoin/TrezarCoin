@@ -306,15 +306,23 @@ bool CSyncCheckpoint::ProcessSyncCheckpoint(CNode* pfrom)
     LOCK(cs_main);
     if (!mapBlockIndex.count(hashCheckpoint))
     {
-        // We haven't received the checkpoint chain, keep the checkpoint as pending
-        hashPendingCheckpoint = hashCheckpoint;
-        checkpointMessagePending = *this;
-
+        LogPrintf("Missing headers for received sync-checkpoint %s\n", hashCheckpoint.ToString());
         return false;
     }
 
     if (!ValidateSyncCheckpoint(hashCheckpoint))
         return false;
+
+    bool pass = chainActive.Contains(mapBlockIndex[hashCheckpoint]);
+
+    if (!pass) {
+        // We haven't received the checkpoint chain, keep the checkpoint as pending
+        hashPendingCheckpoint = hashCheckpoint;
+        checkpointMessagePending = *this;
+        LogPrintf("%s: pending for sync-checkpoint %s\n", __func__, hashCheckpoint.ToString());
+
+        return false;
+    }
 
     if (!WriteSyncCheckpoint(hashCheckpoint))
         return error("%s: failed to write sync checkpoint %s", __func__, hashCheckpoint.ToString());
