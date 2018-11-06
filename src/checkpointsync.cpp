@@ -175,15 +175,16 @@ uint256 AutoSelectSyncCheckpoint()
 bool CheckSyncCheckpoint(const CBlockIndex* pindexNew)
 {
     LOCK(cs_main);
+    assert(pindexNew != NULL);
+    if (pindexNew->nHeight == 0)
+        return true;
     const uint256& hashBlock = pindexNew->GetBlockHash();
     int nHeight = pindexNew->nHeight;
 
-    // Reset checkpoint to Genesis block if not found or initialised
-    if (hashSyncCheckpoint == ArithToUint256(arith_uint256(0)) || !(mapBlockIndex.count(hashSyncCheckpoint))) {
-        WriteSyncCheckpoint(Params().GetConsensus().hashGenesisBlock);
-        return true;
-    }
+    // Checkpoint should always be accepted block
+    assert(mapBlockIndex.count(hashSyncCheckpoint));
     const CBlockIndex* pindexSync = mapBlockIndex[hashSyncCheckpoint];
+    assert(chainActive.Contains(pindexSync));
 
     if (nHeight > pindexSync->nHeight)
     {
