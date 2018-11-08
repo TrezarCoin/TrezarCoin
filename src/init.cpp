@@ -195,6 +195,7 @@ void Shutdown()
     StopHTTPRPC();
     StopREST();
     StopRPC();
+    ShutdownRPCMining();
     StopHTTPServer();
 #ifdef ENABLE_WALLET
     if (pwalletMain)
@@ -1573,6 +1574,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         StartTorControl(threadGroup, scheduler);
 
     StartNode(threadGroup, scheduler);
+    InitRPCMining();
 
     // ********************************************************* Step 12: finished
 

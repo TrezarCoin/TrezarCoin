@@ -183,7 +183,6 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn, bo
         coinbaseTx.vout[0].nValue = 0;
         *pStakeReward = nFees + GetProofOfStakeReward(nHeight, chainparams.GetConsensus());
     } else {
-        
         coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
         coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
     }
@@ -620,6 +619,66 @@ void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned
 
     pblock->vtx[0] = txCoinbase;
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
+}
+
+/* Prepares a block header for transmission using RPC getwork */
+void FormatDataBuffer(CBlock *pblock, unsigned int *pdata) {
+    unsigned int i;
+
+    struct {
+        int nVersion;
+        uint256 hashPrevBlock;
+        uint256 hashMerkleRoot;
+        unsigned int nTime;
+        unsigned int nBits;
+        unsigned int nNonce;
+    } data;
+
+    data.nVersion       = pblock->nVersion;
+    data.hashPrevBlock  = pblock->hashPrevBlock;
+    data.hashMerkleRoot = pblock->hashMerkleRoot;
+    data.nTime          = pblock->nTime;
+    data.nBits          = pblock->nBits;
+    data.nNonce         = pblock->nNonce;
+
+    for (i = 0; i < 20; i++)
+        pdata[i] = ((unsigned int *) &data)[i];
+}
+
+bool CheckWork(const CChainParams& chainparams, CBlock* pblock, CWallet& wallet, CReserveKey& reservekey) {
+    uint256 hashBlock = pblock->GetHash();
+    arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
+
+    if (!pblock->IsProofOfWork())
+        return error("%s: %s height %d is not a proof-of-work block", __func__, hashBlock.GetHex());
+
+    uint256 hashProof = pblock->GetPoWHash();
+
+    if (UintToArith256(hashProof) > hashTarget)
+        return error("%s: block %s height %d proof-of-work not meeting target", __func__, hashBlock.GetHex());
+
+    // Found a solution
+    {
+        LOCK(cs_main);
+        if (pblock->hashPrevBlock != hashBestChain)
+            return error("%s: generated block is stale", __func__);
+
+        // Remove key from key pool
+        reservekey.KeepKey();
+
+        // Track how many getdata requests this block gets
+        {
+            LOCK(wallet.cs_wallet);
+            wallet.mapRequestCount[hashBlock] = 0;
+        }
+
+        // Process this block the same as if we had received it from another node
+        CValidationState state;
+        if (!ProcessNewBlock(state, chainparams, NULL, pblock, true, NULL, false))
+            return error("%s: ProcessBlock, block not accepted", __func__);
+    }
+
+    return true;
 }
 
 /**
