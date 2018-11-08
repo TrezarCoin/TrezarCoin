@@ -271,7 +271,7 @@ bool SendSyncCheckpoint(uint256 hashCheckpoint)
     if (!key.Sign(Hash(checkpoint.vchMsg.begin(), checkpoint.vchMsg.end()), checkpoint.vchSig))
         return error("%s: Unable to sign checkpoint, check private key?", __func__);
 
-    if (!checkpoint.ProcessSyncCheckpoint(NULL))
+    if (!checkpoint.ProcessSyncCheckpoint())
         return error("%s: Failed to process checkpoint.", __func__);
 
     // Relay checkpoint
@@ -298,7 +298,7 @@ bool CSyncCheckpoint::CheckSignature()
 }
 
 // Process synchronized checkpoint
-bool CSyncCheckpoint::ProcessSyncCheckpoint(CNode* pfrom)
+bool CSyncCheckpoint::ProcessSyncCheckpoint()
 {
     if (!CheckSignature())
         return false;

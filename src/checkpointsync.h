@@ -119,7 +119,7 @@ public:
     }
 
     bool CheckSignature();
-    bool ProcessSyncCheckpoint(CNode* pfrom);
+    bool ProcessSyncCheckpoint();
 };
 
 #endif
