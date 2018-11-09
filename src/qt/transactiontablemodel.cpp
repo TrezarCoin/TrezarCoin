@@ -380,6 +380,8 @@ QString TransactionTableModel::formatTxType(const TransactionRecord *wtx) const
         return tr("Sent to");
     case TransactionRecord::SendToSelf:
         return tr("Payment to yourself");
+    case TransactionRecord::Mined:
+        return tr("Mined");
     case TransactionRecord::Generated:
         return tr("Staked");
     default:
@@ -391,6 +393,7 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
 {
     switch(wtx->type)
     {
+    case TransactionRecord::Mined:
     case TransactionRecord::Generated:
         return QIcon(":/icons/tx_mined");
     case TransactionRecord::RecvWithAddress:
@@ -418,6 +421,7 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, b
         return QString::fromStdString(wtx->address) + watchAddress;
     case TransactionRecord::RecvWithAddress:
     case TransactionRecord::SendToAddress:
+    case TransactionRecord::Mined:
     case TransactionRecord::Generated:
         return lookupAddress(wtx->address, tooltip) + watchAddress;
     case TransactionRecord::SendToOther:
@@ -435,6 +439,7 @@ QVariant TransactionTableModel::addressColor(const TransactionRecord *wtx) const
     {
     case TransactionRecord::RecvWithAddress:
     case TransactionRecord::SendToAddress:
+    case TransactionRecord::Mined:
     case TransactionRecord::Generated:
         {
         QString label = walletModel->getAddressTableModel()->labelForAddress(QString::fromStdString(wtx->address));

@@ -71,8 +71,8 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                 }
                 if (wtx.IsCoinBase())
                 {
-                    // Generated
-                    sub.type = TransactionRecord::Generated;
+                    // Mined
+                    sub.type = TransactionRecord::Mined;
                 }
                 if (wtx.IsCoinStake())
                 {
@@ -213,7 +213,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
         }
     }
     // For generated transactions, determine maturity
-    else if(type == TransactionRecord::Generated)
+    else if(type == TransactionRecord::Mined || type == TransactionRecord::Generated)
     {
         if (wtx.GetBlocksToMaturity() > 0)
         {

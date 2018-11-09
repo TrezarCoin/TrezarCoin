@@ -72,6 +72,7 @@ public:
     enum Type
     {
         Other,
+        Mined,
         Generated,
         SendToAddress,
         SendToOther,
