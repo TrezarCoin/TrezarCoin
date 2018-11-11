@@ -495,7 +495,7 @@ std::string HelpMessage(HelpMessageMode mode)
 
 std::string LicenseInfo()
 {
-    const std::string URL_SOURCE_CODE = "<https://github.com/TrezarCoin/TrezarCoin>";
+    const std::string URL_SOURCE_CODE = "<https://github.com/Trezarcoin/Trezarcoin>";
     const std::string URL_WEBSITE = "<https://trezarcoin.com/>";
     // todo: remove urls from translations on next change
     return CopyrightHolders(strprintf(_("Copyright (C) %i-%i"), 2017, COPYRIGHT_YEAR) + " ") + "\n" +

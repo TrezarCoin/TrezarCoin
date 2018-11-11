@@ -468,7 +468,7 @@ boost::filesystem::path GetDefaultDataDir()
     // Unix: ~/.bitcoin
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "TrezarCoin";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "Trezarcoin";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
