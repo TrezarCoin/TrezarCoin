@@ -209,13 +209,6 @@ private:
 
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
-
-/** Prepares a block header for transmission using RPC getwork */
-void FormatDataBuffer(CBlock *pblock, unsigned int *pdata);
-
-/** Check mined block */
-bool CheckWork(const CChainParams& chainparams, CBlock* pblock, CWallet& wallet, CReserveKey& reservekey);
-
 int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev);
 
 /** Sign proof-of-stake block */

@@ -21,9 +21,6 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #include "validationinterface.h"
-#ifdef ENABLE_WALLET
-#include "wallet/wallet.h"
-#endif
 
 #include <stdint.h>
 
@@ -33,36 +30,6 @@
 #include <univalue.h>
 
 using namespace std;
-
-#ifdef ENABLE_WALLET
-// Key used by getwork miners.
-// Allocated in InitRPCMining, free'd in ShutdownRPCMining
-static CReserveKey* pMiningKey = NULL;
-
-void InitRPCMining()
-{
-    if (!pwalletMain)
-        return;
-
-    // getwork/getblocktemplate mining rewards paid here:
-    pMiningKey = new CReserveKey(pwalletMain);
-}
-
-void ShutdownRPCMining()
-{
-    if (!pMiningKey)
-        return;
-
-    delete pMiningKey; pMiningKey = NULL;
-}
-#else
-void InitRPCMining()
-{
-}
-void ShutdownRPCMining()
-{
-}
-#endif
 
 /**
  * Return average network hashes per second based on the last 'lookup' blocks,
@@ -351,118 +318,6 @@ std::string gbt_vb_name(const Consensus::DeploymentPos pos) {
     }
     return s;
 }
-
-#ifdef ENABLE_WALLET
-UniValue getwork(const UniValue& params, bool fHelp)
-{
-    if (fHelp || params.size() > 1)
-        throw runtime_error(
-            "getwork ( \"data\" )\n"
-            "\nIf 'data' is not specified, it returns the formatted hash data to work on.\n"
-            "If 'data' is specified, tries to solve the block and returns true if it was successful.\n"
-            "\nArguments:\n"
-            "1. \"data\"       (string, optional) The hex encoded data to solve\n"
-            "\nResult (when 'data' is not specified):\n"
-            "{\n"
-            "  \"data\" : \"xxxxx\",      (string) The block data\n"
-            "  \"target\" : \"xxxx\"      (string) The little endian hash target\n"
-            "}\n"
-            "If [data] is specified, verifies the PoW hash against target and returns true if successful."
-            "\nExamples:\n"
-            + HelpExampleCli("getwork", "")
-            + HelpExampleRpc("getwork", "")
-        );
-
-    if (vNodes.empty())
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Trezarcoin is not connected!");
-
-    if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Trezarcoin is downloading blocks...");
-
-    typedef std::map<uint256, std::pair<CBlock*, CScript> > mapNewBlock_t;
-    static mapNewBlock_t mapNewBlock;    // FIXME: thread safety
-
-    static boost::shared_ptr<CReserveScript> coinbaseScript;
-
-    if (params.size() == 0)
-    {
-        // Update block
-        static unsigned int nTransactionsUpdatedLast;
-        static CBlockIndex* pindexPrev;
-        static int64_t nStart;
-        static CBlockTemplate* pblocktemplate;
-
-        if (pindexPrev != chainActive.Tip() ||
-            (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60))
-        {
-            if (pindexPrev != chainActive.Tip())
-                mapNewBlock.clear();
-
-            // Clear pindexPrev so future getworks make a new block, despite any failures from here on
-            pindexPrev = nullptr;
-
-            // Store the pindexBest used before CreateNewBlock, to avoid races
-            nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
-            CBlockIndex* pindexPrevNew = chainActive.Tip();
-            nStart = GetTime();
-
-            // Create new block
-            GetMainSignals().ScriptForMining(coinbaseScript);
-            pblocktemplate = BlockAssembler(Params()).CreateNewBlock(coinbaseScript->reserveScript);
-            if (!pblocktemplate)
-                throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
-
-            // Need to update only after we know CreateNewBlock succeeded
-            pindexPrev = pindexPrevNew;
-        }
-        CBlock* pblock = &pblocktemplate->block; // pointer for convenience
-
-        // Update nTime
-        UpdateTime(pblock, Params().GetConsensus(), pindexPrev);
-        pblock->nNonce = 0;
-
-        // Update nExtraNonce
-        static unsigned int nExtraNonce = 0;
-        IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
-
-        // Save
-        mapNewBlock[pblock->hashMerkleRoot] = make_pair(pblock, pblock->vtx[0].vin[0].scriptSig);
-
-        // Pre-build hash buffers
-        unsigned int pdata[32];
-        FormatDataBuffer(pblock, pdata);
-
-        arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
-
-        UniValue result(UniValue::VOBJ);
-        result.push_back(Pair("data",     HexStr(BEGIN(pdata), (char *) &pdata[20])));
-        result.push_back(Pair("target",   HexStr(BEGIN(hashTarget), END(hashTarget))));
-
-        return result;
-    }
-    else
-    {
-        // Parse parameters
-        vector<unsigned char> vchData = ParseHex(params[0].get_str());
-        if (vchData.size() < 80)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter");
-        CBlock* pdata = (CBlock*)&vchData[0];
-
-        // Get saved block
-        if (!mapNewBlock.count(pdata->hashMerkleRoot))
-            return false;
-        CBlock* pblock = mapNewBlock[pdata->hashMerkleRoot].first;
-
-        pblock->nTime = pdata->nTime;
-        pblock->nNonce = pdata->nNonce;
-        pblock->vtx[0].vin[0].scriptSig = mapNewBlock[pdata->hashMerkleRoot].second;
-        pblock->hashMerkleRoot = pblock->BuildMerkleTree();
-
-        assert(pwalletMain != NULL);
-        return CheckWork(Params(), pblock, *pwalletMain, *pMiningKey);
-    }
-}
-#endif
 
 UniValue getblocktemplate(const UniValue& params, bool fHelp)
 {
@@ -1087,7 +942,6 @@ static const CRPCCommand commands[] =
     { "mining",             "getmininginfo",          &getmininginfo,          true  },
     { "mining",             "prioritisetransaction",  &prioritisetransaction,  true  },
     { "mining",             "getblocktemplate",       &getblocktemplate,       true  },
-    { "mining",             "getwork",                &getwork,                true  },
     { "mining",             "submitblock",            &submitblock,            true  },
 
     { "generating",         "staking",                &staking,                true  },
