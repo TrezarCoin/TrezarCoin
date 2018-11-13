@@ -478,7 +478,7 @@ boost::filesystem::path GetDefaultDataDir()
         pathRet = fs::path(pszHome);
 #ifdef MAC_OSX
     // Mac
-    return pathRet / "Library/Application Support/trezarcoin";
+    return pathRet / ".trezarcoin";
 #else
     // Unix
     return pathRet / ".trezarcoin";
