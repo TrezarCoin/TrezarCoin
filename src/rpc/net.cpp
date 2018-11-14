@@ -629,6 +629,13 @@ UniValue getstakinginfo(const UniValue& params, bool fHelp)
     obj.push_back(Pair("weight", (uint64_t)nWeight));
     obj.push_back(Pair("netstakeweight", (uint64_t)nNetworkWeight));
 
+    if (nStakeMinTime)
+        obj.push_back(Pair("stakemintime",   (int)nStakeMinTime));
+    else
+        obj.push_back(Pair("stakemindepth",  (int)nStakeMinDepth));
+    obj.push_back(Pair("stakeminvalue",    ValueFromAmount(nStakeMinValue)));
+    obj.push_back(Pair("stakecombine",     ValueFromAmount(nCombineThreshold)));
+    obj.push_back(Pair("stakesplit",       ValueFromAmount(nSplitThreshold)));
     obj.push_back(Pair("expectedtime", nExpectedTime));
 
     return obj;
