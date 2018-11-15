@@ -184,7 +184,11 @@ bool CheckSyncCheckpoint(const CBlockIndex* pindexNew)
     // Checkpoint should always be accepted block
     assert(mapBlockIndex.count(hashSyncCheckpoint));
     const CBlockIndex* pindexSync = mapBlockIndex[hashSyncCheckpoint];
-    assert(chainActive.Contains(pindexSync));
+
+    // Blocks could have been rewound on startup, do not
+    // return or false here or block could be marked invalid
+    if (!chainActive.Contains(pindexSync))
+        return true;
 
     if (nHeight > pindexSync->nHeight)
     {
