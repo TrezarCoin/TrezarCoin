@@ -43,7 +43,7 @@ EasySplitEntry::EasySplitEntry(const PlatformStyle *platformStyle, QWidget *pare
     ui->payToEasySplit_is->setFont(GUIUtil::fixedPitchFont());
 
     // Connect signals
-    connect(ui->payAmountEasySplit, SIGNAL(valueChanged()), this, SIGNAL(payAmountEasySplitChanged()));
+    connect(ui->payAmountEasySplit, SIGNAL(valueChanged()), this, SIGNAL(payAmountChanged()));
     connect(ui->checkboxSubtractFeeFromAmount, SIGNAL(toggled(bool)), this, SIGNAL(subtractFeeFromAmountChanged()));
     connect(ui->deleteButton, SIGNAL(clicked()), this, SLOT(deleteClicked()));
     connect(ui->deleteButton_is, SIGNAL(clicked()), this, SLOT(deleteClicked()));
@@ -165,12 +165,17 @@ void EasySplitEntry::getValueRecipients(QList<SendCoinsRecipient> &qLRecipients)
         SendCoinsRecipient recipient;
         recipient.address = ui->listWidgetEasySplit->item(i)->text();
         recipient.amount = ui->payAmountEasySplit->value();
-        qLRecipients.append(recipient);
+        qLRecipients.append(recipient);   
     }
 }
 
 SendCoinsRecipient EasySplitEntry::getValue()
 {
+    recipientCounter = 0;
+    for (int i = 0; i < ui->listWidgetEasySplit->count(); i++) {
+        recipientCounter++;
+    }
+
     // Payment request
     if (recipient.paymentRequest.IsInitialized())
         return recipient;
@@ -178,7 +183,8 @@ SendCoinsRecipient EasySplitEntry::getValue()
     // Normal payment
     recipient.address = ui->payToEasySplit->text();
     //recipient.label = ui->addAsLabel->text();
-    recipient.amount = ui->payAmountEasySplit->value();
+    if(recipientCounter>=1) recipient.amount = ui->payAmountEasySplit->value() * recipientCounter;
+    else recipient.amount = ui->payAmountEasySplit->value();
     recipient.message = ui->messageTextLabel->text();
     recipient.fSubtractFeeFromAmount = (ui->checkboxSubtractFeeFromAmount->checkState() == Qt::Checked);
 

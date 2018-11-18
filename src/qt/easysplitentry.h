@@ -84,6 +84,7 @@ private:
     Ui::EasySplitEntry *ui;
     WalletModel *model;
     const PlatformStyle *platformStyle;
+    int recipientCounter;
 
     bool updateLabel(const QString &address);
 };

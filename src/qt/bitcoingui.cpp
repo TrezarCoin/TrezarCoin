@@ -341,7 +341,7 @@ void BitcoinGUI::createActions()
     receiveCoinsMenuAction->setStatusTip(receiveCoinsAction->statusTip());
     receiveCoinsMenuAction->setToolTip(receiveCoinsMenuAction->statusTip());
 
-    toggleStakingAction = new QAction(platformStyle->SingleColorIcon(":/icons/staking_off"),tr("Toggle &Staking"), this);
+    toggleStakingAction = new QAction(platformStyle->SingleColorIcon(":/icons/staking_off"), tr("Toggle &Staking"), this);
     toggleStakingAction->setStatusTip(tr("Toggle Staking"));
 
     historyAction = new QAction(platformStyle->SingleColorIcon(":/icons/history"), tr("&Transactions"), this);
@@ -1403,9 +1403,15 @@ void BitcoinGUI::updateStakingStatus()
     }
 
     if (fStakeIcon)
+    {
         labelStakeMining->setPixmap(QIcon(":/icons/staking_on").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+        toggleStakingAction->setIcon(QIcon(":/icons/staking_on"));
+    }   
     else
+    {
         labelStakeMining->setPixmap(QIcon(":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+        toggleStakingAction->setIcon(QIcon(":/icons/staking_off"));
+    }
 
     //Update NetworkInfo
     QString diffPoW = QString("%1 PoW").arg(GetDifficulty());

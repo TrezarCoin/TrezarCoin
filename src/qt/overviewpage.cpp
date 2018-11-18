@@ -218,11 +218,13 @@ void OverviewPage::setStakingStatus(QString text, bool fStake)
 {
     if (fStake) {
         ui->labelStakingStatus->setText(QString("<font color='green'>Active</font>"));
+        ui->stakingStatusLabel->setVisible(true);
+        ui->stakingStatusLabel->setText(text);
     }
     else {
         ui->labelStakingStatus->setText(QString("<font color='red'>Idle</font>"));
+        ui->stakingStatusLabel->setVisible(false);
     }
-    ui->stakingStatusLabel->setText(text);
 }
 
 void OverviewPage::setClientModel(ClientModel *model)
