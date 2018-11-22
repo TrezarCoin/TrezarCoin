@@ -72,15 +72,15 @@ https://trezarcoin.com/wp-content/uploads/2017/09/TrezarCoins-Rasberry-Pi-Compil
 
 Linux:
 -----
-https://github.com/Trezarcoin/Trezarcoin/blob/1.2.0/doc/build-unix.md
+https://github.com/TrezarCoin/TrezarCoin/blob/master/doc/build-unix.md
 
 MacOS:
 -----
-https://github.com/Trezarcoin/Trezarcoin/blob/1.2.0/doc/build-osx.md
+https://github.com/TrezarCoin/TrezarCoin/blob/master/doc/build-osx.md
 
 Windows:
 -----
-https://github.com/Trezarcoin/Trezarcoin/blob/1.2.0/doc/build-windows.md
+https://github.com/TrezarCoin/TrezarCoin/blob/master/doc/build-windows.md
 
 License
 -------
