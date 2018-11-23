@@ -76,7 +76,6 @@ void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
         conflicts.push_back(conflict.GetHex());
     entry.push_back(Pair("walletconflicts", conflicts));
     entry.push_back(Pair("time", wtx.GetTxTime()));
-    entry.push_back(Pair("tx-comment", wtx.strTxComment));
     entry.push_back(Pair("timereceived", (int64_t)wtx.nTimeReceived));
 
     // Add opt-in RBF status
@@ -373,9 +372,9 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
 
-    if (fHelp || params.size() < 2 || params.size() > 6)
+    if (fHelp || params.size() < 2 || params.size() > 5)
         throw runtime_error(
-            "sendtoaddress \"trezarcoinaddress\" amount ( \"comment\" \"comment-to\" subtractfeefromamount \"tx-comment\")\n"
+            "sendtoaddress \"trezarcoinaddress\" amount ( \"comment\" \"comment-to\" subtractfeefromamount )\n"
             "\nSend an amount to a given address.\n"
             + HelpRequiringPassphrase() +
             "\nArguments:\n"
@@ -387,8 +386,7 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
             "                             to which you're sending the transaction. This is not part of the \n"
             "                             transaction, just kept in your wallet.\n"
             "5. subtractfeefromamount  (boolean, optional, default=false) The fee will be deducted from the amount being sent.\n"
-            "                             The recipient will receive less trezarcoin than you enter in the amount field.\n"
-            "6. \"tx-comment\"  (string, optional) A comment to send with the transaction \n"
+            "                             The recipient will receive less trezarcoins than you enter in the amount field.\n"
             "\nResult:\n"
             "\"transactionid\"  (string) The transaction id.\n"
             "\nExamples:\n"
@@ -420,18 +418,9 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
     if (params.size() > 4)
         fSubtractFeeFromAmount = params[4].get_bool();
 
-    // Transaction comment
-    std::string txcomment;
-    if(params.size() > 5 && !params[5].isNull() && !params[5].get_str().empty()) {
-        txcomment = params[5].get_str();
-        if (!txcomment.empty())
-            txcomment = "text:" + txcomment;
-        if (txcomment.length() > MAX_TX_COMMENT_LEN)
-            txcomment.resize(MAX_TX_COMMENT_LEN);
-    }
-
     EnsureWalletIsUnlocked();
 
+    std::string txcomment;
     SendMoney(address.Get(), nAmount, fSubtractFeeFromAmount, wtx, txcomment);
 
     return wtx.GetHash().GetHex();
@@ -802,9 +791,9 @@ UniValue sendfrom(const UniValue& params, bool fHelp)
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
 
-    if (fHelp || params.size() < 3 || params.size() > 7)
+    if (fHelp || params.size() < 3 || params.size() > 6)
         throw runtime_error(
-            "sendfrom \"fromaccount\" \"totrezarcoinaddress\" amount ( minconf \"comment\" \"comment-to\" \"tx-comment\" )\n"
+            "sendfrom \"fromaccount\" \"totrezarcoinaddress\" amount ( minconf \"comment\" \"comment-to\" )\n"
             "\nDEPRECATED (use sendtoaddress). Sent an amount from an account to a trezarcoin address."
             + HelpRequiringPassphrase() + "\n"
             "\nArguments:\n"
@@ -817,7 +806,6 @@ UniValue sendfrom(const UniValue& params, bool fHelp)
             "6. \"comment-to\"        (string, optional) An optional comment to store the name of the person or organization \n"
             "                                     to which you're sending the transaction. This is not part of the transaction, \n"
             "                                     it is just kept in your wallet.\n"
-            "7. \"tx-comment\"        (string, optional) A comment to send with the transaction \n"
             "\nResult:\n"
             "\"transactionid\"        (string) The transaction id.\n"
             "\nExamples:\n"
@@ -849,15 +837,6 @@ UniValue sendfrom(const UniValue& params, bool fHelp)
     if (params.size() > 5 && !params[5].isNull() && !params[5].get_str().empty())
         wtx.mapValue["to"]      = params[5].get_str();
 
-    std::string txcomment;
-    if ((params.size() > 6) && !params[6].isNull() && !params[6].get_str().empty()) {
-        txcomment = params[6].get_str();
-        if (!txcomment.empty())
-            txcomment = "text:" + txcomment;
-        if (txcomment.length() > MAX_TX_COMMENT_LEN)
-            txcomment.resize(MAX_TX_COMMENT_LEN);
-    }
-
     EnsureWalletIsUnlocked();
 
     // Check funds
@@ -865,6 +844,7 @@ UniValue sendfrom(const UniValue& params, bool fHelp)
     if (nAmount > nBalance)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account has insufficient funds");
 
+    std::string txcomment;
     SendMoney(address.Get(), nAmount, false, wtx, txcomment);
 
     return wtx.GetHash().GetHex();
