@@ -554,7 +554,6 @@ private:
      */
     bool SelectCoins(const std::vector<COutput>& vAvailableCoins, const CAmount& nTargetValue, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, CAmount& nValueRet, const CCoinControl *coinControl = NULL) const;
     bool SelectCoinsForStaking(int64_t nTargetValue, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const;
-    void AvailableCoinsForStaking(std::vector<COutput>& vCoins, int nConf, unsigned int nSpendTime) const;
 
     CWalletDB *pwalletdbEncryption;
 
