@@ -1076,16 +1076,22 @@ void CWallet::SyncTransaction(const CTransaction& tx, const CBlockIndex *pindex,
         }
     }
 
+    bool isMine = true;
+
     if (!AddToWalletIfInvolvingMe(tx, pblock, true))
-        return; // Not one of ours
+        isMine = false; // Not one of ours
 
     // If a transaction changes 'conflicted' state, that changes the balance
     // available of the outputs it spends. So force those to be
     // recomputed, also:
-    BOOST_FOREACH(const CTxIn& txin, tx.vin)
+
+    if(isMine == true)
     {
-        if (mapWallet.count(txin.prevout.hash))
-            mapWallet[txin.prevout.hash].MarkDirty();
+        BOOST_FOREACH(const CTxIn& txin, tx.vin)
+        {
+            if (mapWallet.count(txin.prevout.hash))
+                mapWallet[txin.prevout.hash].MarkDirty();
+        }
     }
 
     if (!fConnect && tx.IsCoinStake() && IsFromMe(tx))
@@ -1496,11 +1502,9 @@ void CWallet::ReacceptWalletTransactions()
 bool CWalletTx::RelayWalletTransaction()
 {
     assert(pwallet->GetBroadcastTransactions());
-    if (!(IsCoinBase() || IsCoinStake()) && !isAbandoned() && GetDepthInMainChain() == 0)
+    if (!(IsCoinBase() || IsCoinStake()))
     {
-        CValidationState state;
-        /* GetDepthInMainChain already catches known conflicts. */
-        if (InMempool() || AcceptToMemoryPool(false, maxTxFee, state)) {
+        if (GetDepthInMainChain() == 0 && !isAbandoned() && InMempool()) {
             LogPrintf("Relaying wtx %s\n", GetHash().ToString());
             RelayTransaction((CTransaction)*this);
             return true;
@@ -4002,6 +4006,9 @@ bool CWallet::SelectCoinsForStaking(int64_t nTargetValue, set<pair<const CWallet
 
             /* Discard if the age requirement is unmet */
             if (nCurrentTime < (pcoin->nTime + Params().GetConsensus().nStakeMinAge))
+                continue;
+
+            if (pcoin->isAbandoned())
                 continue;
 
             /* May be negative (failed transactions) */
