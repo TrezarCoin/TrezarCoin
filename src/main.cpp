@@ -7291,7 +7291,7 @@ static bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifi
         if (!chainActive.Next(pindex))
         {   // reached best block; may happen if node is behind on block chain
             if (pindex->GetBlockTime() + Params().GetConsensus().nStakeMinAge - nStakeModifierSelectionInterval > GetAdjustedTime())
-                return error("%s: reached best block %s at height %d from block %s\n",
+                return error("%s: reached best block %s at height %d from block %s",
                     __func__, pindex->GetBlockHash().ToString().c_str(), pindex->nHeight, hashBlockFrom.ToString().c_str());
             else
                 return false;
@@ -7332,7 +7332,7 @@ bool CheckStakeKernelHash(unsigned int nBits, CBlock& blockFrom, unsigned int nT
     int nStakeModifierHeight = 0;
 
     if (!GetKernelStakeModifier(hashBlock, nStakeModifier, nStakeModifierTime, nStakeModifierHeight))
-        return error("%s: Returned false at height %d\n", __func__, mapBlockIndex[hashBlock]->nHeight);
+        return error("%s: Returned false at height %d", __func__, mapBlockIndex[hashBlock]->nHeight);
 
     ss << nStakeModifier << nTimeBlockFrom << nTxPrevOffset << txPrev.nTime << prevout.n << nTimeTx;
     hashProofOfStake = UintToArith256(Hash(ss.begin(), ss.end()));
