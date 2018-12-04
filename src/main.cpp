@@ -2564,10 +2564,6 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             control.Add(vChecks);
         }
 
-        // Do not create coinbase coins for proof-of-stake block
-        if (block.IsProofOfStake() && tx.IsCoinBase())
-            continue;
-
         CTxUndo undoDummy;
         if (i > 0) {
             blockundo.vtxundo.push_back(CTxUndo());
