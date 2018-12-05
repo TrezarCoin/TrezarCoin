@@ -7326,9 +7326,20 @@ bool CheckStakeKernelHash(unsigned int nBits, CBlock& blockFrom, unsigned int nT
     uint64_t nStakeModifier;
     int64_t nStakeModifierTime = 0;
     int nStakeModifierHeight = 0;
+    unsigned int nSize = (unsigned int)mapModifiers.size();
 
-    if (!GetKernelStakeModifier(hashBlock, nStakeModifier, nStakeModifierTime, nStakeModifierHeight))
-        return error("%s: Returned false at height %d", __func__, mapBlockIndex[hashBlock]->nHeight);
+    if (nSize >= MODIFIER_CACHE_LIMIT)
+        mapModifiers.clear();
+
+    /* Stake modifiers for PoS mining are calculated repeatedly
+     * and can be cached to speed up the whole process */
+    if (mapModifiers.count(nTimeBlockFrom)) {
+        nStakeModifier = mapModifiers[nTimeBlockFrom];
+    } else {
+        if (!GetKernelStakeModifier(hashBlock, nStakeModifier, nStakeModifierTime, nStakeModifierHeight))
+            return error("%s: Returned false at height %d", __func__, mapBlockIndex[hashBlock]->nHeight);
+        mapModifiers.insert(make_pair(nTimeBlockFrom, nStakeModifier));
+    }
 
     ss << nStakeModifier << nTimeBlockFrom << nTxPrevOffset << txPrev.nTime << prevout.n << nTimeTx;
     hashProofOfStake = UintToArith256(Hash(ss.begin(), ss.end()));

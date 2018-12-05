@@ -120,6 +120,8 @@ static const unsigned int MAX_FEEFILTER_CHANGE_DELAY = 5 * 60;
 static const int64_t BLOCK_DOWNLOAD_TIMEOUT_BASE = 1000000;
 /** Additional block download timeout per parallel downloading peer (i.e. 5 min) */
 static const int64_t BLOCK_DOWNLOAD_TIMEOUT_PER_PEER = 500000;
+/** Stake modifier cache size limit */
+static const unsigned int MODIFIER_CACHE_LIMIT = 16384;
 
 static const unsigned int DEFAULT_LIMITFREERELAY = 15;
 static const bool DEFAULT_RELAYPRIORITY = true;
