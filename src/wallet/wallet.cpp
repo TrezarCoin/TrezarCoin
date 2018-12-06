@@ -14,6 +14,7 @@
 #include "key.h"
 #include "keystore.h"
 #include "main.h"
+#include "miner.h"
 #include "net.h"
 #include "policy/policy.h"
 #include "primitives/block.h"
@@ -45,6 +46,11 @@ bool fWalletUnlockStakingOnly = false;
 
 const char * DEFAULT_WALLET_DAT = "wallet.dat";
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
+
+set<pair<const CWalletTx*, unsigned int> > setCoinsCache;
+int64_t nCoinsCacheValue = 0;
+unsigned int  nCoinsCacheTime  = 0;
+const unsigned int nCoinsCacheInterval = 600;  /* 10 minutes */
 
 /**
  * Fees smaller than this (in satoshi) are considered zero fee (for transaction creation)
@@ -2588,6 +2594,14 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey)
             }
         }
     }
+
+    /* Clear if staking is active */
+    if (GetStaking()) {
+        setCoinsCache.clear();
+        nCoinsCacheValue = 0;
+        nCoinsCacheTime  = 0;
+    }
+
     return true;
 }
 
@@ -3951,7 +3965,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
     /* Fail if the minimal stake amount not reached */
     if (nCredit < MIN_STAKE_AMOUNT)
-        return error("CreateCoinStake() : stake amount below the minimum");
+        return error("%s: stake amount below the minimum", __func__);
 
     nCredit += nStakeReward;
 
@@ -3986,6 +4000,11 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     if (nBytes >= MAX_BLOCK_SIZE_GEN / 5)
         return error("%s: exceeded coinstake size limit", __func__);
 
+    /* Clear inputs cached */
+    setCoinsCache.clear();
+    nCoinsCacheValue = 0;
+    nCoinsCacheTime  = 0;
+
     // Successfully generated coinstake
     return true;
 }
@@ -3994,6 +4013,15 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 bool CWallet::SelectCoinsForStaking(int64_t nTargetValue, set<pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const
 {
     unsigned int nCurrentTime = GetTime();
+    if (nCurrentTime < (nCoinsCacheTime + nCoinsCacheInterval)) {
+        /* Try to re-use inputs cached */
+        if (setCoinsCache.size()) {
+            setCoinsRet = setCoinsCache;
+            nValueRet = nCoinsCacheValue;
+            return true;
+        }
+    }
+
     int nDepth;
     vector<COutput> vCoins;
     vCoins.clear();
@@ -4060,6 +4088,12 @@ bool CWallet::SelectCoinsForStaking(int64_t nTargetValue, set<pair<const CWallet
             break;
         }
     }
+
+    /* Clear and reload the cache */
+    setCoinsCache.clear();
+    setCoinsCache = setCoinsRet;
+    nCoinsCacheValue = nValueRet;
+    nCoinsCacheTime = nCurrentTime;
 
     return true;
 }
