@@ -376,10 +376,9 @@ static CAmount AmountFromValue(const UniValue& value)
 {
     if (!value.isNum() && !value.isStr())
         throw runtime_error("Amount is not a number or string");
-    CAmount amount;
+    CAmount amount = roundint64(amount * COIN);
     if (!ParseFixedPoint(value.getValStr(), 8, &amount))
         throw runtime_error("Invalid amount");
-    amount = roundint64(amount * COIN);
     if (!MoneyRange(amount))
         throw runtime_error("Amount out of range");
     return amount;
