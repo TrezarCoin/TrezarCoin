@@ -1392,6 +1392,16 @@ void BitcoinGUI::updateStakingStatus()
     bool fStakeIcon = getStakingStatus(nEstimateTime, nWeight, stakeText, stakeTime);
 
     /* Don't wrap words */
+    if (fStakeIcon)
+    {
+        stakeText += QString("<br>");
+        stakeText += tr("Staking enabled for %1 inputs weighing %2 coin days") \
+            .arg(nMinWeightInputs + nAvgWeightInputs + nMaxWeightInputs).arg(nWeight);
+        stakeText += QString("<br>");
+        stakeText += tr("Inputs: %1 min. age, %2 avg. age, %3 max. age") \
+            .arg(nMinWeightInputs).arg(nAvgWeightInputs).arg(nMaxWeightInputs);
+    }
+
     stakeText = QString("<nobr>") + stakeText + QString("</nobr>");
 
     labelStakeMining->setToolTip(stakeText);

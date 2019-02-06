@@ -3767,13 +3767,27 @@ void CWallet::GetStakeWeight(uint64_t& nMinWeight, uint64_t& nMaxWeight, uint64_
     if (setCoins.empty())
         return;
 
+    nMinWeightInputs = 0, nMaxWeightInputs = 0, nAvgWeightInputs = 0;
+
     int64_t nCurrentTime = GetTime();
+    uint64_t nStakeMaxAge = 15 * 24 * 60 * 60;
 
     LOCK2(cs_main, cs_wallet);
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
         int64_t nTimeWeight = GetWeight((int64_t)pcoin.first->nTime, (int64_t)GetTime());
         CBigNum bnCoinDayWeight = CBigNum(pcoin.first->vout[pcoin.second].nValue) * nTimeWeight / COIN / (24 * 60 * 60);
+
+        if (nTimeWeight > 0) {
+            /* Calculate stake weight */
+            nTotalStakeWeight += bnCoinDayWeight.getuint64();
+            /* Minimum weight reached */
+            if (nTimeWeight < (nStakeMaxAge / 2)) nMinWeightInputs++;
+            /* Average weight reached */
+            else if (nTimeWeight < nStakeMaxAge) nAvgWeightInputs++;
+            /* Maximum weight reached */
+            else nMaxWeightInputs++;
+        }
 
         if (nTimeWeight > 0)
             nWeight += bnCoinDayWeight.getuint64();

@@ -119,6 +119,12 @@ CTranslationInterface translationInterface;
 /* NeoScrypt related */
 unsigned int nNeoScryptOptions = 0;
 
+/* Shared between getmininginfo and the Qt client */
+unsigned long long nMinWeightInputs = 0;
+unsigned long long nAvgWeightInputs = 0;
+unsigned long long nMaxWeightInputs = 0;
+unsigned long long nTotalStakeWeight = 0;
+
 /* Performance counters shown in RPC call getcounters */
 uint64_t nBlockHashCacheHits = 0;
 uint64_t nBlockHashCacheMisses = 0;

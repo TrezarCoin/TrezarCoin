@@ -58,6 +58,10 @@ extern unsigned int nNeoScryptOptions;
 
 extern unsigned int nStakeMinTime;
 extern unsigned int nStakeMinDepth;
+extern unsigned long long nMinWeightInputs;
+extern unsigned long long nAvgWeightInputs;
+extern unsigned long long nMaxWeightInputs;
+extern unsigned long long nTotalStakeWeight;
 
 extern uint64_t nBlockHashCacheHits;
 extern uint64_t nBlockHashCacheMisses;
