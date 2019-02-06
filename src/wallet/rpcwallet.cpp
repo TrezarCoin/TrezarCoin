@@ -53,6 +53,9 @@ void EnsureWalletIsUnlocked()
 {
     if (pwalletMain->IsLocked())
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
+
+    if (fWalletUnlockStakingOnly)
+        throw(JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Wallet unlocked for staking only."));
 }
 
 void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
@@ -1929,12 +1932,13 @@ UniValue walletpassphrase(const UniValue& params, bool fHelp)
 
     if (pwalletMain->IsCrypted() && (fHelp || params.size() != 2))
         throw runtime_error(
-            "walletpassphrase \"passphrase\" timeout\n"
+            "walletpassphrase \"passphrase\" timeout [mintonly]\n"
             "\nStores the wallet decryption key in memory for 'timeout' seconds.\n"
             "This is needed prior to performing transactions related to private keys such as sending trezarcoin\n"
             "\nArguments:\n"
             "1. \"passphrase\"     (string, required) The wallet passphrase\n"
             "2. timeout            (numeric, required) The time to keep the decryption key in seconds.\n"
+            "3. mintonly           (boolean, optional - true or false) Does only unlock for Staking if true.\n"
             "\nNote:\n"
             "Issuing the walletpassphrase command while the wallet is already unlocked will set a new unlock\n"
             "time that overrides the old one.\n"
@@ -1977,6 +1981,15 @@ UniValue walletpassphrase(const UniValue& params, bool fHelp)
     LOCK(cs_nWalletUnlockTime);
     nWalletUnlockTime = GetTime() + nSleepTime;
     RPCRunLater("lockwallet", boost::bind(LockWallet, pwalletMain), nSleepTime);
+
+    /* Disables some wallet functionality if unlocked for staking only */
+    if (params.size() > 2)
+    {
+        if ((params[2].get_str() == "true") || (params[2].get_str() == "True"))
+            fWalletUnlockStakingOnly = true;
+    }
+    else
+        fWalletUnlockStakingOnly = false;
 
     return NullUniValue;
 }
