@@ -20,6 +20,7 @@
 #include "script/script_error.h"
 #include "script/sign.h"
 #include "script/standard.h"
+#include "timedata.h"
 #include "txmempool.h"
 #include "uint256.h"
 #include "utilstrencodings.h"
@@ -382,7 +383,7 @@ UniValue createrawtransaction(const UniValue& params, bool fHelp)
     UniValue inputs = params[0].get_array();
     UniValue sendTo = params[1].get_obj();
 
-    CMutableTransaction rawTx;
+    CMutableTransaction rawTx(GetAdjustedTime());
 
     if (params.size() > 2 && !params[2].isNull()) {
         int64_t nLockTime = params[2].get_int64();
