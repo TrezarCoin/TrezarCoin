@@ -441,7 +441,7 @@ UniValue createrawtransaction(const UniValue& params, bool fHelp)
             setAddress.insert(address);
 
             CScript scriptPubKey = GetScriptForDestination(address.Get());
-            CAmount nAmount = AmountFromValue(sendTo[name_]);
+            CAmount nAmount = AmountFromValue(sendTo[name_], 6);
 
             CTxOut out(nAmount, scriptPubKey);
             rawTx.vout.push_back(out);
