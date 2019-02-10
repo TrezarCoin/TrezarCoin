@@ -408,7 +408,7 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Trezarcoin address");
 
     // Amount
-    CAmount nAmount = AmountFromValue(params[1]);
+    CAmount nAmount = AmountFromValue(params[1], 6);
     if (nAmount <= 0)
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
 
@@ -783,7 +783,7 @@ UniValue movecmd(const UniValue& params, bool fHelp)
 
     string strFrom = AccountFromValue(params[0]);
     string strTo = AccountFromValue(params[1]);
-    CAmount nAmount = AmountFromValue(params[2]);
+    CAmount nAmount = AmountFromValue(params[2], 6);
     if (nAmount <= 0)
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
     if (params.size() > 3)
@@ -838,7 +838,7 @@ UniValue sendfrom(const UniValue& params, bool fHelp)
     CBitcoinAddress address(params[1].get_str());
     if (!address.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Trezarcoin address");
-    CAmount nAmount = AmountFromValue(params[2]);
+    CAmount nAmount = AmountFromValue(params[2], 6);
     if (nAmount <= 0)
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
     int nMinDepth = 1;
@@ -948,7 +948,7 @@ UniValue sendmany(const UniValue& params, bool fHelp)
         setAddress.insert(address);
 
         CScript scriptPubKey = GetScriptForDestination(address.Get());
-        CAmount nAmount = AmountFromValue(sendTo[name_]);
+        CAmount nAmount = AmountFromValue(sendTo[name_], 6);
         if (nAmount <= 0)
             throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
         totalAmount += nAmount;
@@ -2296,7 +2296,7 @@ UniValue settxfee(const UniValue& params, bool fHelp)
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
     // Amount
-    CAmount nAmount = AmountFromValue(params[0]);
+    CAmount nAmount = AmountFromValue(params[0], 6);
 
     payTxFee = CFeeRate(nAmount, 1000);
     return true;
@@ -2579,7 +2579,7 @@ UniValue fundrawtransaction(const UniValue& params, bool fHelp)
 
         if (options.exists("feeRate"))
         {
-            feeRate = CFeeRate(AmountFromValue(options["feeRate"]));
+            feeRate = CFeeRate(AmountFromValue(options["feeRate"], 6));
             overrideEstimatedFeerate = true;
         }
       }
