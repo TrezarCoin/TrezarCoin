@@ -126,6 +126,8 @@ private:
     QAction *lockWalletAction;
     QAction *toggleStakingAction;
     QAction *easysplitAction;
+    QAction *exportWalletAction;
+    QAction *importWalletAction;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
@@ -159,6 +161,10 @@ private:
     void subscribeToCoreSignals();
     /** Disconnect core signals from GUI client */
     void unsubscribeFromCoreSignals();
+
+    /* Wallet keys export / import */
+    void exportWallet();
+    void importWallet();
 
 Q_SIGNALS:
     /** Signal raised when a URI was entered or dragged to the GUI */

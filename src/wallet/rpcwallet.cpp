@@ -1930,7 +1930,7 @@ UniValue walletpassphrase(const UniValue& params, bool fHelp)
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
 
-    if (pwalletMain->IsCrypted() && (fHelp || params.size() != 2))
+    if (pwalletMain->IsCrypted() && (fHelp || params.size() < 2 || params.size() > 3))
         throw runtime_error(
             "walletpassphrase \"passphrase\" timeout [mintonly]\n"
             "\nStores the wallet decryption key in memory for 'timeout' seconds.\n"
@@ -1984,10 +1984,7 @@ UniValue walletpassphrase(const UniValue& params, bool fHelp)
 
     /* Disables some wallet functionality if unlocked for staking only */
     if (params.size() > 2)
-    {
-        if ((params[2].get_str() == "true") || (params[2].get_str() == "True"))
-            fWalletUnlockStakingOnly = true;
-    }
+        fWalletUnlockStakingOnly = params[2].get_bool();
     else
         fWalletUnlockStakingOnly = false;
 
@@ -2786,6 +2783,20 @@ UniValue getstakereport(const UniValue& params, bool fHelp)
 
     return  result;
 }
+// zapwallettxes: rescanning the whole blockchain for missing Tx
+UniValue zapwallettxes(const UniValue& params, bool fHelp)
+{
+    if ((params.size()>0) || (fHelp))
+        throw runtime_error(
+            "zapwallettxes\n"
+            "Runs a rescan to find missing Tx.\n");
+
+    pwalletMain->MarkDirty();
+    pwalletMain->nTimeFirstKey = 1;
+    pwalletMain->ScanForWalletTransactions(chainActive.Genesis(), true);
+
+    return NullUniValue;
+}
 
 extern UniValue dumpprivkey(const UniValue& params, bool fHelp); // in rpcdump.cpp
 extern UniValue importprivkey(const UniValue& params, bool fHelp);
@@ -2852,6 +2863,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "walletpassphrasechange",   &walletpassphrasechange,   true  },
     { "wallet",             "walletpassphrase",         &walletpassphrase,         true  },
     { "wallet",             "removeprunedfunds",        &removeprunedfunds,        true  },
+    { "wallet",             "zapwallettxes",            &zapwallettxes,            true  },
 };
 
 void RegisterWalletRPCCommands(CRPCTable &tableRPC)

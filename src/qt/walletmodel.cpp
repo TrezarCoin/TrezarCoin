@@ -469,6 +469,14 @@ bool WalletModel::backupWallet(const QString &filename)
     return wallet->BackupWallet(filename.toLocal8Bit().data());
 }
 
+bool WalletModel::exportWallet(const QString &filename) {
+    return(wallet->ExportWallet(wallet, filename.toLocal8Bit().data()));
+}
+
+bool WalletModel::importWallet(const QString &filename) {
+    return(wallet->ImportWallet(wallet, filename.toLocal8Bit().data()));
+}
+
 void WalletModel::getStakeWeightQuick(const int64_t& nTime, const int64_t& nValue, uint64_t& nWeight) {
    wallet->GetStakeWeightQuick(nTime, nValue, nWeight);
 }

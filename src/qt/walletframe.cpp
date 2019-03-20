@@ -246,3 +246,17 @@ WalletView *WalletFrame::currentWalletView()
     return qobject_cast<WalletView*>(walletStack->currentWidget());
 }
 
+void WalletFrame::exportWallet()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+        walletView->exportWallet();
+}
+
+void WalletFrame::importWallet()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+        walletView->importWallet();
+}
+

@@ -279,6 +279,70 @@ void WalletView::backupWallet()
     }
 }
 
+
+void WalletView::exportWallet() {
+
+    if (!walletModel)
+        return;
+    // Unlock wallet when requested by wallet model
+    WalletModel::UnlockContext ctx(walletModel->requestUnlock());
+    if (!ctx.isValid())
+        return;
+
+#if (QT_VERSION < 0x050000)
+    QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+#else
+    QString saveDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+#endif
+
+    QString filename = GUIUtil::getSaveFileName(this, tr("Export Wallet Keys"), saveDir, tr("Wallet Text (*.txt)"), NULL);
+    if (!filename.isEmpty()) {
+        if (walletModel->exportWallet(filename)) {
+            QMessageBox::information(this,
+                tr("Export Complete"),
+                tr("All keys of your wallet have been exported into:<br>%1").arg(filename));
+        }
+        else {
+            QMessageBox::critical(this,
+                tr("Export Failed"),
+                tr("There was an error while exporting your wallet keys."));
+        }
+    }
+    walletModel->setWalletLocked(true);
+}
+
+void WalletView::importWallet() {
+
+    if(!walletModel)
+        return;
+    // Unlock wallet when requested by wallet model
+    WalletModel::UnlockContext ctx(walletModel->requestUnlock());
+    if (!ctx.isValid())
+        return;
+
+#if (QT_VERSION < 0x050000)
+    QString openDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+#else
+    QString openDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+#endif
+
+    QString filename = GUIUtil::getOpenFileName(this, tr("Import Wallet Keys"), openDir, tr("Wallet Text (*.txt)"), NULL);
+    if (!filename.isEmpty()) {
+        if (walletModel->importWallet(filename)) {
+            QMessageBox::information(this,
+                tr("Import Complete"),
+                tr("All keys have been imported into your wallet from:<br>%1").arg(filename));
+
+        }
+        else {
+            QMessageBox::critical(this,
+                tr("Import Failed"),
+                tr("There was an error while importing wallet keys from:<br>%1").arg(filename));
+        }
+    }
+    walletModel->setWalletLocked(true);
+}
+
 void WalletView::changePassphrase()
 {
     AskPassphraseDialog dlg(AskPassphraseDialog::ChangePass, this);

@@ -89,6 +89,10 @@ public Q_SLOTS:
     void usedSendingAddresses();
     /** Show used receiving addresses */
     void usedReceivingAddresses();
+
+    /* Wallet keys export / import */
+    void exportWallet();
+    void importWallet();
 };
 
 #endif // BITCOIN_QT_WALLETFRAME_H

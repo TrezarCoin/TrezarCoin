@@ -214,6 +214,7 @@ public:
     int GetDepthInMainChain(const CBlockIndex* &pindexRet) const;
     int GetDepthInMainChain() const { const CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet); }
     bool IsInMainChain() const { const CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet) > 0; }
+    void GetKeyBirthTimes(std::map<CKey, int64_t> &mapKeyBirth) const;
     int GetBlocksToMaturity() const;
     /** Pass this transaction to the mempool. Fails if absolute fee exceeds absurd fee. */
     bool AcceptToMemoryPool(bool fLimitFree, const CAmount nAbsurdFee, CValidationState& state);
@@ -905,6 +906,9 @@ public:
     static bool ParameterInteraction();
 
     bool BackupWallet(const std::string& strDest);
+
+    bool ExportWallet(CWallet* pwallet, const std::string& strDest);
+    bool ImportWallet(CWallet* pwallet, const std::string& strLocation);
 
     /* Set the HD chain model (chain child index counters) */
     bool SetHDChain(const CHDChain& chain, bool memonly);

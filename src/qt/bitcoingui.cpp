@@ -51,6 +51,7 @@
 #include <QDesktopWidget>
 #include <QDir>
 #include <QDragEnterEvent>
+#include <QFileDialog>
 #include <QInputDialog>
 #include <QListWidget>
 #include <QMenuBar>
@@ -146,6 +147,8 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *n
     lockWalletAction(0),
     toggleStakingAction(0),
     easysplitAction(0),
+    exportWalletAction(0),
+    importWalletAction(0),
     platformStyle(platformStyle)
 {
     GUIUtil::restoreWindowGeometry("nWindow", QSize(840, 600), this);
@@ -406,8 +409,17 @@ void BitcoinGUI::createActions()
     changePassphraseAction->setStatusTip(tr("Change the passphrase used for wallet encryption"));
     signMessageAction = new QAction(platformStyle->TextColorIcon(":/icons/edit"), tr("Sign &message..."), this);
     signMessageAction->setStatusTip(tr("Sign messages with your Trezarcoin addresses to prove you own them"));
+
     verifyMessageAction = new QAction(platformStyle->TextColorIcon(":/icons/verify"), tr("&Verify message..."), this);
     verifyMessageAction->setStatusTip(tr("Verify messages to ensure they were signed with specified Trezarcoin addresses"));
+
+    //Export PrivKeys
+    exportWalletAction = new QAction(platformStyle->TextColorIcon(":/icons/key_export"), tr("&Export keys"), this);
+    exportWalletAction->setStatusTip(tr("Export your PrivateKeys and PublicKeys into a Textfile."));
+
+    //Import PrivKeys
+    importWalletAction = new QAction(platformStyle->TextColorIcon(":/icons/key_import"), tr("&Import keys"), this);
+    importWalletAction->setStatusTip(tr("Import your PrivateKeys and PublicKeys from a Textfile."));
 
     openRPCConsoleAction = new QAction(platformStyle->TextColorIcon(":/icons/debugwindow"), tr("&Debug window"), this);
     openRPCConsoleAction->setStatusTip(tr("Open debugging and diagnostic console"));
@@ -448,6 +460,8 @@ void BitcoinGUI::createActions()
         connect(usedSendingAddressesAction, SIGNAL(triggered()), walletFrame, SLOT(usedSendingAddresses()));
         connect(usedReceivingAddressesAction, SIGNAL(triggered()), walletFrame, SLOT(usedReceivingAddresses()));
         connect(openAction, SIGNAL(triggered()), this, SLOT(openClicked()));
+        connect(exportWalletAction, SIGNAL(triggered()), walletFrame, SLOT(exportWallet()));
+        connect(importWalletAction, SIGNAL(triggered()), walletFrame, SLOT(importWallet()));
     }
 #endif // ENABLE_WALLET
 
@@ -476,6 +490,9 @@ void BitcoinGUI::createMenuBar()
         file->addSeparator();
         file->addAction(usedSendingAddressesAction);
         file->addAction(usedReceivingAddressesAction);
+        file->addSeparator();
+        file->addAction(exportWalletAction);
+        file->addAction(importWalletAction);
     }
     file->addAction(quitAction);
 
@@ -625,6 +642,8 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     usedSendingAddressesAction->setEnabled(enabled);
     usedReceivingAddressesAction->setEnabled(enabled);
     openAction->setEnabled(enabled);
+    exportWalletAction->setEnabled(enabled);
+    importWalletAction->setEnabled(enabled);
 }
 
 void BitcoinGUI::createTrayIcon(const NetworkStyle *networkStyle)

@@ -60,7 +60,7 @@ std::string static EncodeDumpString(const std::string &str) {
     return ret.str();
 }
 
-std::string DecodeDumpString(const std::string &str) {
+std::string DecodeDumpString_one(const std::string &str) {
     std::stringstream ret;
     for (unsigned int pos = 0; pos < str.length(); pos++) {
         unsigned char c = str[pos];
@@ -480,7 +480,7 @@ UniValue importwallet(const UniValue& params, bool fHelp)
             if (vstr[nStr] == "reserve=1")
                 fLabel = false;
             if (boost::algorithm::starts_with(vstr[nStr], "label=")) {
-                strLabel = DecodeDumpString(vstr[nStr].substr(6));
+                strLabel = DecodeDumpString_one(vstr[nStr].substr(6));
                 fLabel = true;
             }
         }
