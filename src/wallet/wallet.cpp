@@ -29,6 +29,7 @@
 #include "utilmoneystr.h"
 
 #include <assert.h>
+#include <fstream>
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
