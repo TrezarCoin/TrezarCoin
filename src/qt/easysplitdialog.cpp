@@ -413,9 +413,7 @@ QWidget *EasySplitDialog::setupTabChain(QWidget *prev)
         }
     }
     QWidget::setTabOrder(prev, ui->sendButton);
-    //QWidget::setTabOrder(ui->sendButton, ui->clearButton);
-    //QWidget::setTabOrder(ui->clearButton, ui->addButton);
-    //return ui->addButton;
+    return NULL;
 }
 
 void EasySplitDialog::setAddress(const QString &address)
