@@ -398,8 +398,7 @@ void EasySplitDialog::removeEntry(EasySplitEntry* entry)
 
     updateTabsAndLabels();
 }
-
-QWidget *EasySplitDialog::setupTabChain(QWidget *prev)
+void EasySplitDialog::setupTabChain(QWidget *prev)
 {
     QWidget::setTabOrder(prev, ui->editTxComment);
     prev = ui->editTxComment;
@@ -413,7 +412,7 @@ QWidget *EasySplitDialog::setupTabChain(QWidget *prev)
         }
     }
     QWidget::setTabOrder(prev, ui->sendButton);
-    return NULL;
+//    return NULL;
 }
 
 void EasySplitDialog::setAddress(const QString &address)
