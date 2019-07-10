@@ -28,6 +28,7 @@
 #include "script/standard.h"
 #include "script/sigcache.h"
 #include "scheduler.h"
+#include "smessage.h"
 #include "timedata.h"
 #include "txdb.h"
 #include "txmempool.h"
@@ -196,6 +197,9 @@ void Shutdown()
     StopREST();
     StopRPC();
     StopHTTPServer();
+#ifdef ENABLE_SMESSAGE
+    SecureMsgShutdown();
+#endif
 #ifdef ENABLE_WALLET
     if (pwalletMain)
         pwalletMain->Flush(false);
@@ -489,6 +493,11 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-stakesplit=<n>", _("Don't split outputs while staking below this limit in coins (400 < n < 10000; default: 800)"));
     strUsage += HelpMessageOpt("-minersleep=<n>", strprintf(_("Sets the default sleep for the staking thread (default: %u)"), 500));
 #endif
+
+    strUsage += HelpMessageGroup(_("Secure messaging options:"));
+    strUsage += HelpMessageOpt("-nosmsg", _("Disable secure messaging."));
+    strUsage += HelpMessageOpt("-debugsmsg", _("Log extra debug messages."));
+
     return strUsage;
 }
 
@@ -1095,6 +1104,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
             nSplitThreshold = 50 * MIN_STAKE_AMOUNT;
     }
 
+    fNoSmsg = GetBoolArg("-nosmsg", false);
+    if (!fNoSmsg)
+        nLocalServices = ServiceFlags(nLocalServices | SMSG_RELAY);
+
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
     // Initialize elliptic curve code
@@ -1573,7 +1586,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         StartTorControl(threadGroup, scheduler);
 
     StartNode(threadGroup, scheduler);
-
+#ifdef ENABLE_SMESSAGE
+    SecureMsgStart(fNoSmsg, GetBoolArg("-smsgscanchain", false));
+#endif
     // ********************************************************* Step 12: finished
 
     SetRPCWarmupFinished();

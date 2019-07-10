@@ -163,6 +163,7 @@ extern ServiceFlags nRelevantServices;
 extern bool fRelayTxes;
 extern uint64_t nLocalHostNonce;
 extern CAddrMan addrman;
+extern bool fNoSmsg;
 
 /** Maximum number of connections to simultaneously allow (aka connection slots) */
 extern int nMaxConnections;
@@ -318,6 +319,30 @@ public:
 
 typedef std::map<CSubNet, CBanEntry> banmap_t;
 
+class SecMsgNode
+{
+public:
+    SecMsgNode()
+    {
+        lastSeen        = 0;
+        lastMatched     = 0;
+        ignoreUntil     = 0;
+        nWakeCounter    = 0;
+        nPeerId         = 0;
+        fEnabled        = false;
+    }
+
+    ~SecMsgNode() {}
+
+    CCriticalSection            cs_smsg_net;
+    int64_t                     lastSeen;
+    int64_t                     lastMatched;
+    int64_t                     ignoreUntil;
+    uint32_t                    nWakeCounter;
+    uint32_t                    nPeerId;
+    bool                        fEnabled;
+};
+
 /** Information about a peer */
 class CNode
 {
@@ -447,6 +472,8 @@ public:
     CCriticalSection cs_feeFilter;
     CAmount lastSentFeeFilter;
     int64_t nextSendTimeFeeFilter;
+
+    SecMsgNode smsgData;
 
     CNode(SOCKET hSocketIn, const CAddress &addrIn, const std::string &addrNameIn = "", bool fInboundIn = false);
     ~CNode();

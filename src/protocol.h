@@ -272,6 +272,8 @@ enum ServiceFlags : uint64_t {
     // Indicates that a node can be asked for blocks and transactions including
     // witness data.
     NODE_WITNESS = (1 << 3),
+    // Supports Secure Message
+    SMSG_RELAY = (1 << 4),
 
     // Bits 24-31 are reserved for temporary experiments. Just pick a bit that
     // isn't getting used, or one not being used much, and notify the
