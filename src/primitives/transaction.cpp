@@ -150,7 +150,7 @@ unsigned int CTransaction::CalculateModifiedSize(unsigned int nTxSize) const
 bool CTransaction::GetCoinAge(unsigned int nStakeMinAge, CCoinsViewCache *pcoinsTip, uint64_t *pCoinAge, uint64_t *pCoinAgeFails) const {
     uint64_t nCoinAgeFails = 0;
     CCoinsViewCache &inputs = *pcoinsTip;
-    CBigNum bnCentSecond = 0;
+    arith_uint256 bnCentSecond = arith_uint256(0);
     unsigned int i;
 
     if (IsCoinBase())
@@ -175,13 +175,13 @@ bool CTransaction::GetCoinAge(unsigned int nStakeMinAge, CCoinsViewCache *pcoins
             nCoinAgeFails++;
         } else {
             int64_t nValueIn = coins.vout[vin[i].prevout.n].nValue;
-            bnCentSecond += CBigNum(nValueIn) * (nTime - coins.nTime) / CENT;
+            bnCentSecond += arith_uint256(nValueIn) * (nTime - coins.nTime) / CENT;
         }
     }
 
-    CBigNum bnCoinDay = (bnCentSecond * CENT) / COIN / (24 * 60 * 60);
+    arith_uint256 bnCoinDay = (bnCentSecond * CENT) / COIN / (24 * 60 * 60);
 
-    *pCoinAge = bnCoinDay.getuint64();
+    *pCoinAge = bnCoinDay.GetLow64();
     *pCoinAgeFails = nCoinAgeFails;
 
     return(true);

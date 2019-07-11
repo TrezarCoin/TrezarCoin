@@ -37,7 +37,7 @@ const CBlockIndex *GetPrevBlockIndex(const CBlockIndex *pindex, unsigned int nRa
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, bool fProofOfStake, const Consensus::Params& params)
 {
-    CBigNum bnNew, bnTargetLimit;
+    arith_uint256 bnNew, bnTargetLimit;
     bnTargetLimit.SetCompact(UintToArith256(params.powLimit).GetCompact());
 
     /* The genesis block */

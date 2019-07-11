@@ -107,6 +107,10 @@ public:
     {
         s.read((char*)data, sizeof(data));
     }
+
+    friend class uint160;
+    friend class uint256;
+    friend class uint512;
 };
 
 /** 160-bit opaque blob.
@@ -140,6 +144,36 @@ public:
     {
         return ReadLE64(data);
     }
+
+    friend inline bool operator>(const uint256& a, const uint256& b)
+    {
+        for (int i = (256>>3)-1; i >= 0; i--)
+        {
+            if (a.data[i] > b.data[i])
+                return true;
+            else if (a.data[i] < b.data[i])
+                return false;
+        }
+        return false;
+    }
+};
+
+/** 512-bit opaque blob.
+ */
+class uint512 : public base_blob<512> {
+public:
+    uint512() {}
+    uint512(const base_blob<512>& b) : base_blob<512>(b) {}
+    explicit uint512(const std::vector<unsigned char>& vch) : base_blob<512>(vch) {}
+
+    uint256 trim256() const
+    {
+        uint256 ret;
+        for (unsigned int i = 0; i < uint256::WIDTH; i++){
+            ret.data[i] = data[i];
+        }
+        return ret;
+    }
 };
 
 /* uint256 from const char *.
@@ -159,6 +193,13 @@ inline uint256 uint256S(const char *str)
 inline uint256 uint256S(const std::string& str)
 {
     uint256 rv;
+    rv.SetHex(str);
+    return rv;
+}
+
+inline uint512 uint512S(const std::string& str)
+{
+    uint512 rv;
     rv.SetHex(str);
     return rv;
 }

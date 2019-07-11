@@ -3962,15 +3962,15 @@ int64_t CWallet::GetNewMint() const
 }
 
 bool CWallet::GetStakeWeightQuick(const int64_t& nTime, const int64_t& nValue, uint64_t& nWeight) {
-    CBigNum bnCoinDayWeight = 0;
+    arith_uint256 bnCoinDayWeight = arith_uint256(0);
     int64_t nTimeWeight;
 
     /* Stake weight reported is zero if time weight isn't positive */
     nTimeWeight = GetWeight(nTime, (int64_t)GetTime());
     if(nTimeWeight > 0)
       /* Two divides to avoid overflows on 32-bit systems */
-      bnCoinDayWeight = (CBigNum(nValue) * nTimeWeight) / COIN / (24 * 60 * 60);
-    nWeight = bnCoinDayWeight.getuint64();
+      bnCoinDayWeight = (arith_uint256(nValue) * nTimeWeight) / COIN / (24 * 60 * 60);
+    nWeight = bnCoinDayWeight.GetLow64();
     return(true);
 }
 
@@ -3997,11 +3997,11 @@ void CWallet::GetStakeWeight(uint64_t& nMinWeight, uint64_t& nMaxWeight, uint64_
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
         int64_t nTimeWeight = GetWeight((int64_t)pcoin.first->nTime, (int64_t)GetTime());
-        CBigNum bnCoinDayWeight = CBigNum(pcoin.first->vout[pcoin.second].nValue) * nTimeWeight / COIN / (24 * 60 * 60);
+        arith_uint256 bnCoinDayWeight = arith_uint256(pcoin.first->vout[pcoin.second].nValue) * nTimeWeight / COIN / (24 * 60 * 60);
 
         if (nTimeWeight > 0) {
             /* Calculate stake weight */
-            nTotalStakeWeight += bnCoinDayWeight.getuint64();
+            nTotalStakeWeight += bnCoinDayWeight.GetLow64();
             /* Minimum weight reached */
             if (nTimeWeight < (nStakeMaxAge / 2)) nMinWeightInputs++;
             /* Average weight reached */
@@ -4011,15 +4011,15 @@ void CWallet::GetStakeWeight(uint64_t& nMinWeight, uint64_t& nMaxWeight, uint64_
         }
 
         if (nTimeWeight > 0)
-            nWeight += bnCoinDayWeight.getuint64();
+            nWeight += bnCoinDayWeight.GetLow64();
 
         // Weight is greater than zero, but the maximum value isn't reached yet
         if (nTimeWeight > 0 && nTimeWeight < -1)
-            nMinWeight += bnCoinDayWeight.getuint64();
+            nMinWeight += bnCoinDayWeight.GetLow64();
 
         // Maximum weight was reached
         if (nTimeWeight == -1)
-            nMaxWeight += bnCoinDayWeight.getuint64();
+            nMaxWeight += bnCoinDayWeight.GetLow64();
     }
 }
 
@@ -4034,7 +4034,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     const unsigned int nStakeSplitAge = (Params().GetConsensus().nStakeMinAge + Params().GetConsensus().nStakeMaxAge);
 
     CBlockIndex* pindexPrev = pindexBestHeader;
-    CBigNum bnTargetPerCoinDay;
+    arith_uint256 bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
 
     txNew.vin.clear();
