@@ -231,17 +231,28 @@ void StakingDialog::updateStakeReportNow()
 
 void StakingDialog::btn_Stake_OnClicked()
 {
-    SetStaking(true);
-    ui->btn_Stake_Off->setStyleSheet("  font-size:20px; height:35px; color: #6d7886; ");
-    ui->btn_Stake_On->setStyleSheet("  font-size:20px; height:35px; color: white; background-color:#1b2234; ");
-    ui->labelStakingStatus->setText(QString("Staking"));
-    ui->stakeingDot->setIcon(QIcon(":/icons/greendot"));
+    if (!walletModel)
+        return;
+    // Unlock wallet when requested by wallet model
+    if (walletModel->getEncryptionStatus() == WalletModel::Locked)
+    {
+        AskPassphraseDialog dlg(AskPassphraseDialog::UnlockStaking, this);
+        dlg.setModel(walletModel);
+        dlg.exec();
+    }
+    if(fWalletUnlockStakingOnly || walletModel->getEncryptionStatus() == WalletModel::Unlocked)
+    {
 
+        ui->btn_Stake_Off->setStyleSheet("  font-size:20px; height:35px; color: #6d7886; ");
+        ui->btn_Stake_On->setStyleSheet("  font-size:20px; height:35px; color: white; background-color:#1b2234; ");
+        ui->labelStakingStatus->setText(QString("Staking"));
+        ui->stakeingDot->setIcon(QIcon(":/icons/greendot"));
+
+    }
 }
 
 void StakingDialog::btn_Stake_OffClicked()
 {
-    SetStaking(false);
     ui->btn_Stake_On->setStyleSheet("  font-size:20px; height:35px; color: #6d7886; ");
     ui->btn_Stake_Off->setStyleSheet(" font-size:20px; height:35px; color: white; background-color:#1b2234; ");
     ui->labelStakingStatus->setText(QString("Staking"));
