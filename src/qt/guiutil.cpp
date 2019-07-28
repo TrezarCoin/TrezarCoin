@@ -278,6 +278,25 @@ QString HtmlEscape(const std::string& str, bool fMultiLine)
     return HtmlEscape(QString::fromStdString(str), fMultiLine);
 }
 
+// Open CSS when configured
+QString loadStyleSheet()
+{
+    QString styleSheet;
+    QSettings settings;
+    QString cssName;
+    QString theme = settings.value("theme", "").toString();
+
+            cssName = QString(":/css/default");
+            settings.setValue("theme", "default");
+
+    QFile qFile(cssName);
+    if (qFile.open(QFile::ReadOnly)) {
+        styleSheet = QLatin1String(qFile.readAll());
+    }
+
+    return styleSheet;
+}
+
 void copyEntryData(QAbstractItemView *view, int column, int role)
 {
     if(!view || !view->selectionModel())

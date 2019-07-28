@@ -367,23 +367,46 @@ QString TransactionTableModel::lookupAddress(const std::string &address, bool to
     return description;
 }
 
+
 QString TransactionTableModel::formatTxType(const TransactionRecord *wtx) const
 {
     switch(wtx->type)
     {
     case TransactionRecord::RecvWithAddress:
-        return tr("Received with");
+        return tr("Received TZC");
     case TransactionRecord::RecvFromOther:
-        return tr("Received from");
+        return tr("Received TZC");
     case TransactionRecord::SendToAddress:
     case TransactionRecord::SendToOther:
-        return tr("Sent to");
+        return tr("Sent TZC");
     case TransactionRecord::SendToSelf:
         return tr("Payment to yourself");
     case TransactionRecord::Mined:
-        return tr("Mined");
+        return tr("Mining Reward");
     case TransactionRecord::Generated:
-        return tr("Staked");
+        return tr("Staking Reward");
+    default:
+        return QString();
+    }
+}
+
+QString TransactionTableModel::formatOverviewPage(const TransactionRecord *wtx) const
+{
+    switch (wtx->type)
+    {
+    case TransactionRecord::RecvWithAddress:
+        return tr("From:");
+    case TransactionRecord::RecvFromOther:
+        return tr("From:");
+    case TransactionRecord::SendToAddress:
+    case TransactionRecord::SendToOther:
+        return tr("To:");
+    case TransactionRecord::SendToSelf:
+        return tr("Payment to yourself:");
+    case TransactionRecord::Mined:
+        return tr("Mined:");
+    case TransactionRecord::Generated:
+        return tr("Staked:");
     default:
         return QString();
     }
@@ -449,9 +472,9 @@ QVariant TransactionTableModel::addressColor(const TransactionRecord *wtx) const
     case TransactionRecord::SendToSelf:
         return COLOR_BAREADDRESS;
     default:
-        break;
+        return COLOR_BAREADDRESS;
     }
-    return QVariant();
+    return COLOR_BAREADDRESS;
 }
 
 QString TransactionTableModel::formatTxAmount(const TransactionRecord *wtx, bool showUnconfirmed, BitcoinUnits::SeparatorStyle separators) const
@@ -502,7 +525,7 @@ QVariant TransactionTableModel::txStatusDecoration(const TransactionRecord *wtx)
     case TransactionStatus::NotAccepted:
         return QIcon(":/icons/transaction_0");
     default:
-        return COLOR_BLACK;
+        return COLOR_BAREADDRESS;
     }
 }
 
@@ -547,7 +570,7 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
     case Qt::DecorationRole:
     {
         QIcon icon = qvariant_cast<QIcon>(index.data(RawDecorationRole));
-        return platformStyle->TextColorIcon(icon);
+        return platformStyle->SingleColorIcon(icon);
     }
     case Qt::DisplayRole:
         switch(index.column())
@@ -604,6 +627,10 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
             return addressColor(rec);
         }
         break;
+    case TxTypeOverview:
+        return formatOverviewPage(rec);
+    case TxType:
+        return formatTxType(rec);
     case TypeRole:
         return rec->type;
     case DateRole:

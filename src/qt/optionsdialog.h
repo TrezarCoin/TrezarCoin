@@ -5,11 +5,17 @@
 #ifndef BITCOIN_QT_OPTIONSDIALOG_H
 #define BITCOIN_QT_OPTIONSDIALOG_H
 
+#include "walletmodel.h"
+
 #include <QDialog>
+#include <QString>
 #include <QValidator>
 
 class OptionsModel;
+class WalletModel;
+class ClientModel;
 class QValidatedLineEdit;
+class PlatformStyle;
 
 QT_BEGIN_NAMESPACE
 class QDataWidgetMapper;
@@ -37,10 +43,12 @@ class OptionsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit OptionsDialog(QWidget *parent, bool enableWallet);
+    explicit OptionsDialog(const PlatformStyle *platformStyle, QWidget *parent = 0 , bool enableWallet = true);
     ~OptionsDialog();
 
     void setModel(OptionsModel *model);
+    void setWalletModel(WalletModel *walletModel);
+    void setClientModel(ClientModel *clientModel);
     void setMapper();
 
 private Q_SLOTS:
@@ -64,6 +72,9 @@ Q_SIGNALS:
 private:
     Ui::OptionsDialog *ui;
     OptionsModel *model;
+    WalletModel *walletModel;
+    ClientModel *clientModel;
+    const PlatformStyle *platformStyle;
     QDataWidgetMapper *mapper;
 };
 

@@ -112,7 +112,8 @@ QT_FORMS_UI = \
   qt/forms/easysplitdialog.ui \
   qt/forms/easysplitentry.ui \
   qt/forms/signverifymessagedialog.ui \
-  qt/forms/transactiondescdialog.ui
+  qt/forms/transactiondescdialog.ui \
+  qt/forms/stakingdialog.ui
 
 QT_MOC_CPP = \
   qt/moc_addressbookpage.cpp \
@@ -160,7 +161,8 @@ QT_MOC_CPP = \
   qt/moc_utilitydialog.cpp \
   qt/moc_walletframe.cpp \
   qt/moc_walletmodel.cpp \
-  qt/moc_walletview.cpp
+  qt/moc_walletview.cpp \
+  qt/moc_stakingdialog.cpp
 
 BITCOIN_MM = \
   qt/macdockiconhandler.mm \
@@ -172,6 +174,9 @@ QT_MOC = \
   qt/intro.moc \
   qt/overviewpage.moc \
   qt/rpcconsole.moc
+
+RES_CSS = \
+  qt/res/css/default.css
 
 QT_QRC_CPP = qt/qrc_bitcoin.cpp
 QT_QRC = qt/bitcoin.qrc
@@ -235,7 +240,8 @@ BITCOIN_QT_H = \
   qt/walletmodel.h \
   qt/walletmodeltransaction.h \
   qt/walletview.h \
-  qt/winshutdownmonitor.h
+  qt/winshutdownmonitor.h \
+  qt/stakingdialog.h
 
 RES_ICONS = \
   qt/res/icons/add.png \
@@ -289,7 +295,40 @@ RES_ICONS = \
   qt/res/icons/tx_mined.png \
   qt/res/icons/warning.png \
   qt/res/icons/verify.png \
-  qt/res/icons/transaction_abandoned.png
+  qt/res/icons/transaction_abandoned.png \
+  qt/res/icons/addressbook.png \
+  qt/res/icons/copyclipboard.png \
+  qt/res/icons/logout.png \
+  qt/res/icons/overview_green.png \
+  qt/res/icons/receive_qr.png \
+  qt/res/icons/qr_green.png \
+  qt/res/icons/receive_green_big.png \
+  qt/res/icons/receive_green.png \
+  qt/res/icons/send_green_big.png \
+  qt/res/icons/send_green.png \
+  qt/res/icons/settings.png \
+  qt/res/icons/settings_green.png \
+  qt/res/icons/sync_globe.png \
+  qt/res/icons/history_green.png \
+  qt/res/icons/refresh.png \
+  qt/res/icons/staking_on.png \
+  qt/res/icons/staking_off.png \
+  qt/res/icons/tzc_green.png \
+  qt/res/icons/history_small.png \
+  qt/res/icons/copyclipboard_small.png \
+  qt/res/icons/greendot.png \
+  qt/res/icons/logout_menu.png \
+  qt/res/icons/send_menu.png \
+  qt/res/icons/receive_menu.png \
+  qt/res/icons/staking_on_menu.png \
+  qt/res/icons/staking_off_menu.png \
+  qt/res/icons/reddot.png \
+  qt/res/icons/settings_menu.png \
+  qt/res/icons/createWallet.png \
+  qt/res/icons/openWallet.png \
+  qt/res/icons/backgroundIntro.png
+
+ 
 
 BITCOIN_QT_BASE_CPP = \
   qt/bantablemodel.cpp \
@@ -344,7 +383,8 @@ BITCOIN_QT_WALLET_CPP = \
   qt/walletframe.cpp \
   qt/walletmodel.cpp \
   qt/walletmodeltransaction.cpp \
-  qt/walletview.cpp
+  qt/walletview.cpp \
+  qt/stakingdialog.cpp
 
 BITCOIN_QT_CPP = $(BITCOIN_QT_BASE_CPP)
 if TARGET_WINDOWS
@@ -355,6 +395,9 @@ BITCOIN_QT_CPP += $(BITCOIN_QT_WALLET_CPP)
 endif
 
 RES_IMAGES = 
+
+RES_CSS = \
+  qt/res/css/default.css
 
 RES_MOVIES = $(wildcard qt/res/movies/spinner-*.png)
 

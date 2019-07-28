@@ -12,6 +12,7 @@
 #include <QString>
 #include <QTimer>
 
+class WalletModel;
 class ClientModel;
 class OptionsModel;
 class PlatformStyle;
@@ -48,11 +49,19 @@ public:
     void pasteEntry(const SendCoinsRecipient &rv);
     bool handlePaymentRequest(const SendCoinsRecipient &recipient);
 
+    // SendCoinsEntry Functions
+    bool validate();
+    bool isClear();
+    void setValue(const SendCoinsRecipient &value);
+    void setFocus();
+
+    //SendCoinsEntry Public
+    SendCoinsRecipient getValue();
+
 public Q_SLOTS:
     void clear();
     void reject();
     void accept();
-    SendCoinsEntry *addEntry();
     void updateTabsAndLabels();
     void setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& stakingBalance, const CAmount& immatureBalance,
                    const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
@@ -64,21 +73,16 @@ private:
     bool fNewRecipientAllowed;
     bool fFeeMinimized;
     const PlatformStyle *platformStyle;
+    SendCoinsRecipient recipient;
 
     // Process WalletModel::SendCoinsReturn and generate a pair consisting
     // of a message and message flags for use in Q_EMIT message().
     // Additional parameter msgArg can be used via .arg(msgArg).
     void processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg = QString());
-    void minimizeFeeSection(bool fMinimize);
-    void updateFeeMinimizedLabel();
 
 private Q_SLOTS:
     void on_sendButton_clicked();
-    void on_buttonChooseFee_clicked();
-    void on_buttonMinimizeFee_clicked();
-    void removeEntry(SendCoinsEntry* entry);
     void updateDisplayUnit();
-    void coinControlFeatureChanged(bool);
     void coinControlButtonClicked();
     void coinControlChangeChecked(int);
     void coinControlChangeEdited(const QString &);
@@ -91,15 +95,18 @@ private Q_SLOTS:
     void coinControlClipboardPriority();
     void coinControlClipboardLowOutput();
     void coinControlClipboardChange();
-    void setMinimumFee();
-    void updateFeeSectionControls();
-    void updateMinFeeLabel();
-    void updateSmartFeeLabel();
-    void updateGlobalFeeVariables();
+
+    //SendCoinsEntry Q_Slots Private
+
+    void on_payTo_textChanged(const QString &address);
+    void on_addressBookButton_clicked();
+    void on_pasteButton_clicked();
+    bool updateLabel(const QString &address);
 
 Q_SIGNALS:
     // Fired when a message should be reported to the user
     void message(const QString &title, const QString &message, unsigned int style);
+
 };
 
 
@@ -120,6 +127,7 @@ private:
     QAbstractButton *yesButton;
     QTimer countDownTimer;
     int secDelay;
+
 };
 
 #endif // BITCOIN_QT_SENDCOINSDIALOG_H

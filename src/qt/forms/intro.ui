@@ -1,201 +1,444 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>Intro</class>
- <widget class="QDialog" name="Intro">
+ <widget class="QWidget" name="Intro">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>674</width>
-    <height>363</height>
+    <width>1200</width>
+    <height>750</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>Welcome</string>
+  <property name="minimumSize">
+   <size>
+    <width>1200</width>
+    <height>750</height>
+   </size>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QLabel" name="welcomeLabel">
-     <property name="styleSheet">
-      <string notr="true">QLabel { font-style:italic; }</string>
-     </property>
-     <property name="text">
-      <string>Welcome to %1.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer_4">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Minimum</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>15</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
-    <widget class="QLabel" name="storageLabel">
-     <property name="text">
-      <string>As this is the first time the program is launched, you can choose where %1 will store its data.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="sizeWarningLabel">
-     <property name="text">
-      <string>%1 will download and store a copy of the Trezarcoin block chain. At least %2GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QRadioButton" name="dataDirDefault">
-     <property name="text">
-      <string>Use the default data directory</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QRadioButton" name="dataDirCustom">
-     <property name="text">
-      <string>Use a custom data directory:</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+  <property name="maximumSize">
+   <size>
+    <width>1200</width>
+    <height>750</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">border:0px;
+title:none;
+background-image: url(:/icons/backgroundIntro);
+background-repeat:no-repeat;
+background-position: center;
+background-attachment:fixed;
+background-size:cover;
+outline: none;
+</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <layout class="QVBoxLayout" name="verticalLayout" stretch="1,10,1">
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="sizeConstraint">
-      <enum>QLayout::SetDefaultConstraint</enum>
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
      </property>
      <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>60</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <property name="sizeConstraint">
-        <enum>QLayout::SetDefaultConstraint</enum>
-       </property>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QLineEdit" name="dataDirectory"/>
-         </item>
-         <item>
-          <widget class="QPushButton" name="ellipsisButton">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>30</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="text">
-            <string notr="true">…</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>5</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QLabel" name="freeSpace">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-           <horstretch>1</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
+        <widget class="QLabel" name="label">
+         <property name="styleSheet">
+          <string notr="true">background:none;</string>
          </property>
          <property name="text">
           <string/>
          </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
         </widget>
        </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,15,1">
+         <property name="spacing">
+          <number>0</number>
          </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>5</height>
-          </size>
-         </property>
-        </spacer>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_7"/>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_6">
+           <item>
+            <widget class="QWidget" name="widget" native="true">
+             <property name="styleSheet">
+              <string notr="true">border:0px;
+title:none;
+background-image: url(:/Image/Setting5.png);
+background-repeat:no-repeat;
+background-position: center;
+background-attachment:fixed;
+background-size:cover;
+outline: none;
+
+padding:2px;
+border-radius:10px;
+</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_2">
+              <property name="leftMargin">
+               <number>200</number>
+              </property>
+              <property name="topMargin">
+               <number>50</number>
+              </property>
+              <property name="rightMargin">
+               <number>200</number>
+              </property>
+              <property name="bottomMargin">
+               <number>50</number>
+              </property>
+              <item row="0" column="0">
+               <layout class="QVBoxLayout" name="verticalLayout_8" stretch="2,1,2,2">
+                <property name="spacing">
+                 <number>20</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_9">
+                  <item>
+                   <widget class="QWidget" name="widget_2" native="true">
+                    <property name="styleSheet">
+                     <string notr="true">image: url(:/icons/tzc_green);
+qproperty-alignment: AlignCenter;
+</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_10">
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_2">
+                    <item>
+                     <widget class="QLabel" name="label_10">
+                      <property name="styleSheet">
+                       <string notr="true">background:none;
+padding:2px;
+border-radius:10px;
+image:none;
+border-top:2px solid #2c3748;
+color:#fff;
+font-size:20px;
+text-align:center;
+border:none;
+</string>
+                      </property>
+                      <property name="text">
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TREZAR DESKTOP WALLET&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt; color:#5a6c6d;&quot;&gt;Version 2.0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_11">
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_3">
+                    <property name="spacing">
+                     <number>30</number>
+                    </property>
+                    <item>
+                     <widget class="QWidget" name="widget_3" native="true">
+                      <property name="minimumSize">
+                       <size>
+                        <width>250</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">background:#1d2536;
+padding:2px;
+border-radius:10px;
+image:none;
+border-top:2px solid #2c3748;
+</string>
+                      </property>
+                      <layout class="QGridLayout" name="gridLayout_3">
+                       <property name="topMargin">
+                        <number>15</number>
+                       </property>
+                       <property name="spacing">
+                        <number>0</number>
+                       </property>
+                       <item row="0" column="0">
+                        <layout class="QVBoxLayout" name="verticalLayout_12">
+                         <item>
+                          <widget class="QPushButton" name="dataDirDefault">
+                           <property name="styleSheet">
+                            <string notr="true">border:0px;
+title:none;
+image: url(:/icons/createWallet);
+background-repeat:no-repeat;
+background-position: center;
+background-attachment:fixed;
+background-size:cover;
+outline: none;
+height:35px;
+</string>
+                           </property>
+                           <property name="text">
+                            <string/>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <spacer name="verticalSpacer_2">
+                           <property name="orientation">
+                            <enum>Qt::Vertical</enum>
+                           </property>
+                           <property name="sizeType">
+                            <enum>QSizePolicy::Fixed</enum>
+                           </property>
+                           <property name="sizeHint" stdset="0">
+                            <size>
+                             <width>20</width>
+                             <height>10</height>
+                            </size>
+                           </property>
+                          </spacer>
+                         </item>
+                         <item>
+                          <widget class="QLabel" name="label_2">
+                           <property name="styleSheet">
+                            <string notr="true">color:#fff;
+border:none;
+qproperty-alignment: AlignCenter;</string>
+                           </property>
+                           <property name="text">
+                            <string>DEFAULT</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QLabel" name="label_3">
+                           <property name="styleSheet">
+                            <string notr="true">color:#565b68;
+border:none;
+qproperty-alignment: AlignCenter;</string>
+                           </property>
+                           <property name="text">
+                            <string>Create a new Wallet</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </item>
+                      </layout>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QWidget" name="widget_4" native="true">
+                      <property name="minimumSize">
+                       <size>
+                        <width>250</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">background:#1d2536;
+padding:2px;
+border-radius:10px;
+image:none;
+border-top:2px solid #2c3748;
+</string>
+                      </property>
+                      <layout class="QGridLayout" name="gridLayout_4">
+                       <property name="topMargin">
+                        <number>15</number>
+                       </property>
+                       <item row="0" column="0">
+                        <layout class="QVBoxLayout" name="verticalLayout_13">
+                         <property name="spacing">
+                          <number>0</number>
+                         </property>
+                         <item>
+                          <widget class="QPushButton" name="dataDirCustom">
+                           <property name="styleSheet">
+                            <string notr="true">border:0px;
+title:none;
+image: url(:/icons/openWallet);
+background-repeat:no-repeat;
+background-position: center;
+background-attachment:fixed;
+background-size:cover;
+outline: none;
+height:35px;
+</string>
+                           </property>
+                           <property name="text">
+                            <string/>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <spacer name="verticalSpacer_3">
+                           <property name="orientation">
+                            <enum>Qt::Vertical</enum>
+                           </property>
+                           <property name="sizeType">
+                            <enum>QSizePolicy::Fixed</enum>
+                           </property>
+                           <property name="sizeHint" stdset="0">
+                            <size>
+                             <width>10</width>
+                             <height>10</height>
+                            </size>
+                           </property>
+                          </spacer>
+                         </item>
+                         <item>
+                          <widget class="QLabel" name="label_4">
+                           <property name="styleSheet">
+                            <string notr="true">color:#fff;
+border:none;
+qproperty-alignment: AlignCenter;</string>
+                           </property>
+                           <property name="text">
+                            <string>CHOOSE STORAGE</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QLabel" name="label_5">
+                           <property name="styleSheet">
+                            <string notr="true">color:#565b68;
+border:none;
+qproperty-alignment: AlignCenter;</string>
+                           </property>
+                           <property name="text">
+                            <string>Choose Data Dir</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </item>
+                      </layout>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_14">
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_15">
+                    <item>
+                     <widget class="QLineEdit" name="dataDirectory">
+                      <property name="styleSheet">
+                       <string notr="true">background:#232c41;
+padding:2px;
+border-radius:10px;
+color:#fff;
+qproperty-alignment: AlignCenter;
+</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="freeSpace">
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="errorMessage">
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="verticalSpacer">
+                      <property name="orientation">
+                       <enum>Qt::Vertical</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>20</width>
+                        <height>40</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_5"/>
+         </item>
+        </layout>
        </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QLabel" name="errorMessage">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
+        <widget class="QDialogButtonBox" name="buttonBox">
+         <property name="styleSheet">
+          <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}</string>
          </property>
-         <property name="textFormat">
-          <enum>Qt::RichText</enum>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
+         <property name="standardButtons">
+          <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
          </property>
         </widget>
        </item>
@@ -203,33 +446,10 @@
      </item>
     </layout>
    </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
-   </item>
   </layout>
  </widget>
  <resources/>
- <connections>
+<connections>
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>

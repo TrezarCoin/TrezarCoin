@@ -10,6 +10,15 @@
     <height>380</height>
    </rect>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background:#1b2234;
+padding:2px;
+border-top-right-radius: 10px;
+border-bottom-right-radius: 10px;
+border-right:1px;
+border-color:white;
+color:#fff;</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="labelExplanation">
@@ -28,6 +37,11 @@
      </property>
      <property name="toolTip">
       <string>Right-click to edit address or label</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
      </property>
      <property name="tabKeyNavigation">
       <bool>false</bool>
@@ -56,6 +70,20 @@
        <property name="toolTip">
         <string>Create a new address</string>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}</string>
+       </property>
        <property name="text">
         <string>&amp;New</string>
        </property>
@@ -73,6 +101,20 @@
        <property name="toolTip">
         <string>Copy the currently selected address to the system clipboard</string>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}</string>
+       </property>
        <property name="text">
         <string>&amp;Copy</string>
        </property>
@@ -89,6 +131,20 @@
       <widget class="QPushButton" name="deleteAddress">
        <property name="toolTip">
         <string>Delete the currently selected address from the list</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}</string>
        </property>
        <property name="text">
         <string>&amp;Delete</string>
@@ -120,6 +176,20 @@
        <property name="toolTip">
         <string>Export the data in the current tab to a file</string>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}</string>
+       </property>
        <property name="text">
         <string>&amp;Export</string>
        </property>
@@ -139,6 +209,20 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}</string>
        </property>
        <property name="text">
         <string>C&amp;lose</string>

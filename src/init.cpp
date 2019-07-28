@@ -1090,8 +1090,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
             return(InitError(strprintf(_("Invalid amount for -stakecombine=<amount>: '%s'"), mapArgs["-stakecombine"].c_str())));
         if (nCombineThreshold < MIN_STAKE_AMOUNT)
             nCombineThreshold = MIN_STAKE_AMOUNT;
-        if (nCombineThreshold > 25 * MIN_STAKE_AMOUNT)
-            nCombineThreshold = 25 * MIN_STAKE_AMOUNT;
+        if (nCombineThreshold > 50 * MIN_STAKE_AMOUNT)
+            nCombineThreshold = 50 * MIN_STAKE_AMOUNT;
     }
 
     /* Don't split outputs while staking below this limit */
@@ -1100,8 +1100,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
             return(InitError(strprintf(_("Invalid amount for -stakesplit=<amount>: '%s'"), mapArgs["-stakesplit"].c_str())));
         if (nSplitThreshold < 2 * MIN_STAKE_AMOUNT)
             nSplitThreshold = 2 * MIN_STAKE_AMOUNT;
-        if (nSplitThreshold > 50 * MIN_STAKE_AMOUNT)
-            nSplitThreshold = 50 * MIN_STAKE_AMOUNT;
+        if (nSplitThreshold > 100 * MIN_STAKE_AMOUNT)
+            nSplitThreshold = 100 * MIN_STAKE_AMOUNT;
     }
 
     fNoSmsg = GetBoolArg("-nosmsg", false);

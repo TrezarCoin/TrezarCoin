@@ -94,9 +94,11 @@ private:
     QLabel *labelStakeMining;
     QLabel *labelConnectionsIcon;
     QLabel *labelBlocksIcon;
+    QLabel *syncLabel;
     QLabel *labelStakingIcon;
     QLabel *labelPrice;
     QLabel *progressBarLabel;
+    QLabel *progressBarIcon;
     QProgressBar *progressBar;
     QProgressDialog *progressDialog;
 
@@ -113,7 +115,6 @@ private:
     QAction *aboutAction;
     QAction *receiveCoinsAction;
     QAction *receiveCoinsMenuAction;
-    QAction *optionsAction;
     QAction *toggleHideAction;
     QAction *encryptWalletAction;
     QAction *backupWalletAction;
@@ -128,6 +129,11 @@ private:
     QAction *easysplitAction;
     QAction *exportWalletAction;
     QAction *importWalletAction;
+    QAction *stakingAction;
+    QAction *emptyAction;
+    QAction *settingsMenuAction;
+    QAction *quitMenuAction;
+    QAction *optionPageAction;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
@@ -175,7 +181,6 @@ public Q_SLOTS:
     void setNumConnections(int count);
     /** Set number of blocks and last block date shown in the UI */
     void setNumBlocks(int count, const QDateTime& blockDate, double nVerificationProgress, bool headers);
-
     /** Notify the user of an event from the core network or transaction handling code.
        @param[in] title     the message box / notification title
        @param[in] message   the displayed text
@@ -208,6 +213,8 @@ private Q_SLOTS:
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
+    /** Update Staking status **/
+    void updateStakingStatus();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
@@ -216,15 +223,20 @@ private Q_SLOTS:
 
     /** Show open dialog */
     void openClicked();
-    /** Update Staking status **/
-    void updateStakingStatus();
+
     /** Switch to receive coins page */
     void gotoEasySplitPage();
+
+    /**Switch to staking page*/
+    void gotoStakingPage();
+
+    /*SettingsPage*/
+    void gotoSettingsPage();
 
 #endif // ENABLE_WALLET
     void toggleStaking();
     /** Show configuration dialog */
-    void optionsClicked();
+    //void optionsClicked();
     /** Show about dialog */
     void aboutClicked();
     /** Utility to get stake status text */

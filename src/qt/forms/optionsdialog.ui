@@ -6,31 +6,136 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>560</width>
-    <height>440</height>
+    <width>958</width>
+    <height>662</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Options</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background:#1b2234;
+padding:10px;
+border-top-right-radius: 0px;
+border-bottom-right-radius: 0px;
+border-bottom-left-radius:0px;
+border-top-left-radius:0px;</string>
+  </property>
   <property name="modal">
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>30</number>
+   </property>
+   <property name="topMargin">
+    <number>70</number>
+   </property>
+   <property name="rightMargin">
+    <number>30</number>
+   </property>
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0">
+     <property name="spacing">
+      <number>6</number>
+     </property>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>5</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="styleSheet">
+          <string notr="true">color:#b9dbe8;
+background-color:#1b2234;
+font-size: 20px;
+
+</string>
+         </property>
+         <property name="text">
+          <string>Settings</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
    <item>
     <widget class="QTabWidget" name="tabWidget">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QTabBar::tab::selected {
+    background: #29334b;
+    color: #fff;
+    min-width: 150px;
+	height:50px;
+	shaddow:5px;
+
+}
+QTabBar::tab {
+	background: #1e2536;
+    color: #fff;
+    min-width: 150px;
+	height:50px;
+	padding:2px;
+	border-radius:5px;
+	padding-left:10px;
+	margin:10px;
+}
+QTabWidget::pane {
+position: absolute;
+}</string>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
      <widget class="QWidget" name="tabMain">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
+      </property>
       <attribute name="title">
        <string>&amp;Main</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_Main">
+       <property name="leftMargin">
+        <number>9</number>
+       </property>
        <item>
         <widget class="QCheckBox" name="bitcoinAtStartup">
          <property name="toolTip">
           <string>Automatically start %1 after logging in to the system.</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color:#616b7b;
+font-size:14px;</string>
          </property>
          <property name="text">
           <string>&amp;Start %1 on system login</string>
@@ -41,6 +146,10 @@
         <layout class="QHBoxLayout" name="horizontalLayout_2_Main">
          <item>
           <widget class="QLabel" name="databaseCacheLabel">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
            <property name="text">
             <string>Size of &amp;database cache</string>
            </property>
@@ -53,10 +162,19 @@
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="databaseCache"/>
+          <widget class="QSpinBox" name="databaseCache">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QLabel" name="databaseCacheUnitLabel">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
            <property name="text">
             <string>MB</string>
            </property>
@@ -84,6 +202,10 @@
         <layout class="QHBoxLayout" name="horizontalLayout_3_Main">
          <item>
           <widget class="QLabel" name="threadsScriptVerifLabel">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
            <property name="text">
             <string>Number of script &amp;verification threads</string>
            </property>
@@ -99,6 +221,10 @@
           <widget class="QSpinBox" name="threadsScriptVerif">
            <property name="toolTip">
             <string>(0 = auto, &lt;0 = leave that many cores free)</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
            </property>
           </widget>
          </item>
@@ -133,12 +259,27 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tabWallet">
+      <property name="styleSheet">
+       <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
+      </property>
       <attribute name="title">
        <string>W&amp;allet</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_Wallet">
        <item>
         <widget class="QGroupBox" name="groupBox">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>150</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color:#616b7b;
+font-size:16px;</string>
+         </property>
          <property name="title">
           <string>Expert</string>
          </property>
@@ -182,6 +323,11 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tabNetwork">
+      <property name="styleSheet">
+       <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
+      </property>
       <attribute name="title">
        <string>&amp;Network</string>
       </attribute>
@@ -190,6 +336,10 @@
         <widget class="QCheckBox" name="mapPortUpnp">
          <property name="toolTip">
           <string>Automatically open the Trezarcoin client port on the router. This only works when your router supports UPnP and it is enabled.</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color:#616b7b;
+font-size:14px;</string>
          </property>
          <property name="text">
           <string>Map port using &amp;UPnP</string>
@@ -201,6 +351,10 @@
          <property name="toolTip">
           <string>Accept connections from outside</string>
          </property>
+         <property name="styleSheet">
+          <string notr="true">color:#616b7b;
+font-size:14px;</string>
+         </property>
          <property name="text">
           <string>Allow incoming connections</string>
          </property>
@@ -211,6 +365,10 @@
          <property name="toolTip">
           <string>Connect to the Trezarcoin network through a SOCKS5 proxy.</string>
          </property>
+         <property name="styleSheet">
+          <string notr="true">color:#616b7b;
+font-size:14px;</string>
+         </property>
          <property name="text">
           <string>&amp;Connect through SOCKS5 proxy (default proxy):</string>
          </property>
@@ -220,6 +378,10 @@
         <layout class="QHBoxLayout" name="horizontalLayout_1_Network">
          <item>
           <widget class="QLabel" name="proxyIpLabel">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
            <property name="text">
             <string>Proxy &amp;IP:</string>
            </property>
@@ -248,10 +410,18 @@
            <property name="toolTip">
             <string>IP address of the proxy (e.g. IPv4: 127.0.0.1 / IPv6: ::1)</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
           </widget>
          </item>
          <item>
           <widget class="QLabel" name="proxyPortLabel">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
            <property name="text">
             <string>&amp;Port:</string>
            </property>
@@ -280,6 +450,10 @@
            <property name="toolTip">
             <string>Port of the proxy (e.g. 9050)</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
           </widget>
          </item>
          <item>
@@ -301,6 +475,10 @@
         <layout class="QHBoxLayout" name="horizontalLayout_2_Network">
          <item>
           <widget class="QLabel" name="proxyActiveNets">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
            <property name="text">
             <string>Used for reaching peers via:</string>
            </property>
@@ -324,6 +502,10 @@
          </item>
          <item>
           <widget class="QLabel" name="proxyReachIPv4Label">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
            <property name="text">
             <string>IPv4</string>
            </property>
@@ -347,6 +529,10 @@
          </item>
          <item>
           <widget class="QLabel" name="proxyReachIPv6Label">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
            <property name="text">
             <string>IPv6</string>
            </property>
@@ -370,6 +556,10 @@
          </item>
          <item>
           <widget class="QLabel" name="proxyReachTorLabel">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
            <property name="text">
             <string>Tor</string>
            </property>
@@ -398,6 +588,10 @@
          <property name="toolTip">
           <string>Connect to the Trezarcoin network through a separate SOCKS5 proxy for Tor hidden services.</string>
          </property>
+         <property name="styleSheet">
+          <string notr="true">color:#616b7b;
+font-size:14px;</string>
+         </property>
          <property name="text">
           <string>Use separate SOCKS5 proxy to reach peers via Tor hidden services:</string>
          </property>
@@ -407,6 +601,10 @@
         <layout class="QHBoxLayout" name="horizontalLayout_3_Network">
          <item>
           <widget class="QLabel" name="proxyIpTorLabel">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
            <property name="text">
             <string>Proxy &amp;IP:</string>
            </property>
@@ -435,10 +633,18 @@
            <property name="toolTip">
             <string>IP address of the proxy (e.g. IPv4: 127.0.0.1 / IPv6: ::1)</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
           </widget>
          </item>
          <item>
           <widget class="QLabel" name="proxyPortTorLabel">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
            <property name="text">
             <string>&amp;Port:</string>
            </property>
@@ -466,6 +672,10 @@
            </property>
            <property name="toolTip">
             <string>Port of the proxy (e.g. 9050)</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
            </property>
           </widget>
          </item>
@@ -500,6 +710,11 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tabWindow">
+      <property name="styleSheet">
+       <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
+      </property>
       <attribute name="title">
        <string>&amp;Window</string>
       </attribute>
@@ -508,6 +723,10 @@
         <widget class="QCheckBox" name="hideTrayIcon">
          <property name="toolTip">
           <string>&amp;Hide the icon from the system tray.</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color:#616b7b;
+font-size:14px;</string>
          </property>
          <property name="text">
           <string>Hide tray icon</string>
@@ -519,6 +738,10 @@
          <property name="toolTip">
           <string>Show only a tray icon after minimizing the window.</string>
          </property>
+         <property name="styleSheet">
+          <string notr="true">color:#616b7b;
+font-size:14px;</string>
+         </property>
          <property name="text">
           <string>&amp;Minimize to the tray instead of the taskbar</string>
          </property>
@@ -528,6 +751,10 @@
         <widget class="QCheckBox" name="minimizeOnClose">
          <property name="toolTip">
           <string>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Exit in the menu.</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color:#616b7b;
+font-size:14px;</string>
          </property>
          <property name="text">
           <string>M&amp;inimize on close</string>
@@ -550,6 +777,11 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tabDisplay">
+      <property name="styleSheet">
+       <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
+      </property>
       <attribute name="title">
        <string>&amp;Display</string>
       </attribute>
@@ -558,6 +790,10 @@
         <layout class="QHBoxLayout" name="horizontalLayout_1_Display">
          <item>
           <widget class="QLabel" name="langLabel">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
            <property name="text">
             <string>User Interface &amp;language:</string>
            </property>
@@ -574,6 +810,10 @@
            <property name="toolTip">
             <string>The user interface language can be set here. This setting will take effect after restarting %1.</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">color:#a3c1cf;
+background-color:#29334b</string>
+           </property>
           </widget>
          </item>
         </layout>
@@ -582,6 +822,10 @@
         <layout class="QHBoxLayout" name="horizontalLayout_2_Display">
          <item>
           <widget class="QLabel" name="unitLabel">
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
+           </property>
            <property name="text">
             <string>&amp;Unit to show amounts in:</string>
            </property>
@@ -598,6 +842,10 @@
            <property name="toolTip">
             <string>Choose the default subdivision unit to show in the interface and when sending coins.</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">background-color:#29334b;
+color:#a3c1cf;</string>
+           </property>
           </widget>
          </item>
         </layout>
@@ -608,6 +856,10 @@
           <widget class="QLabel" name="thirdPartyTxUrlsLabel">
            <property name="toolTip">
             <string>Third party URLs (e.g. a block explorer) that appear in the transactions tab as context menu items. %s in the URL is replaced by transaction hash. Multiple URLs are separated by vertical bar |.</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color:#616b7b;
+font-size:14px;</string>
            </property>
            <property name="text">
             <string>Third party transaction URLs</string>
@@ -621,6 +873,11 @@
           <widget class="QLineEdit" name="thirdPartyTxUrls">
            <property name="toolTip">
             <string>Third party URLs (e.g. a block explorer) that appear in the transactions tab as context menu items. %s in the URL is replaced by transaction hash. Multiple URLs are separated by vertical bar |.</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color:#fff;
+font-size:14px;
+background-color:#29334b;</string>
            </property>
           </widget>
          </item>
@@ -644,22 +901,88 @@
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="frame">
-     <layout class="QVBoxLayout" name="verticalLayout_Bottom">
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_Bottom">
+    <layout class="QVBoxLayout" name="verticalLayout_5">
+     <property name="leftMargin">
+      <number>10</number>
+     </property>
+     <property name="rightMargin">
+      <number>10</number>
+     </property>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QWidget" name="verticalWidget_2" native="true">
+         <property name="styleSheet">
+          <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QLabel" name="overriddenByCommandLineInfoLabel">
+            <property name="styleSheet">
+             <string notr="true">color:#616b7b;
+font-size:14px;</string>
+            </property>
+            <property name="text">
+             <string>Active command-line options that override above options:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="overriddenByCommandLineLabel">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout_7">
+     <property name="leftMargin">
+      <number>10</number>
+     </property>
+     <property name="rightMargin">
+      <number>10</number>
+     </property>
+     <item>
+      <widget class="QWidget" name="horizontalWidget_2" native="true">
+       <property name="styleSheet">
+        <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;
+</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QLabel" name="overriddenByCommandLineInfoLabel">
-          <property name="text">
-           <string>Active command-line options that override above options:</string>
+         <widget class="QPushButton" name="resetButton">
+          <property name="styleSheet">
+           <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}</string>
           </property>
-          <property name="textFormat">
-           <enum>Qt::PlainText</enum>
+          <property name="text">
+           <string>Reset Options</string>
           </property>
          </widget>
         </item>
         <item>
-         <spacer name="horizontalSpacer_Bottom">
+         <spacer name="horizontalSpacer_5">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -671,111 +994,49 @@
           </property>
          </spacer>
         </item>
+        <item>
+         <widget class="QLabel" name="statusLabel">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_6">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="okButton">
+          <property name="styleSheet">
+           <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}
+</string>
+          </property>
+          <property name="text">
+           <string>Ok</string>
+          </property>
+         </widget>
+        </item>
        </layout>
-      </item>
-      <item>
-       <widget class="QLabel" name="overriddenByCommandLineLabel">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="textFormat">
-         <enum>Qt::PlainText</enum>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_Buttons">
-     <item>
-      <widget class="QPushButton" name="resetButton">
-       <property name="toolTip">
-        <string>Reset all client options to default.</string>
-       </property>
-       <property name="text">
-        <string>&amp;Reset Options</string>
-       </property>
-       <property name="autoDefault">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_1">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>48</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QLabel" name="statusLabel">
-       <property name="minimumSize">
-        <size>
-         <width>200</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="textFormat">
-        <enum>Qt::PlainText</enum>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>48</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="okButton">
-       <property name="text">
-        <string>&amp;OK</string>
-       </property>
-       <property name="autoDefault">
-        <bool>false</bool>
-       </property>
-       <property name="default">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="cancelButton">
-       <property name="text">
-        <string>&amp;Cancel</string>
-       </property>
-       <property name="autoDefault">
-        <bool>false</bool>
-       </property>
       </widget>
      </item>
     </layout>

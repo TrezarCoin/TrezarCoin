@@ -547,8 +547,8 @@ void Create_Config(const string& path)
 	file << "listen=1\n";
     file << "## StakeModifier ##\n";
 	file << "stakemintime=24\n";
-	file << "stakecombine=5000\n";
-	file << "stakesplit=10000\n";
+	file << "stakecombine=10000\n";
+	file << "stakesplit=20000\n";
 	file << "stakegen=1\n";
     file << "## RPCUser | RPCPassword ##\n";
 	file << "rpcuser=SOMEUSERNAME\n";

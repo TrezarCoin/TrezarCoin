@@ -49,6 +49,9 @@ public Q_SLOTS:
     void clear();
     void reject();
     void accept();
+    void on_receiveQR_clicked();
+    void setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& stakingBalance, const CAmount& immatureBalance,
+        const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
 
 protected:
     virtual void keyPressEvent(QKeyEvent *event);
@@ -65,15 +68,15 @@ private:
 
 private Q_SLOTS:
     void on_receiveButton_clicked();
-    void on_showRequestButton_clicked();
-    void on_removeRequestButton_clicked();
     void on_recentRequestsView_doubleClicked(const QModelIndex &index);
     void recentRequestsView_selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void updateDisplayUnit();
     void showMenu(const QPoint &point);
+    void btn_copyClipboardClicked();
     void copyLabel();
     void copyMessage();
     void copyAmount();
+    void on_labelCopyAddress_clicked();
 };
 
 #endif // BITCOIN_QT_RECEIVECOINSDIALOG_H

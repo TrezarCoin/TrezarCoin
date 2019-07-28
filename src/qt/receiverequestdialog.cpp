@@ -128,8 +128,8 @@ void ReceiveRequestDialog::setInfo(const SendCoinsRecipient &info)
 
 void ReceiveRequestDialog::update()
 {
-    if(!model)
-        return;
+    //if(!model)
+    //    return;
     QString target = info.label;
     if(target.isEmpty())
         target = info.address;

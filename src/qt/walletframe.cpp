@@ -122,12 +122,6 @@ void WalletFrame::setStakingStatus(QString text, bool fStake)
         i.value()->setStakingStatus(text,fStake);
 }
 
-void WalletFrame::setStakingStats(QString day, QString week, QString month)
-{
-    QMap<QString, WalletView*>::const_iterator i;
-    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
-        i.value()->setStakingStats(day,week,month);
-}
 
 void WalletFrame::setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS)
 {
@@ -190,6 +184,20 @@ void WalletFrame::gotoEasySplitPage()
     QMap<QString, WalletView*>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
         i.value()->gotoEasySplitPage();
+}
+
+void WalletFrame::gotoStakingPage()
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->gotoStakingPage();
+}
+
+void WalletFrame::gotoSettingsPage()
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->gotoSettingsPage();
 }
 
 void WalletFrame::backupWallet()

@@ -48,7 +48,7 @@ EasySplitDialog::EasySplitDialog(const PlatformStyle *platformStyle, QWidget *pa
     } else {
         //ui->addButton->setIcon(platformStyle->SingleColorIcon(":/icons/add"));
         //ui->clearButton->setIcon(platformStyle->SingleColorIcon(":/icons/remove"));
-        ui->sendButton->setIcon(platformStyle->SingleColorIcon(":/icons/send"));
+        ui->sendButton->setIcon(platformStyle->SingleColorIcon(":/icons/send_menu"));
     }
 
     GUIUtil::setupAddressWidget(ui->lineEditCoinControlChange, this);

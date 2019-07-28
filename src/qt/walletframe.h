@@ -63,6 +63,13 @@ public Q_SLOTS:
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
 
+    /**Swith to staking page */
+    void gotoStakingPage();
+
+    /**Swith to settings page */
+    void gotoSettingsPage();
+
+
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
     /** Show Sign/Verify Message dialog and switch to verify message tab */
@@ -82,7 +89,6 @@ public Q_SLOTS:
     void showLockStaking(bool status);
 
     void setStakingStatus(QString text, bool fStake);
-    void setStakingStats(QString day, QString week, QString month);
     void setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS);
 
     /** Show used sending addresses */

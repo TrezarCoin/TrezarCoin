@@ -12,6 +12,8 @@
 #include <QListView>
 #include <QPainter>
 #include <memory>
+#include <QScrollBar>
+#include <QStaticText>
 
 class ClientModel;
 class TransactionFilterProxy;
@@ -40,19 +42,20 @@ public:
     void setWalletModel(WalletModel *walletModel);
     void showOutOfSyncWarning(bool fShow);
 
-public Q_SLOTS:
+    public Q_SLOTS:
     void setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& stakingBalance, const CAmount& immatureBalance,
-                    const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
+        const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
 
     void showLockStaking(bool status);
     void setStakingStatus(QString text, bool fStake);
-    void setStakingStats(QString day, QString week, QString month);
     void setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS);
     void updateStakeReportNow();
-    void updateStakeReportbalanceChanged(qint64, qint64, qint64, qint64, qint64,qint64, qint64);
+    void updateStakeReportbalanceChanged(qint64, qint64, qint64, qint64, qint64, qint64, qint64);
 
 Q_SIGNALS:
     void transactionClicked(const QModelIndex &index);
+    void show_txClicked();
+    
 
 private:
     Ui::OverviewPage *ui;
@@ -65,18 +68,22 @@ private:
     CAmount currentWatchOnlyBalance;
     CAmount currentWatchUnconfBalance;
     CAmount currentWatchImmatureBalance;
+    QStaticText qsAmount;
 
     TxViewDelegate *txdelegate;
     std::unique_ptr<TransactionFilterProxy> filter;
     qint64 nLastReportUpdate;
     void updateStakeReport(bool fImmediate);
 
-private Q_SLOTS:
+    private Q_SLOTS:
     void updateDisplayUnit();
     void handleTransactionClicked(const QModelIndex &index);
     void updateAlerts(const QString &warnings);
     void updateWatchOnlyLabels(bool showWatchOnly);
     void unlockWalletStaking();
+    void show_txButtonClicked();
+    void btn_copyClipboardClicked();
+    void btn_showQRClicked();
 };
 
 #endif // BITCOIN_QT_OVERVIEWPAGE_H

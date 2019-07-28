@@ -13,6 +13,22 @@
 #include "guiutil.h"
 #include "optionsmodel.h"
 
+//Test includes
+
+#include "addresstablemodel.h"
+#include "clientmodel.h"
+#include "coincontroldialog.h"
+#include "platformstyle.h"
+#include "walletmodel.h"
+
+#include "base58.h"
+#include "coincontrol.h"
+#include "ui_interface.h"
+#include "txmempool.h"
+#include "wallet/wallet.h"
+
+//test includes end
+
 #include "main.h" // for DEFAULT_SCRIPTCHECK_THREADS and MAX_SCRIPTCHECK_THREADS
 #include "netbase.h"
 #include "txdb.h" // for -dbcache defaults
@@ -30,14 +46,13 @@
 #include <QMessageBox>
 #include <QTimer>
 
-OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
+OptionsDialog::OptionsDialog(const PlatformStyle *platformStyle, QWidget *parent, bool enableWallet) :
     QDialog(parent),
     ui(new Ui::OptionsDialog),
     model(0),
     mapper(0)
 {
     ui->setupUi(this);
-
     /* Main elements init */
     ui->databaseCache->setMinimum(nMinDbCache);
     ui->databaseCache->setMaximum(nMaxDbCache);
@@ -135,6 +150,16 @@ OptionsDialog::~OptionsDialog()
     delete ui;
 }
 
+void OptionsDialog::setWalletModel(WalletModel *walletModel)
+{
+    this->walletModel = walletModel;
+}
+
+void OptionsDialog::setClientModel(ClientModel *clientModel)
+{
+    this->clientModel = clientModel;
+}
+
 void OptionsDialog::setModel(OptionsModel *model)
 {
     this->model = model;
@@ -228,14 +253,12 @@ void OptionsDialog::on_resetButton_clicked()
 
         /* reset all options and close GUI */
         model->Reset();
-        QApplication::quit();
     }
 }
 
 void OptionsDialog::on_okButton_clicked()
 {
     mapper->submit();
-    accept();
     updateDefaultProxyNets();
 }
 

@@ -18,6 +18,7 @@
 #include <QFileDialog>
 #include <QSettings>
 #include <QMessageBox>
+#include <QPixmap>
 
 #include <cmath>
 
@@ -122,13 +123,21 @@ Intro::Intro(QWidget *parent) :
     signalled(false)
 {
     ui->setupUi(this);
-    ui->welcomeLabel->setText(ui->welcomeLabel->text().arg(tr(PACKAGE_NAME)));
-    ui->storageLabel->setText(ui->storageLabel->text().arg(tr(PACKAGE_NAME)));
+
+    QPixmap pixMapDefault(":/icons/createWallet");
+    QIcon DefaultButtonIcon(pixMapDefault);
+    ui->dataDirDefault->setIcon(DefaultButtonIcon);
+    ui->dataDirDefault->setIconSize(QSize(40, 40));
+
+    QPixmap pixMapOpen(":/icons/openWallet");
+    QIcon dataDirCustomButton(pixMapOpen);
+    ui->dataDirCustom->setIcon(dataDirCustomButton);
+    ui->dataDirCustom->setIconSize(QSize(40, 40));
+
     uint64_t pruneTarget = std::max<int64_t>(0, GetArg("-prune", 0));
     requiredSpace = BLOCK_CHAIN_SIZE;
     if (pruneTarget)
         requiredSpace = CHAIN_STATE_SIZE + std::ceil(pruneTarget * 1024 * 1024.0 / GB_BYTES);
-    ui->sizeWarningLabel->setText(ui->sizeWarningLabel->text().arg(tr(PACKAGE_NAME)).arg(requiredSpace));
     startThread();
 }
 
@@ -148,16 +157,6 @@ QString Intro::getDataDirectory()
 void Intro::setDataDirectory(const QString &dataDir)
 {
     ui->dataDirectory->setText(dataDir);
-    if(dataDir == getDefaultDataDirectory())
-    {
-        ui->dataDirDefault->setChecked(true);
-        ui->dataDirectory->setEnabled(false);
-        ui->ellipsisButton->setEnabled(false);
-    } else {
-        ui->dataDirCustom->setChecked(true);
-        ui->dataDirectory->setEnabled(true);
-        ui->ellipsisButton->setEnabled(true);
-    }
 }
 
 QString Intro::getDefaultDataDirectory()
@@ -205,7 +204,7 @@ bool Intro::pickDataDirectory()
         settings.setValue("fReset", false);
     }
     /* Only override -datadir if different from the default, to make it possible to
-     * override -datadir in the bitcoin.conf file in the default data directory
+     * override -datadir in the bitcoin.conf file in the default data cdirectory
      * (to be consistent with bitcoind behavior)
      */
     if(dataDir != getDefaultDataDirectory())
@@ -235,7 +234,6 @@ void Intro::setStatus(int status, const QString &message, quint64 bytesAvailable
         if(bytesAvailable < requiredSpace * GB_BYTES)
         {
             freeString += " " + tr("(of %n GB needed)", "", requiredSpace);
-            ui->freeSpace->setStyleSheet("QLabel { color: #800000 }");
         } else {
             ui->freeSpace->setStyleSheet("");
         }
@@ -266,8 +264,10 @@ void Intro::on_dataDirDefault_clicked()
 
 void Intro::on_dataDirCustom_clicked()
 {
+    QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(0, "Choose data directory", ui->dataDirectory->text()));
+    if (!dir.isEmpty())
+        ui->dataDirectory->setText(dir);
     ui->dataDirectory->setEnabled(true);
-    ui->ellipsisButton->setEnabled(true);
 }
 
 void Intro::startThread()

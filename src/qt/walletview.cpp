@@ -12,7 +12,9 @@
 #include "optionsmodel.h"
 #include "overviewpage.h"
 #include "easysplitdialog.h"
+#include "stakingdialog.h"
 #include "platformstyle.h"
+#include "optionsdialog.h"
 #include "receivecoinsdialog.h"
 #include "sendcoinsdialog.h"
 #include "signverifymessagedialog.h"
@@ -30,7 +32,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent):
+WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent) :
     QStackedWidget(parent),
     clientModel(0),
     walletModel(0),
@@ -46,6 +48,7 @@ WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent):
     vbox->addWidget(transactionView);
     QPushButton *exportButton = new QPushButton(tr("&Export"), this);
     exportButton->setToolTip(tr("Export the data in the current tab to a file"));
+    exportButton->setStyleSheet("background:#2d374f; color:#fff; shadow:3px; border-radius:5px; padding:8px;");
     hbox_buttons->addStretch();
     hbox_buttons->addWidget(exportButton);
     vbox->addLayout(hbox_buttons);
@@ -54,6 +57,9 @@ WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent):
     receiveCoinsPage = new ReceiveCoinsDialog(platformStyle);
     sendCoinsPage = new SendCoinsDialog(platformStyle);
     easySplitPage = new EasySplitDialog(platformStyle);
+    stakingPage = new StakingDialog(platformStyle);
+    //optionsPage = new OptionsDialog(platformStyle,this,true);
+    settingsPage = new OptionsDialog(platformStyle);
 
     usedSendingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::SendingTab, this);
     usedReceivingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::ReceivingTab, this);
@@ -63,6 +69,8 @@ WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent):
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
     addWidget(easySplitPage);
+    addWidget(stakingPage);
+    addWidget(settingsPage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
@@ -74,11 +82,15 @@ WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent):
     connect(exportButton, SIGNAL(clicked()), transactionView, SLOT(exportClicked()));
 
     // Pass through messages from sendCoinsPage
-    connect(sendCoinsPage, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
+    connect(sendCoinsPage, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
     // Pass through messages from transactionView
-    connect(transactionView, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
+    connect(transactionView, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
     //Pass through messages from easySplitPage
     connect(easySplitPage, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
+    // Pass through messages from staking page
+    connect(stakingPage, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
+    // Pass through messages from staking page
+    connect(settingsPage, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
 }
 
 WalletView::~WalletView()
@@ -92,14 +104,17 @@ void WalletView::setBitcoinGUI(BitcoinGUI *gui)
         // Clicking on a transaction on the overview page simply sends you to transaction history page
         connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), gui, SLOT(gotoHistoryPage()));
 
+        // Overviewpage show_tx
+        connect(overviewPage, SIGNAL(show_txClicked()), gui, SLOT(gotoHistoryPage()));
+
         // Receive and report messages
-        connect(this, SIGNAL(message(QString,QString,unsigned int)), gui, SLOT(message(QString,QString,unsigned int)));
+        connect(this, SIGNAL(message(QString, QString, unsigned int)), gui, SLOT(message(QString, QString, unsigned int)));
 
         // Pass through encryption status changed signals
         connect(this, SIGNAL(encryptionStatusChanged(int)), gui, SLOT(setEncryptionStatus(int)));
 
         // Pass through transaction notifications
-        connect(this, SIGNAL(incomingTransaction(QString,int,CAmount,QString,QString,QString)), gui, SLOT(incomingTransaction(QString,int,CAmount,QString,QString,QString)));
+        connect(this, SIGNAL(incomingTransaction(QString, int, CAmount, QString, QString, QString)), gui, SLOT(incomingTransaction(QString, int, CAmount, QString, QString, QString)));
     }
 }
 
@@ -110,6 +125,8 @@ void WalletView::setClientModel(ClientModel *clientModel)
     overviewPage->setClientModel(clientModel);
     sendCoinsPage->setClientModel(clientModel);
     easySplitPage->setClientModel(clientModel);
+    stakingPage->setClientModel(clientModel);
+    settingsPage->setClientModel(clientModel);
 }
 
 void WalletView::requestAddressHistory()
@@ -127,27 +144,29 @@ void WalletView::setWalletModel(WalletModel *walletModel)
     receiveCoinsPage->setModel(walletModel);
     sendCoinsPage->setModel(walletModel);
     easySplitPage->setModel(walletModel);
+    stakingPage->setWalletModel(walletModel);
+    settingsPage->setWalletModel(walletModel);
     usedReceivingAddressesPage->setModel(walletModel->getAddressTableModel());
     usedSendingAddressesPage->setModel(walletModel->getAddressTableModel());
 
     if (walletModel)
     {
         // Receive and pass through messages from wallet model
-        connect(walletModel, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
+        connect(walletModel, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
 
         // Handle changes in encryption status
         connect(walletModel, SIGNAL(encryptionStatusChanged(int)), this, SIGNAL(encryptionStatusChanged(int)));
         updateEncryptionStatus();
 
         // Balloon pop-up for new transaction
-        connect(walletModel->getTransactionTableModel(), SIGNAL(rowsInserted(QModelIndex,int,int)),
-                this, SLOT(processNewTransaction(QModelIndex,int,int)));
+        connect(walletModel->getTransactionTableModel(), SIGNAL(rowsInserted(QModelIndex, int, int)),
+            this, SLOT(processNewTransaction(QModelIndex, int, int)));
 
         // Ask for passphrase if needed
         connect(walletModel, SIGNAL(requireUnlock()), this, SLOT(unlockWallet()));
 
         // Show progress dialog
-        connect(walletModel, SIGNAL(showProgress(QString,int)), this, SLOT(showProgress(QString,int)));
+        connect(walletModel, SIGNAL(showProgress(QString, int)), this, SLOT(showProgress(QString, int)));
     }
 }
 
@@ -174,7 +193,7 @@ void WalletView::processNewTransaction(const QModelIndex& parent, int start, int
 void WalletView::gotoOverviewPage()
 {
     setCurrentWidget(overviewPage);
-    overviewPage->updateStakeReportNow();
+    
 }
 
 void WalletView::gotoHistoryPage()
@@ -197,13 +216,26 @@ void WalletView::gotoSendCoinsPage(QString addr)
 
 void WalletView::setStakingStatus(QString text, bool fStake)
 {
-    overviewPage->setStakingStatus(text,fStake);
+    stakingPage->setStakingStatus(text, fStake);
+    overviewPage->setStakingStatus(text, fStake);
 }
 
 void WalletView::gotoEasySplitPage()
 {
     setCurrentWidget(easySplitPage);
 }
+
+void WalletView::gotoStakingPage()
+{
+    setCurrentWidget(stakingPage);
+    stakingPage->updateStakeReportNow();
+}
+
+void WalletView::gotoSettingsPage()
+{
+    setCurrentWidget(settingsPage);
+}
+
 
 void WalletView::showLockStaking(bool status)
 {
@@ -251,7 +283,7 @@ void WalletView::updateEncryptionStatus()
 
 void WalletView::encryptWallet(bool status)
 {
-    if(!walletModel)
+    if (!walletModel)
         return;
     AskPassphraseDialog dlg(status ? AskPassphraseDialog::Encrypt : AskPassphraseDialog::Decrypt, this);
     dlg.setModel(walletModel);
@@ -272,7 +304,7 @@ void WalletView::backupWallet()
     if (!walletModel->backupWallet(filename)) {
         Q_EMIT message(tr("Backup Failed"), tr("There was an error trying to save the wallet data to %1.").arg(filename),
             CClientUIInterface::MSG_ERROR);
-        }
+    }
     else {
         Q_EMIT message(tr("Backup Successful"), tr("The wallet data was successfully saved to %1.").arg(filename),
             CClientUIInterface::MSG_INFORMATION);
@@ -313,7 +345,7 @@ void WalletView::exportWallet() {
 
 void WalletView::importWallet() {
 
-    if(!walletModel)
+    if (!walletModel)
         return;
     // Unlock wallet when requested by wallet model
     WalletModel::UnlockContext ctx(walletModel->requestUnlock());
@@ -350,11 +382,6 @@ void WalletView::changePassphrase()
     dlg.exec();
 }
 
-void WalletView::setStakingStats(QString day, QString week, QString month)
-{
-    overviewPage->setStakingStats(day,week,month);
-}
-
 void WalletView::setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS)
 {
     overviewPage->setNetworkStats(blockheight, diffPoW, diffPoS);
@@ -362,7 +389,7 @@ void WalletView::setNetworkStats(QString blockheight, QString diffPoW, QString d
 
 void WalletView::unlockWallet()
 {
-    if(!walletModel)
+    if (!walletModel)
         return;
     // Unlock wallet when requested by wallet model
     if (walletModel->getEncryptionStatus() == WalletModel::Locked)
@@ -375,7 +402,7 @@ void WalletView::unlockWallet()
 
 void WalletView::unlockWalletStaking()
 {
-    if(!walletModel)
+    if (!walletModel)
         return;
     // Unlock wallet when requested by wallet model
     if (walletModel->getEncryptionStatus() == WalletModel::Locked)
@@ -388,7 +415,7 @@ void WalletView::unlockWalletStaking()
 
 void WalletView::lockWallet()
 {
-    if(!walletModel)
+    if (!walletModel)
         return;
 
     walletModel->setWalletLocked(true);
@@ -396,7 +423,7 @@ void WalletView::lockWallet()
 
 void WalletView::usedSendingAddresses()
 {
-    if(!walletModel)
+    if (!walletModel)
         return;
 
     usedSendingAddressesPage->show();
@@ -406,7 +433,7 @@ void WalletView::usedSendingAddresses()
 
 void WalletView::usedReceivingAddresses()
 {
-    if(!walletModel)
+    if (!walletModel)
         return;
 
     usedReceivingAddressesPage->show();

@@ -25,12 +25,24 @@
   <property name="windowTitle">
    <string>Passphrase Dialog</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background:#1b2234;
+padding:2px;
+border-top-right-radius: 10px;
+border-bottom-right-radius: 10px;
+border-right:1px;
+border-color:white;
+color:#fff;</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="sizeConstraint">
     <enum>QLayout::SetMinimumSize</enum>
    </property>
    <item>
     <widget class="QLabel" name="warningLabel">
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
      <property name="text">
       <string notr="true">Placeholder text</string>
      </property>
@@ -52,6 +64,9 @@
      </property>
      <item row="0" column="0">
       <widget class="QLabel" name="passLabel1">
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
        <property name="text">
         <string>Enter passphrase</string>
        </property>
@@ -59,6 +74,11 @@
      </item>
      <item row="0" column="1">
       <widget class="QLineEdit" name="passEdit1">
+       <property name="styleSheet">
+        <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
+       </property>
        <property name="echoMode">
         <enum>QLineEdit::Password</enum>
        </property>
@@ -66,6 +86,9 @@
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="passLabel2">
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
        <property name="text">
         <string>New passphrase</string>
        </property>
@@ -73,6 +96,11 @@
      </item>
      <item row="1" column="1">
       <widget class="QLineEdit" name="passEdit2">
+       <property name="styleSheet">
+        <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
+       </property>
        <property name="echoMode">
         <enum>QLineEdit::Password</enum>
        </property>
@@ -80,6 +108,9 @@
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="passLabel3">
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
        <property name="text">
         <string>Repeat new passphrase</string>
        </property>
@@ -87,6 +118,11 @@
      </item>
      <item row="2" column="1">
       <widget class="QLineEdit" name="passEdit3">
+       <property name="styleSheet">
+        <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
+       </property>
        <property name="echoMode">
         <enum>QLineEdit::Password</enum>
        </property>
@@ -110,11 +146,11 @@
      </item>
      <item row="4" column="1">
       <widget class="QCheckBox" name="stakingCheckBox">
-       <property name="text">
-        <string>Unlock only for staking</string>
-       </property>
        <property name="visible">
         <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Unlock only for staking</string>
        </property>
       </widget>
      </item>
@@ -122,6 +158,20 @@
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="styleSheet">
+      <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}</string>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>

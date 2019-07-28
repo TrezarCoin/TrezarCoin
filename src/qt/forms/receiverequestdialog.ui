@@ -10,6 +10,14 @@
     <height>597</height>
    </rect>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background:#1b2234;
+padding:2px;
+border-top-right-radius: 10px;
+border-bottom-right-radius: 10px;
+border-right:1px;
+border-color:white;</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <widget class="QRImageWidget" name="lblQRCode">
@@ -27,6 +35,11 @@
      </property>
      <property name="toolTip">
       <string>QR Code</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
      </property>
      <property name="textFormat">
       <enum>Qt::PlainText</enum>
@@ -53,6 +66,11 @@
        <height>50</height>
       </size>
      </property>
+     <property name="styleSheet">
+      <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
      </property>
@@ -71,6 +89,20 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QPushButton" name="btnCopyURI">
+       <property name="styleSheet">
+        <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}</string>
+       </property>
        <property name="text">
         <string>Copy &amp;URI</string>
        </property>
@@ -81,6 +113,20 @@
      </item>
      <item>
       <widget class="QPushButton" name="btnCopyAddress">
+       <property name="styleSheet">
+        <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}</string>
+       </property>
        <property name="text">
         <string>Copy &amp;Address</string>
        </property>
@@ -91,6 +137,20 @@
      </item>
      <item>
       <widget class="QPushButton" name="btnSaveAs">
+       <property name="styleSheet">
+        <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}</string>
+       </property>
        <property name="text">
         <string>&amp;Save Image...</string>
        </property>
@@ -114,6 +174,20 @@
      </item>
      <item>
       <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="styleSheet">
+        <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}</string>
+       </property>
        <property name="standardButtons">
         <set>QDialogButtonBox::Close</set>
        </property>

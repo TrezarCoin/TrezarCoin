@@ -1,0 +1,143 @@
+/****************************************************************************************/
+/* Global color codes:                                                                  */
+/* dark-blue |Background:        #1b2234                                                */                                                    */
+/****************************************************************************************/
+
+WalletFrame {
+    background-color: #1b2234;
+    border-top: 0px solid #000;
+    margin: 0;
+    padding: 0;
+    
+}
+
+QStatusBar {
+    background-color: #1b2234;
+}
+    QStatusBar::item {
+        margin: 1px;
+        border: 0;
+        background: transparent;
+    }
+.QFrame {
+    background-color: transparent;
+    border: 0px solid #fff;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+QMenuBar {
+    background-color: #1b2234;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+}
+
+    QMenuBar::item {
+        background-color: #1b2234;
+        color: #fff;
+    }
+
+    QMenuBar::item:selected {
+        background-color: #1b2234;
+    }
+
+QMenu {
+    background-color: #1b2234;
+}
+
+QMenu::item {
+color:#fff;
+}
+
+    QMenu::item:selected {
+        background-color: #242c41;
+        color: #fff;
+    }
+
+QToolBar {
+    Alignment: center;
+    background-color: #1b2234;
+    border-right: 1px solid #242c41;
+    margin: 0;
+    width: 280px;
+    color: #6f7d88;
+    text-align:center;
+}
+
+    QToolBar > QToolButton {
+        Alignment: center;
+        background-color: #1b2234;
+        selection-background-color: transparent;
+        border-left: 0px;
+        border-right: 1px;
+        border-top: 0px;
+        min-height: 2.5em;
+        font-size: 20px;
+        color: #6f7d88;
+        width: 280px;
+        height: 70px;
+    }
+
+        QToolBar > QToolButton:checked {
+            background-color: #242c41;
+            border-right: 2px solid #55ff7f;
+            color: #fff;
+        }
+
+/* QToolBar > QToolButton:hover:!selected { */
+        QToolBar > QToolButton:hover {
+            background-color: #242c41;
+            color: #fff;
+        }
+
+        QToolBar > QToolButton#ToolbarSpacer:hover:!selected {
+            background-color: #242c41; /* Do not highlight placeholder on hover */
+        }
+
+        QToolBar > QToolButton:pressed {
+            background-color: #242c41;
+            border-right: 2px solid #55ff7f;
+            color: #fff;
+        }
+
+QTableView {
+    background-color: #242c41;
+    alternate-background-color: #1b2234;
+    border: 0px;
+}
+    QTableView::Item {
+        border: 0px;
+        height:20px;
+        border-style: solid;
+        border-color: #242c41;
+    }
+        QTableView::Item::selected {
+            background: #2d374f;
+            color: white;
+            height:80px;
+        }
+QScrollBar {
+    height:0px;
+    width:0px;
+}
+QHeaderView::section {
+    background-color: #242c41;
+    color: #fff;
+    padding-left: 4px;
+    border: 0px solid #6c6c6c;
+}
+QMessageBox {
+    background-color: #1b2234;
+}
+    QMessageBox QLabel {
+        color:#fff;
+    }
+    QMessageBox QButton {
+        background: #2d374f;
+        color: #fff;
+        shadow: 3px;
+        border-radius: 5px;
+        padding: 8px;
+    }

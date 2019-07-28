@@ -2722,8 +2722,8 @@ vStakePeriodRange_T PrepareRangeForStakeReport()
     }
 
     // prepare subtotal range of last 24H, 1 week, 30 days, 1 years
-    int GroupDays[4][2] = { {1 ,0}, {7 ,0 }, {30, 0}, {365, 0}};
-    std::string sGroupName[] = {"24H", "7 Days", "30 Days", "365 Days" };
+    int GroupDays[4][2] = { {1 ,0}, {7 ,0 }, {30, 0}, {1500, 0}};
+    std::string sGroupName[] = {"24H", "7 Days", "30 Days", "All time" };
 
     nToday = GetTime();
 
@@ -2752,7 +2752,7 @@ UniValue getstakereport(const UniValue& params, bool fHelp)
     if ((params.size()>0) || (fHelp))
         throw runtime_error(
             "getstakereport\n"
-            "List last single 30 day stake subtotal and last 24h, 7, 30, 365 day subtotal.\n");
+            "List last single 30 day stake subtotal and last 24h, 7, 30, All Time subtotal.\n");
 
     vStakePeriodRange_T aRange = PrepareRangeForStakeReport();
 

@@ -6,12 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>850</width>
+    <width>921</width>
     <height>536</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Send Coins</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background:#1b2234;
+padding:2px;
+border-top-right-radius: 10px;
+border-bottom-right-radius: 10px;
+border-right:1px;
+border-color:white;
+color:#616b7b;</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0">
    <property name="bottomMargin">
@@ -30,6 +39,11 @@
        <width>16777215</width>
        <height>16777215</height>
       </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -59,10 +73,13 @@
          <number>0</number>
         </property>
         <property name="leftMargin">
-         <number>10</number>
+         <number>30</number>
         </property>
         <property name="topMargin">
          <number>10</number>
+        </property>
+        <property name="rightMargin">
+         <number>30</number>
         </property>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayoutTxComment">
@@ -80,12 +97,19 @@
            </widget>
           </item>
           <item>
-           <widget class="QValidatedLineEdit" name="editTxComment" native="true">
+           <widget class="QValidatedLineEdit" name="editTxComment">
             <property name="enabled">
              <bool>true</bool>
             </property>
             <property name="toolTip">
              <string>Enter a transaction comment up to 140 characters (ATTENTION: this information is public)</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background:#2d374f;
+padding:2px;
+border-radius:5px;
+shadow:3px;
+color:#616b7b;</string>
             </property>
            </widget>
           </item>
@@ -102,7 +126,9 @@
           <item>
            <widget class="QPushButton" name="pushButtonCoinControl">
             <property name="styleSheet">
-             <string notr="true"/>
+             <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
             </property>
             <property name="text">
              <string>Coin Control</string>
@@ -550,7 +576,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QValidatedLineEdit" name="lineEditCoinControlChange" native="true">
+           <widget class="QValidatedLineEdit" name="lineEditCoinControlChange">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -559,6 +585,13 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background:#2d374f;
+padding:2px;
+border-radius:5px;
+shadow:3px;
+color:#616b7b;</string>
             </property>
            </widget>
           </item>
@@ -606,6 +639,9 @@
    </item>
    <item>
     <widget class="QScrollArea" name="scrollArea">
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
      <property name="widgetResizable">
       <bool>true</bool>
      </property>
@@ -614,9 +650,12 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>826</width>
-        <height>85</height>
+        <width>899</width>
+        <height>69</height>
        </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1">
        <property name="leftMargin">
@@ -669,6 +708,11 @@
        <height>16777215</height>
       </size>
      </property>
+     <property name="styleSheet">
+      <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
@@ -697,10 +741,13 @@
          <number>0</number>
         </property>
         <property name="leftMargin">
-         <number>10</number>
+         <number>30</number>
         </property>
         <property name="topMargin">
          <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>30</number>
         </property>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayoutFee1">
@@ -764,6 +811,11 @@
               </item>
               <item>
                <widget class="QPushButton" name="buttonChooseFee">
+                <property name="styleSheet">
+                 <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
+                </property>
                 <property name="text">
                  <string>Choose...</string>
                 </property>
@@ -803,6 +855,11 @@
            <widget class="QPushButton" name="buttonMinimizeFee">
             <property name="toolTip">
              <string>collapse fee-settings</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background:#242c41;
+padding:2px;
+border-radius:10px;</string>
             </property>
             <property name="text">
              <string>Hide</string>
@@ -1199,12 +1256,26 @@
        <property name="toolTip">
         <string>Confirm the send action</string>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:8px;
+border-radius:5px;
+color:#fff;
+margin:5px
+}</string>
+       </property>
        <property name="text">
         <string>S&amp;end</string>
        </property>
        <property name="icon">
         <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/send</normaloff>:/icons/send</iconset>
+         <normaloff>:/icons/send_menu</normaloff>:/icons/send_menu</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -1272,15 +1343,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QValidatedLineEdit</class>
-   <extends>QWidget</extends>
-   <header>qvalidatedlineedit.h</header>
-  </customwidget>
-  <customwidget>
    <class>BitcoinAmountField</class>
-   <extends>QSpinBox</extends>
+   <extends>QLineEdit</extends>
    <header>bitcoinamountfield.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QValidatedLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qvalidatedlineedit.h</header>
   </customwidget>
  </customwidgets>
  <resources>

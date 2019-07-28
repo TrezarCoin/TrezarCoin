@@ -39,6 +39,7 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     QWidget(parent), model(0), transactionProxyModel(0),
     transactionView(0), abandonAction(0), columnResizingFixer(0)
 {
+
     // Build filter row
     setContentsMargins(0,0,0,0);
 
@@ -73,6 +74,7 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     dateWidget->addItem(tr("Last month"), LastMonth);
     dateWidget->addItem(tr("This year"), ThisYear);
     dateWidget->addItem(tr("Range..."), Range);
+    dateWidget->setStyleSheet("background:#242c41; color:#fff;");
     hlayout->addWidget(dateWidget);
 
     typeWidget = new QComboBox(this);
@@ -91,16 +93,19 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     typeWidget->addItem(tr("Staked"), TransactionFilterProxy::TYPE(TransactionRecord::Generated));
     typeWidget->addItem(tr("Mined"), TransactionFilterProxy::TYPE(TransactionRecord::Mined));
     typeWidget->addItem(tr("Other"), TransactionFilterProxy::TYPE(TransactionRecord::Other));
+    typeWidget->setStyleSheet("background:#242c41; color:#fff;");
 
     hlayout->addWidget(typeWidget);
 
     addressWidget = new QLineEdit(this);
+    addressWidget->setStyleSheet("background:#2d374f; color:#fff; padding:2px; border-radius:5px; shadow:3px;");
 #if QT_VERSION >= 0x040700
     addressWidget->setPlaceholderText(tr("Enter address or label to search"));
 #endif
     hlayout->addWidget(addressWidget);
 
     amountWidget = new QLineEdit(this);
+    amountWidget->setStyleSheet("background:#2d374f; color:#fff; padding:2px; border-radius:5px; shadow:3px;");
 #if QT_VERSION >= 0x040700
     amountWidget->setPlaceholderText(tr("Min amount"));
 #endif
