@@ -50,6 +50,8 @@ uint64_t nLastBlockSize = 0;
 uint64_t nLastBlockWeight = 0;
 uint64_t nLastCoinStakeSearchInterval = 0;
 
+static bool fStaking;
+
 class ScoreCompare
 {
 public:
