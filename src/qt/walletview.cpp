@@ -384,7 +384,7 @@ void WalletView::changePassphrase()
 
 void WalletView::setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS)
 {
-    overviewPage->setNetworkStats(blockheight, diffPoW, diffPoS);
+    stakingPage->setNetworkStats(blockheight, diffPoW, diffPoS);
 }
 
 void WalletView::unlockWallet()

@@ -259,5 +259,11 @@ void StakingDialog::btn_Stake_OffClicked()
     ui->stakeingDot->setIcon(QIcon(":/icons/reddot"));
 }
 
+void StakingDialog::setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS)
+{
+    ui->label_DiffPoW->setText(diffPoW);
+    ui->label_DiffPoS->setText(diffPoS);
+}
+
 
 
