@@ -129,7 +129,7 @@ QMessageBox {
     QMessageBox QLabel {
         color:#fff;
     }
-    QMessageBox QButton {
+    QMessageBox QPushButton {
         background: #2d374f;
         color: #fff;
         shadow: 3px;
