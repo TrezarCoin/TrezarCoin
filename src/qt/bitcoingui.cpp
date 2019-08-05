@@ -419,6 +419,8 @@ void BitcoinGUI::createActions()
     
     connect(optionPageAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(optionPageAction, SIGNAL(triggered()), this, SLOT(gotoSettingsPage()));
+    connect(settingsMenuAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(settingsMenuAction, SIGNAL(triggered()), this, SLOT(gotoSettingsPage()));
 
 #endif // ENABLE_WALLET
 
@@ -481,6 +483,7 @@ void BitcoinGUI::createActions()
     showHelpMessageAction->setStatusTip(tr("Show the %1 help message to get a list with possible Trezarcoin command-line options").arg(tr(PACKAGE_NAME)));
 
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+    connect(quitMenuAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
@@ -488,6 +491,7 @@ void BitcoinGUI::createActions()
     connect(openRPCConsoleAction, SIGNAL(triggered()), this, SLOT(showDebugWindow()));
     // prevents an open debug window from becoming stuck/unusable on client shutdown
     connect(quitAction, SIGNAL(triggered()), rpcConsole, SLOT(hide()));
+    connect(quitMenuAction, SIGNAL(triggered()), rpcConsole, SLOT(hide()));
 
 #ifdef ENABLE_WALLET
     if(walletFrame)
