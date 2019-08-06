@@ -58,7 +58,6 @@ WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent) :
     sendCoinsPage = new SendCoinsDialog(platformStyle);
     easySplitPage = new EasySplitDialog(platformStyle);
     stakingPage = new StakingDialog(platformStyle);
-    //optionsPage = new OptionsDialog(platformStyle,this,true);
     settingsPage = new OptionsDialog(platformStyle);
 
     usedSendingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::SendingTab, this);
@@ -126,7 +125,6 @@ void WalletView::setClientModel(ClientModel *clientModel)
     sendCoinsPage->setClientModel(clientModel);
     easySplitPage->setClientModel(clientModel);
     stakingPage->setClientModel(clientModel);
-    settingsPage->setClientModel(clientModel);
 }
 
 void WalletView::requestAddressHistory()
@@ -145,7 +143,7 @@ void WalletView::setWalletModel(WalletModel *walletModel)
     sendCoinsPage->setModel(walletModel);
     easySplitPage->setModel(walletModel);
     stakingPage->setWalletModel(walletModel);
-    settingsPage->setWalletModel(walletModel);
+    settingsPage->setModel(clientModel->getOptionsModel());
     usedReceivingAddressesPage->setModel(walletModel->getAddressTableModel());
     usedSendingAddressesPage->setModel(walletModel->getAddressTableModel());
 

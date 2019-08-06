@@ -43,12 +43,10 @@ class OptionsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit OptionsDialog(const PlatformStyle *platformStyle, QWidget *parent = 0 , bool enableWallet = true);
+    explicit OptionsDialog(const PlatformStyle *platformStyle, QWidget *parent = 0, bool enableWallet = true);
     ~OptionsDialog();
 
     void setModel(OptionsModel *model);
-    void setWalletModel(WalletModel *walletModel);
-    void setClientModel(ClientModel *clientModel);
     void setMapper();
 
 private Q_SLOTS:
@@ -56,7 +54,6 @@ private Q_SLOTS:
     void setOkButtonState(bool fState);
     void on_resetButton_clicked();
     void on_okButton_clicked();
-    void on_cancelButton_clicked();
     
     void on_hideTrayIcon_stateChanged(int fState);
 
@@ -72,9 +69,6 @@ Q_SIGNALS:
 private:
     Ui::OptionsDialog *ui;
     OptionsModel *model;
-    WalletModel *walletModel;
-    ClientModel *clientModel;
-    const PlatformStyle *platformStyle;
     QDataWidgetMapper *mapper;
 };
 

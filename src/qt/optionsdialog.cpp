@@ -16,10 +16,8 @@
 //Test includes
 
 #include "addresstablemodel.h"
-#include "clientmodel.h"
 #include "coincontroldialog.h"
 #include "platformstyle.h"
-#include "walletmodel.h"
 
 #include "base58.h"
 #include "coincontrol.h"
@@ -150,16 +148,6 @@ OptionsDialog::~OptionsDialog()
     delete ui;
 }
 
-void OptionsDialog::setWalletModel(WalletModel *walletModel)
-{
-    this->walletModel = walletModel;
-}
-
-void OptionsDialog::setClientModel(ClientModel *clientModel)
-{
-    this->clientModel = clientModel;
-}
-
 void OptionsDialog::setModel(OptionsModel *model)
 {
     this->model = model;
@@ -207,7 +195,6 @@ void OptionsDialog::setMapper()
 
     /* Wallet */
     mapper->addMapping(ui->spendZeroConfChange, OptionsModel::SpendZeroConfChange);
-    mapper->addMapping(ui->coinControlFeatures, OptionsModel::CoinControlFeatures);
 
     /* Network */
     mapper->addMapping(ui->mapPortUpnp, OptionsModel::MapPortUPnP);
@@ -253,6 +240,7 @@ void OptionsDialog::on_resetButton_clicked()
 
         /* reset all options and close GUI */
         model->Reset();
+        QApplication::quit();
     }
 }
 
@@ -260,11 +248,6 @@ void OptionsDialog::on_okButton_clicked()
 {
     mapper->submit();
     updateDefaultProxyNets();
-}
-
-void OptionsDialog::on_cancelButton_clicked()
-{
-    reject();
 }
 
 void OptionsDialog::on_hideTrayIcon_stateChanged(int fState)
