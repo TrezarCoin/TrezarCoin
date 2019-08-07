@@ -181,6 +181,7 @@ bool Intro::pickDataDirectory()
         Intro intro;
         intro.setDataDirectory(dataDir);
         intro.setWindowIcon(QIcon(":icons/bitcoin"));
+        intro.setWindowTitle("Welcome");
 
         while(true)
         {
@@ -218,7 +219,7 @@ void Intro::setStatus(int status, const QString &message, quint64 bytesAvailable
     {
     case FreespaceChecker::ST_OK:
         ui->errorMessage->setText(message);
-        ui->errorMessage->setStyleSheet("");
+        ui->errorMessage->setStyleSheet("QLabel { color:#565b68; }");
         break;
     case FreespaceChecker::ST_ERROR:
         ui->errorMessage->setText(tr("Error") + ": " + message);
@@ -235,7 +236,7 @@ void Intro::setStatus(int status, const QString &message, quint64 bytesAvailable
         {
             freeString += " " + tr("(of %n GB needed)", "", requiredSpace);
         } else {
-            ui->freeSpace->setStyleSheet("");
+            ui->freeSpace->setStyleSheet("QLabel { color:#565b68; }");
         }
         ui->freeSpace->setText(freeString + ".");
     }
