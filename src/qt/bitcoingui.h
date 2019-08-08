@@ -99,6 +99,7 @@ private:
     QLabel *labelPrice;
     QLabel *progressBarLabel;
     QLabel *progressBarIcon;
+    QLabel *placeholderLabel;
     QProgressBar *progressBar;
     QProgressDialog *progressDialog;
 
@@ -259,7 +260,7 @@ private Q_SLOTS:
 
     /** called by a timer to check if fRequestShutdown has been set **/
     void detectShutdown();
-
+    
     /** Show progress dialog e.g. for verifychain */
     void showProgress(const QString &title, int nProgress);
     

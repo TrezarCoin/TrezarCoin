@@ -83,6 +83,8 @@
         <file alias="openWallet">res/icons/openWallet.png</file>
         <file alias="createWallet">res/icons/createWallet.png</file>
         <file alias="backgroundIntro">res/icons/backgroundIntro.png</file>
+        <file alias="spacer">res/icons/spacer.png</file>
+        <file alias="tzc_green_space">res/icons/tzc_green_space.png</file>
     </qresource>
     <qresource prefix="/css">
         <file alias="default">res/css/default.css</file>

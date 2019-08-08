@@ -326,7 +326,9 @@ RES_ICONS = \
   qt/res/icons/settings_menu.png \
   qt/res/icons/createWallet.png \
   qt/res/icons/openWallet.png \
-  qt/res/icons/backgroundIntro.png
+  qt/res/icons/backgroundIntro.png \
+  qt/res/icons/spacer.png \
+  qt/res/icons/tzc_green_space.png
 
  
 
