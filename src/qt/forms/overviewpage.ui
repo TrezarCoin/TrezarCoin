@@ -551,7 +551,7 @@ font-size: 20px;</string>
                         <widget class="QLabel" name="labelAddressAccount">
                          <property name="styleSheet">
                           <string notr="true">color:#a5b1ba;
-font-size:19pt;</string>
+font-size:20px;</string>
                          </property>
                          <property name="text">
                           <string>TgoucTzGcbzPx7y5u9ai56NEs5WnNZmtvg</string>

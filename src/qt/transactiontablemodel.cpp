@@ -630,6 +630,14 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
         {
             return addressColor(rec);
         }
+        if (index.column() == Type)
+        {
+            return COLOR_WHITE;
+        }
+        if (index.column() == Date)
+        {
+            return COLOR_WHITE;
+        }
         break;
     case TxTypeOverview:
         return formatOverviewPage(rec);
