@@ -251,7 +251,7 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     ui->labelUnconfirmed->setStyleSheet("QLabel {font-size:16pt; color:#dceaed; }");
     //ui->labelStaking->setText(BitcoinUnits::formatWithUnit(unit, stakingBalance, false, BitcoinUnits::separatorAlways));
     //ui->labelImmature->setText(BitcoinUnits::formatWithUnit(unit, immatureBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelTotal->setText(BitcoinUnits::format(unit,balance + unconfirmedBalance + stakingBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelTotal->setText(BitcoinUnits::formatWithUnitGreen(unit,balance + unconfirmedBalance + stakingBalance, false, BitcoinUnits::separatorAlways));
     ui->labelTotal->setStyleSheet("QLabel {font-size:25pt; color:#dceaed; }");
 
     bool showStaking = stakingBalance != 0;

@@ -56,12 +56,6 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *platformStyle, QWidget *pa
     // Connect signals
     connect(ui->payAmount, SIGNAL(valueChanged()), this, SIGNAL(payAmountChanged()));
 
-    /*if (!platformStyle->getImagesOnButtons()) {
-        ui->sendButton->setIcon(QIcon());
-    } else {
-        ui->sendButton->setIcon(platformStyle->SingleColorIcon(":/icons/send"));
-    }*/
-
     GUIUtil::setupAddressWidget(ui->lineEditCoinControlChange, this);
     //addEntry();
 
@@ -227,7 +221,7 @@ void SendCoinsDialog::on_sendButton_clicked()
     Q_FOREACH(const SendCoinsRecipient &rcp, currentTransaction.getRecipients())
     {
         // generate bold amount string
-        QString amount = "<b>" + BitcoinUnits::formatHtmlWithUnit(model->getOptionsModel()->getDisplayUnit(), rcp.amount);
+        QString amount = "<b>" + BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), rcp.amount);
         amount.append("</b>");
         // generate monospace address string
         QString address = "<span style='font-family: monospace;'>" + rcp.address;
@@ -389,7 +383,8 @@ void SendCoinsDialog::setBalance(const CAmount& balance, const CAmount& unconfir
 
     if(model && model->getOptionsModel())
     {
-        ui->labelBalance->setText(BitcoinUnits::format(0, balance) + (model->getOptionsModel()->getDisplayUnit() != 0 ?( " (" + BitcoinUnits::format(model->getOptionsModel()->getDisplayUnit(), balance) + ")") : ""));
+        ui->labelBalance->setText(BitcoinUnits::formatWithUnitGreen(0, balance) + (model->getOptionsModel()->getDisplayUnit() != 0 ?( " (" + BitcoinUnits::formatWithUnitGreen(model->getOptionsModel()->getDisplayUnit(), balance) + ")") : ""));
+        ui->label_tzc->setText(BitcoinUnits::unitGreen(model->getOptionsModel()->getDisplayUnit()));
     }
 }
 

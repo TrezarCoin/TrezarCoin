@@ -89,8 +89,6 @@ StakingDialog::StakingDialog(const PlatformStyle *platformStyle, QWidget *parent
     connect(ui->btn_Stake_On, SIGNAL(clicked()), this, SLOT(btn_Stake_OnClicked()));
     connect(ui->btn_Stake_Off, SIGNAL(clicked()), this, SLOT(btn_Stake_OffClicked()));
 
-    
-
 }
 
 void StakingDialog::setClientModel(ClientModel *model)
@@ -117,7 +115,7 @@ void StakingDialog::setStakingStatus(QString text, bool fStake)
         ui->stakeingDot->setIcon(QIcon(":/icons/reddot"));
         ui->btn_Stake_On->setStyleSheet("  font-size:20px; height:35px; color: #6d7886; ");
         ui->btn_Stake_Off->setStyleSheet(" font-size:20px; height:35px; color: white; background-color:#1b2234; ");
-        ui->estimatedStakeTimeLabel->setText("Staking disabled.");
+        ui->estimatedStakeTimeLabel->setText("Staking Idle.");
     }
 
 }
@@ -145,6 +143,7 @@ void StakingDialog::setWalletModel(WalletModel *model)
 
         ui->listStakes->setModel(filterS.get());
         ui->listStakes->setModelColumn(TransactionTableModel::ToAddress);
+        connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
     }
 }
 
@@ -156,6 +155,7 @@ void StakingDialog::updateDisplayUnit()
         txdelegateStake->unit = walletModel->getOptionsModel()->getDisplayUnit();
 
         ui->listStakes->update();
+        updateStakeReportNow();
     }
 }
 

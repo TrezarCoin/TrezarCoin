@@ -322,17 +322,6 @@ color:#dceaed;</string>
                              </widget>
                             </item>
                             <item>
-                             <widget class="QLabel" name="label_9">
-                              <property name="styleSheet">
-                               <string notr="true">font-size:26px;
-color:#39df7b;</string>
-                              </property>
-                              <property name="text">
-                               <string>TZC</string>
-                              </property>
-                             </widget>
-                            </item>
-                            <item>
                              <spacer name="horizontalSpacer_6">
                               <property name="orientation">
                                <enum>Qt::Horizontal</enum>

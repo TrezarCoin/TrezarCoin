@@ -35,20 +35,11 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *platformStyle, QWidg
 {
     ui->setupUi(this);
 
-    /*if (!platformStyle->getImagesOnButtons()) {
-        ui->clearButton->setIcon(QIcon());
-        ui->receiveButton->setIcon(QIcon());
-        ui->showRequestButton->setIcon(QIcon());
-        ui->removeRequestButton->setIcon(QIcon());
-    } else {
-        ui->clearButton->setIcon(platformStyle->SingleColorIcon(":/icons/remove"));
-        ui->receiveButton->setIcon(platformStyle->SingleColorIcon(":/icons/receiving_addresses"));
-        ui->removeRequestButton->setIcon(platformStyle->SingleColorIcon(":/icons/remove"));
-    }*/
     // UI things
 
     ui->reqLabel->setPlaceholderText(tr("Enter Address Label"));
     ui->reqMessage->setPlaceholderText(tr("Enter a message up to 140 characters"));
+    
     // context menu actions
     QAction *copyLabelAction = new QAction(tr("Copy label"), this);
     QAction *copyMessageAction = new QAction(tr("Copy message"), this);
@@ -147,6 +138,8 @@ void ReceiveCoinsDialog::updateDisplayUnit()
     if(model && model->getOptionsModel())
     {
         ui->reqAmount->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
+        ui->label_tzc->setText(BitcoinUnits::unitGreen(model->getOptionsModel()->getDisplayUnit()));
+        setBalance(model->getBalance(), 0, 0, 0, 0, 0, 0);
     }
 }
 
@@ -293,7 +286,7 @@ void ReceiveCoinsDialog::setBalance(const CAmount& balance, const CAmount& uncon
 
     if (model && model->getOptionsModel())
     {
-        ui->labelBalance->setText(BitcoinUnits::format(0, balance) + (model->getOptionsModel()->getDisplayUnit() != 0 ? (" (" + BitcoinUnits::format(model->getOptionsModel()->getDisplayUnit(), balance) + ")") : ""));
+        ui->labelBalance->setText(BitcoinUnits::formatWithUnitGreen(0, balance) + (model->getOptionsModel()->getDisplayUnit() != 0 ? (" (" + BitcoinUnits::formatWithUnitGreen(model->getOptionsModel()->getDisplayUnit(), balance) + ")") : ""));
     }
 }
 

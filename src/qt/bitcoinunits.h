@@ -88,6 +88,10 @@ public:
     static QString format(int unit, const CAmount& amount, bool plussign=false, SeparatorStyle separators=separatorStandard);
     //! Format as string (with unit)
     static QString formatWithUnit(int unit, const CAmount& amount, bool plussign=false, SeparatorStyle separators=separatorStandard);
+    //! Format as string (with green unit)  Green: #39df7b
+    static QString formatWithUnitGreen(int unit, const CAmount& amount, bool plussign = false, SeparatorStyle separators = separatorStandard);
+    //! Return Unit in Green  Green: #39df7b
+    static QString unitGreen(int unit);
     //! Format as HTML string (with unit)
     static QString formatHtmlWithUnit(int unit, const CAmount& amount, bool plussign=false, SeparatorStyle separators=separatorStandard);
     //! Parse string to coin amount

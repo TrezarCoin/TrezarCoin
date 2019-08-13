@@ -134,6 +134,15 @@ QString BitcoinUnits::formatWithUnit(int unit, const CAmount& amount, bool pluss
     return format(unit, amount, plussign, separators) + QString(" ") + name(unit);
 }
 
+QString BitcoinUnits::formatWithUnitGreen(int unit, const CAmount& amount, bool plussign, SeparatorStyle separators)
+{
+    return format(unit, amount, plussign, separators) + QString(" ") + QString("<span style='color:#39df7b;'>%1</span>").arg(name(unit));
+}
+QString BitcoinUnits::unitGreen(int unit)
+{
+    return QString("<span style='color:#39df7b;'>%1</span>").arg(name(unit));
+}
+
 QString BitcoinUnits::formatHtmlWithUnit(int unit, const CAmount& amount, bool plussign, SeparatorStyle separators)
 {
     QString str(formatWithUnit(unit, amount, plussign, separators));

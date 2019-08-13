@@ -62,7 +62,7 @@ border-color:white;</string>
              <number>0</number>
             </property>
             <item>
-             <layout class="QHBoxLayout" name="WalletTitle" stretch="0,0,0,0,0,0,0">
+             <layout class="QHBoxLayout" name="WalletTitle" stretch="0,0,0,0,0,0">
               <property name="spacing">
                <number>0</number>
               </property>
@@ -139,23 +139,6 @@ padding-top:25px;
                 </property>
                 <property name="text">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:400;&quot;&gt;221,629&lt;/span&gt;&lt;span style=&quot; font-size:11pt; font-weight:400;&quot;&gt;.&lt;/span&gt;5527&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_3">
-                <property name="styleSheet">
-                 <string notr="true">font: 75 14pt &quot;Ubuntu&quot;;
-color:#a5c3d1;
-backcolor:black;
-color:#acbecd;
-background-color:#1b2234;
-padding-top:25px;
-
-</string>
-                </property>
-                <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; color:#55ff7f;&quot;&gt;TZC&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
@@ -291,7 +274,7 @@ border-radius:5px;
                          <number>0</number>
                         </property>
                         <item row="0" column="0">
-                         <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,0,1,20,2,1">
+                         <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,0,0,20,2,1">
                           <item>
                            <spacer name="horizontalSpacer_3">
                             <property name="orientation">
@@ -321,7 +304,7 @@ color:#dceaed;
                            </widget>
                           </item>
                           <item>
-                           <widget class="QLabel" name="label_7">
+                           <widget class="QLabel" name="label_tzc">
                             <property name="styleSheet">
                              <string notr="true">border:0px;
 font-size:26px;
