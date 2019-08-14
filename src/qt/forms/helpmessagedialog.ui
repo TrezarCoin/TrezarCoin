@@ -92,6 +92,7 @@ color:#616b7b;
         <string notr="true">background:#242c41;
 padding:2px;
 border-radius:10px;
+color:#fff;
 </string>
        </property>
        <property name="readOnly">
@@ -121,7 +122,7 @@ border-radius:10px;
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>739</width>
+          <width>722</width>
           <height>117</height>
          </rect>
         </property>

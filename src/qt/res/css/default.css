@@ -136,3 +136,22 @@ QMessageBox {
         border-radius: 5px;
         padding: 8px;
     }
+
+QTreeWidget {
+    background-color: #242c41;
+    alternate-background-color: #1b2234;
+    border: 0px;
+}
+
+    QTreeWidget::Item {
+        border: 0px;
+        height: 20px;
+        border-style: solid;
+        border-color: #242c41;
+    }
+
+        QTreeWidget::Item::selected {
+            background: #2d374f;
+            color: white;
+            height: 80px;
+        }

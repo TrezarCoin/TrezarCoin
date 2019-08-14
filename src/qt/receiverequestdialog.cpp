@@ -139,10 +139,10 @@ void ReceiveRequestDialog::update()
     ui->btnSaveAs->setEnabled(false);
     QString html;
     html += "<html><font face='verdana, arial, helvetica, sans-serif'>";
-    html += "<b>"+tr("Payment information")+"</b><br>";
-    html += "<b>"+tr("URI")+"</b>: ";
-    html += "<a href=\""+uri+"\">" + GUIUtil::HtmlEscape(uri) + "</a><br>";
-    html += "<b>"+tr("Address")+"</b>: " + GUIUtil::HtmlEscape(info.address) + "<br>";
+    html += "<b style='color:#fff'>"+tr("Payment information")+"</b><br>";
+    html += "<b style='color:#fff'>"+tr("URI:")+"</b> ";
+    html += "<a href=\""+uri+"\" style='color:#b9dbe8'>" + GUIUtil::HtmlEscape(uri) + "</a><br>";
+    html += "<b style='color:#fff'>"+tr("Address: ")+"</b><a style='color:#b9dbe8'>" + GUIUtil::HtmlEscape(info.address) + "</a><br>";
     if(info.amount)
         html += "<b>"+tr("Amount")+"</b>: " + BitcoinUnits::formatHtmlWithUnit(model->getDisplayUnit(), info.amount) + "<br>";
     if(!info.label.isEmpty())
