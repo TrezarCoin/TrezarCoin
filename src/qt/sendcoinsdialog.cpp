@@ -338,6 +338,7 @@ QWidget *SendCoinsDialog::setupTabChain(QWidget *prev)
         }
     }*/
     QWidget::setTabOrder(prev, ui->sendButton);
+    return prev;
 }
 
 void SendCoinsDialog::pasteEntry(const SendCoinsRecipient &rv)
