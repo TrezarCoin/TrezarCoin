@@ -52,7 +52,7 @@ public:
         bool BoolLabel = false;
         //font
         QFont font = painter->font();
-        font.setPointSize(13);
+        font.setPixelSize(16);
 
         QIcon icon = qvariant_cast<QIcon>(index.data(TransactionTableModel::RawDecorationRole));
         QRect mainRect = option.rect;
@@ -95,7 +95,7 @@ public:
 
         painter->drawText(addressRect, Qt::AlignLeft | Qt::AlignVCenter, GUIUtil::dateTimeStr(date));
         painter->drawText(middleRectLower, Qt::AlignLeft | Qt::AlignVCenter, address, &boundingRect);
-        font.setPointSize(5);
+        font.setPixelSize(12);
         painter->setFont(font);
         painter->drawText(txHashRect, Qt::AlignRight | Qt::AlignVCenter, txHash);
 
@@ -125,7 +125,7 @@ public:
         {
             amountText = QString("[") + amountText + QString("]");
         }
-        font.setPointSize(13);
+        font.setPixelSize(16);
         painter->setFont(font);
         painter->drawText(amountRect, Qt::AlignRight | Qt::AlignVCenter, amountText);
         painter->setPen(COLOR_WHITE);
@@ -248,11 +248,9 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     currentWatchImmatureBalance = watchImmatureBalance;
     //ui->labelBalance->setText(BitcoinUnits::formatWithUnit(unit, balance, false, BitcoinUnits::separatorAlways));
     ui->labelUnconfirmed->setText(BitcoinUnits::format(unit, unconfirmedBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelUnconfirmed->setStyleSheet("QLabel {font-size:16pt; color:#dceaed; }");
     //ui->labelStaking->setText(BitcoinUnits::formatWithUnit(unit, stakingBalance, false, BitcoinUnits::separatorAlways));
     //ui->labelImmature->setText(BitcoinUnits::formatWithUnit(unit, immatureBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelTotal->setText(BitcoinUnits::formatWithUnitGreen(unit,balance + unconfirmedBalance + stakingBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelTotal->setStyleSheet("QLabel {font-size:25pt; color:#dceaed; }");
+    ui->labelTotal->setText(BitcoinUnits::format(unit,balance + unconfirmedBalance + stakingBalance, false, BitcoinUnits::separatorAlways));
 
     bool showStaking = stakingBalance != 0;
 

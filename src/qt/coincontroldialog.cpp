@@ -49,6 +49,8 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *platformStyle, QWidget
     platformStyle(platformStyle)
 {
     ui->setupUi(this);
+	/* Open CSS when configured TRAadd */
+    this->setStyleSheet(GUIUtil::loadStyleSheet());
 
     // context menu actions
     QAction *copyAddressAction = new QAction(tr("Copy address"), this);
@@ -104,6 +106,7 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *platformStyle, QWidget
     ui->labelCoinControlPriority->addAction(clipboardPriorityAction);
     ui->labelCoinControlLowOutput->addAction(clipboardLowOutputAction);
     ui->labelCoinControlChange->addAction(clipboardChangeAction);
+	
 
     // toggle tree/list mode
     connect(ui->radioTreeMode, SIGNAL(toggled(bool)), this, SLOT(radioTreeMode(bool)));
@@ -467,6 +470,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
         }
     }
 
+
     QString sPriorityLabel      = tr("none");
     CAmount nAmount             = 0;
     CAmount nPayFee             = 0;
@@ -626,7 +630,8 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
     l2->setText(BitcoinUnits::formatWithUnit(nDisplayUnit, nAmount));        // Amount
     l3->setText(BitcoinUnits::formatWithUnit(nDisplayUnit, nPayFee));        // Fee
     l4->setText(BitcoinUnits::formatWithUnit(nDisplayUnit, nAfterFee));      // After Fee
-    l5->setText(((nBytes > 0) ? ASYMP_UTF8 : "") + QString::number(nBytes));        // Bytes
+    l5->setStyleSheet("color:blue;");// Bytes >= 1000
+	l5->setText(((nBytes > 0) ? ASYMP_UTF8 : "") + QString::number(nBytes));        // Bytes
     l6->setText(sPriorityLabel);                                             // Priority
     l7->setText(fDust ? tr("yes") : tr("no"));                               // Dust
     l8->setText(BitcoinUnits::formatWithUnit(nDisplayUnit, nChange));        // Change
@@ -638,8 +643,9 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
             l8->setText(ASYMP_UTF8 + l8->text());
     }
 
-    // turn labels "red"
-    l5->setStyleSheet((nBytes >= MAX_FREE_TRANSACTION_CREATE_SIZE) ? "color:red;" : "");// Bytes >= 1000
+
+	// turn labels "red"
+   	l5->setStyleSheet((nBytes >= MAX_FREE_TRANSACTION_CREATE_SIZE) ? "color:red;" : "");// Bytes >= 1000
     l6->setStyleSheet((dPriority > 0 && !fAllowFree) ? "color:red;" : "");              // Priority < "medium"
     l7->setStyleSheet((fDust) ? "color:red;" : "");                                     // Dust = "yes"
 

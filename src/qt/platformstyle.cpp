@@ -78,8 +78,8 @@ PlatformStyle::PlatformStyle(const QString &name, bool imagesOnButtons, bool col
     imagesOnButtons(imagesOnButtons),
     colorizeIcons(colorizeIcons),
     useExtraSpacing(useExtraSpacing),
-    singleColor(0,0,0),
-    textColor(0,0,0)
+    singleColor(143,190,223),
+    textColor(143,190,223)
 {
     // Determine icon highlighting color
     if (colorizeIcons) {
@@ -95,7 +95,7 @@ PlatformStyle::PlatformStyle(const QString &name, bool imagesOnButtons, bool col
         singleColor = colorbase;
     }
     // Determine text color
-    textColor = QColor(QApplication::palette().color(QPalette::WindowText));
+    textColor = QColor(57,223,123,255);
 }
 
 QImage PlatformStyle::SingleColorImage(const QString& filename) const
