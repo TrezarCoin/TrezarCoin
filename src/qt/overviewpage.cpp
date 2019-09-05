@@ -248,9 +248,12 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     currentWatchImmatureBalance = watchImmatureBalance;
     //ui->labelBalance->setText(BitcoinUnits::formatWithUnit(unit, balance, false, BitcoinUnits::separatorAlways));
     ui->labelUnconfirmed->setText(BitcoinUnits::format(unit, unconfirmedBalance, false, BitcoinUnits::separatorAlways));
+    //ui->labelUnconfirmed->setStyleSheet("QLabel {font-size:16pt; color:#dceaed; }");
     //ui->labelStaking->setText(BitcoinUnits::formatWithUnit(unit, stakingBalance, false, BitcoinUnits::separatorAlways));
     //ui->labelImmature->setText(BitcoinUnits::formatWithUnit(unit, immatureBalance, false, BitcoinUnits::separatorAlways));
+    //ui->labelTotal->setText(BitcoinUnits::formatWithUnitGreen(unit,balance + unconfirmedBalance + stakingBalance, false, BitcoinUnits::separatorAlways));
     ui->labelTotal->setText(BitcoinUnits::format(unit,balance + unconfirmedBalance + stakingBalance, false, BitcoinUnits::separatorAlways));
+	//ui->labelTotal->setStyleSheet("QLabel {font-size:25pt; color:#dceaed; }");
 
     bool showStaking = stakingBalance != 0;
 

@@ -179,7 +179,7 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *n
 #else
     /*High DPI Displays can cause some issues fors scaling. AA_DisableHighDpiScaling attribute turns off all scaling. 
     This attribute should be removed if scaleing is needed. note:ui settings must support scaling correctly*/
-    QApplication::setAttribute(Qt::AA_DisableHighDpiScaling);    
+    QApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
     MacDockIconHandler::instance()->setIcon(networkStyle->getAppIcon());
 #endif
     setWindowTitle(windowTitle);
@@ -274,7 +274,12 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *n
         walletFrame->setStakingStatus(tr("Staking is turned off."),false);
     }
 
-    // Progress bar and label for blocks download
+    // Progress bar and label for blocks download 
+    placeholderLabel = new QLabel();
+    placeholderLabel->setPixmap(platformStyle->SingleColorIcon(":/icons/spacer").pixmap(145, 40));
+    placeholderLabel->setAlignment(Qt::AlignCenter);
+
+
     progressBarLabel = new QLabel();
     progressBarLabel->setVisible(false);
     progressBar = new GUIUtil::ProgressBar();
@@ -289,12 +294,13 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *n
     //QString curStyle = QApplication::style()->metaObject()->className();
     //if(curStyle == "QWindowsStyle" || curStyle == "QWindowsXPStyle")
     //{
-    progressBar->setStyleSheet("QProgressBar { background-color: #1b2234; border: transparent; border-radius: 10px; padding: 1px; text-align: center; } QProgressBar::chunk { background: #39df7b; border-radius: 7px; margin: 0px; }");
+    progressBar->setStyleSheet("QProgressBar { background-color: #1b2234; border: transparent; border-radius: 10px; padding: 1px; text-align: center; } QProgressBar::chunk { background: #39df7b; border-radius: 4px; margin: 4px; }");
     //}
     
 
     statusBar()->addWidget(progressBarIcon);
     statusBar()->addWidget(progressBarLabel);
+    statusBar()->addWidget(placeholderLabel);
     statusBar()->addWidget(progressBar);
     statusBar()->addPermanentWidget(frameBlocks);
     
@@ -331,7 +337,7 @@ void BitcoinGUI::createActions()
 
     QActionGroup *tabGroup = new QActionGroup(this);
 
-    emptyAction = new QAction(platformStyle->SingleColorIcon(":/icons/none"), tr(""), this);
+    emptyAction = new QAction(platformStyle->SingleColorIcon(":/icons/spacerBlock"), tr(""), this);
     emptyAction->setCheckable(false);
     emptyAction->setEnabled(false);
     tabGroup->addAction(emptyAction);
@@ -422,8 +428,7 @@ void BitcoinGUI::createActions()
     
     connect(optionPageAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(optionPageAction, SIGNAL(triggered()), this, SLOT(gotoSettingsPage()));
-	
-	//connect(SettingsMenuAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(settingsMenuAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(settingsMenuAction, SIGNAL(triggered()), this, SLOT(gotoSettingsPage()));
 
 #endif // ENABLE_WALLET
@@ -487,7 +492,7 @@ void BitcoinGUI::createActions()
     showHelpMessageAction->setStatusTip(tr("Show the %1 help message to get a list with possible Trezarcoin command-line options").arg(tr(PACKAGE_NAME)));
 
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
-	connect(quitMenuAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+    connect(quitMenuAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
@@ -495,6 +500,7 @@ void BitcoinGUI::createActions()
     connect(openRPCConsoleAction, SIGNAL(triggered()), this, SLOT(showDebugWindow()));
     // prevents an open debug window from becoming stuck/unusable on client shutdown
     connect(quitAction, SIGNAL(triggered()), rpcConsole, SLOT(hide()));
+    connect(quitMenuAction, SIGNAL(triggered()), rpcConsole, SLOT(hide()));
 
 #ifdef ENABLE_WALLET
     if(walletFrame)
@@ -581,14 +587,11 @@ void BitcoinGUI::createToolBars()
         QLabel* syncLabel = new QLabel();
         QLabel* emptyLabel = new QLabel();
         toolbar->setIconSize(QSize(80, 80));
-        syncLabel->setPixmap(platformStyle->SingleColorIcon(":/icons/tzc_green").pixmap(108, 108));
+        syncLabel->setPixmap(platformStyle->SingleColorIcon(":/icons/tzc_green_space").pixmap(108, 180));
         syncLabel->setAlignment(Qt::AlignCenter);
-        emptyLabel->setPixmap(platformStyle->SingleColorIcon(":/icons/none").pixmap(60, 60));
-        emptyLabel->setAlignment(Qt::AlignCenter);
         QWidget* spacer = new QWidget();
         spacer->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
         addToolBar(Qt::LeftToolBarArea, toolbar);
-        toolbar->addWidget(emptyLabel);
         toolbar->addWidget(syncLabel);
         toolbar->setMovable(false);
         toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
