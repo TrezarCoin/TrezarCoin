@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1034</width>
-    <height>686</height>
+    <width>1016</width>
+    <height>493</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,7 +46,7 @@
      <item>
       <widget class="QWidget" name="widget_2" native="true">
        <property name="styleSheet">
-        <string notr="true">background-color:#1b2234;
+        <string notr="true">background-color:#1c2334;
 </string>
        </property>
        <layout class="QGridLayout" name="gridLayout_6">
@@ -187,15 +187,12 @@ font-size: 20px;
 
 </string>
                 </property>
-                <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
                </widget>
               </item>
               <item>
                <widget class="QWidget" name="widget_4" native="true">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -279,7 +276,7 @@ font-size:16px;</string>
                      <item>
                       <widget class="QWidget" name="widget_5" native="true">
                        <property name="sizePolicy">
-                        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                          <horstretch>0</horstretch>
                          <verstretch>0</verstretch>
                         </sizepolicy>
@@ -312,12 +309,46 @@ shadow:3px;</string>
                            <layout class="QHBoxLayout" name="horizontalLayout_13">
                             <item>
                              <widget class="QLabel" name="labelTotal">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="minimumSize">
+                               <size>
+                                <width>0</width>
+                                <height>0</height>
+                               </size>
+                              </property>
+                              <property name="font">
+                               <font>
+                                <pointsize>-1</pointsize>
+                               </font>
+                              </property>
                               <property name="styleSheet">
-                               <string notr="true">font-size:35px;
-color:#dceaed;</string>
+                               <string notr="true">color:#dceaed;
+font-size:26px;</string>
                               </property>
                               <property name="text">
                                <string>221,639.5527</string>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLabel" name="label_9">
+                              <property name="styleSheet">
+                               <string notr="true">font-size:26px;
+color:#39df7b;</string>
+                              </property>
+                              <property name="text">
+                               <string>TZC</string>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                               </property>
                              </widget>
                             </item>
@@ -370,7 +401,7 @@ color:#dceaed;</string>
                              <widget class="QLabel" name="label_54">
                               <property name="styleSheet">
                                <string notr="true">color:#6d7886;
-font-size:20px;</string>
+font-size:16px;</string>
                               </property>
                               <property name="text">
                                <string>Unconfirmed:</string>
@@ -438,6 +469,18 @@ font-size:16px;</string>
                       <layout class="QHBoxLayout" name="horizontalLayout_10">
                        <item>
                         <widget class="QLabel" name="label_17">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="minimumSize">
+                          <size>
+                           <width>252</width>
+                           <height>0</height>
+                          </size>
+                         </property>
                          <property name="styleSheet">
                           <string notr="true">color:#616b7b;
 font-size:16px;
@@ -475,6 +518,12 @@ font-size:16px;</string>
                        </property>
                        <item>
                         <widget class="QLabel" name="label_19">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
                          <property name="sizeIncrement">
                           <size>
                            <width>0</width>
@@ -489,7 +538,7 @@ font-size:16px;</string>
                          </property>
                          <property name="styleSheet">
                           <string notr="true">color:#b9dbe8;
-font-size:20px;</string>
+font-size:16px;</string>
                          </property>
                          <property name="text">
                           <string>Staking Status:</string>
@@ -501,6 +550,12 @@ font-size:20px;</string>
                        </item>
                        <item>
                         <widget class="QPushButton" name="stakeingDot">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
                          <property name="styleSheet">
                           <string notr="true"/>
                          </property>
@@ -511,9 +566,21 @@ font-size:20px;</string>
                        </item>
                        <item>
                         <widget class="QLabel" name="labelStakingStatus">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
+                         <property name="minimumSize">
+                          <size>
+                           <width>59</width>
+                           <height>0</height>
+                          </size>
+                         </property>
                          <property name="styleSheet">
                           <string notr="true">color:#a5b1ba;
-font-size: 20px;</string>
+font-size: 16px;</string>
                          </property>
                          <property name="text">
                           <string>IDLE</string>
@@ -528,9 +595,12 @@ font-size: 20px;</string>
                          <property name="orientation">
                           <enum>Qt::Horizontal</enum>
                          </property>
+                         <property name="sizeType">
+                          <enum>QSizePolicy::Fixed</enum>
+                         </property>
                          <property name="sizeHint" stdset="0">
                           <size>
-                           <width>40</width>
+                           <width>30</width>
                            <height>20</height>
                           </size>
                          </property>
@@ -538,9 +608,14 @@ font-size: 20px;</string>
                        </item>
                        <item>
                         <widget class="QLabel" name="labelAddressAccount">
+                         <property name="font">
+                          <font>
+                           <pointsize>-1</pointsize>
+                          </font>
+                         </property>
                          <property name="styleSheet">
                           <string notr="true">color:#a5b1ba;
-font-size:20px;</string>
+font-size:24px;</string>
                          </property>
                          <property name="text">
                           <string>TgoucTzGcbzPx7y5u9ai56NEs5WnNZmtvg</string>
@@ -713,9 +788,6 @@ outline: none;
                  <string notr="true">background-color:#1b2234;
 
 </string>
-                </property>
-                <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
@@ -895,9 +967,6 @@ outline: none;
                  <string notr="true">background-color:#1b2234;
 color:#badce9;</string>
                 </property>
-                <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
                </widget>
               </item>
              </layout>
@@ -941,7 +1010,7 @@ color:#badce9;</string>
                  <string notr="true">background-color:#1b2234;</string>
                 </property>
                 <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -950,7 +1019,7 @@ color:#badce9;</string>
                 <item row="0" column="0">
                  <widget class="QListView" name="listTransactions">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
@@ -959,7 +1028,17 @@ color:#badce9;</string>
                    <string notr="true">background:#232c41;
 padding:2px;
 border-radius:10px;
+font-size:14px;
 </string>
+                  </property>
+                  <property name="lineWidth">
+                   <number>2</number>
+                  </property>
+                  <property name="sizeAdjustPolicy">
+                   <enum>QAbstractScrollArea::AdjustToContents</enum>
+                  </property>
+                  <property name="alternatingRowColors">
+                   <bool>false</bool>
                   </property>
                  </widget>
                 </item>
@@ -982,9 +1061,6 @@ border-radius:10px;
                 <property name="styleSheet">
                  <string notr="true">background-color:#1b2234;
 </string>
-                </property>
-                <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>

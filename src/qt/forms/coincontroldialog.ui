@@ -10,16 +10,184 @@
     <height>500</height>
    </rect>
   </property>
+  <property name="palette">
+   <palette>
+    <active>
+     <colorrole role="WindowText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>170</green>
+        <blue>255</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Button">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>27</red>
+        <green>34</green>
+        <blue>52</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Text">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>185</red>
+        <green>219</green>
+        <blue>232</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="ButtonText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>185</red>
+        <green>219</green>
+        <blue>232</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Base">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>27</red>
+        <green>34</green>
+        <blue>52</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Window">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>27</red>
+        <green>34</green>
+        <blue>52</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </active>
+    <inactive>
+     <colorrole role="WindowText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>170</green>
+        <blue>255</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Button">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>27</red>
+        <green>34</green>
+        <blue>52</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Text">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>185</red>
+        <green>219</green>
+        <blue>232</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="ButtonText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>185</red>
+        <green>219</green>
+        <blue>232</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Base">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>27</red>
+        <green>34</green>
+        <blue>52</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Window">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>27</red>
+        <green>34</green>
+        <blue>52</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </inactive>
+    <disabled>
+     <colorrole role="WindowText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>185</red>
+        <green>219</green>
+        <blue>232</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Button">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>27</red>
+        <green>34</green>
+        <blue>52</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Text">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>185</red>
+        <green>219</green>
+        <blue>232</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="ButtonText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>185</red>
+        <green>219</green>
+        <blue>232</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Base">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>27</red>
+        <green>34</green>
+        <blue>52</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Window">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>27</red>
+        <green>34</green>
+        <blue>52</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </disabled>
+   </palette>
+  </property>
   <property name="windowTitle">
    <string>Coin Selection</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background:#1b2234;
-padding:2px;
-border-top-right-radius: 10px;
-border-bottom-right-radius: 10px;
-border-right:1px;
-border-color:white;</string>
+   <string notr="true">QDialog { background:#1b2234;border: 1px solid grey;padding:2px;}
+</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -53,7 +221,7 @@ border-color:white;</string>
           </font>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">color:#b9dbe8;</string>
          </property>
          <property name="text">
           <string>Quantity:</string>
@@ -69,7 +237,7 @@ border-color:white;</string>
           <enum>Qt::ActionsContextMenu</enum>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">color:#b9dbe8;</string>
          </property>
          <property name="text">
           <string notr="true">0</string>
@@ -88,7 +256,7 @@ border-color:white;</string>
           </font>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">color:#b9dbe8;</string>
          </property>
          <property name="text">
           <string>Bytes:</string>
@@ -97,6 +265,124 @@ border-color:white;</string>
        </item>
        <item row="1" column="1">
         <widget class="QLabel" name="labelCoinControlBytes">
+         <property name="palette">
+          <palette>
+           <active>
+            <colorrole role="WindowText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="Text">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="ButtonText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="LinkVisited">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>255</red>
+               <green>85</green>
+               <blue>255</blue>
+              </color>
+             </brush>
+            </colorrole>
+           </active>
+           <inactive>
+            <colorrole role="WindowText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="Text">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="ButtonText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="LinkVisited">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>255</red>
+               <green>85</green>
+               <blue>255</blue>
+              </color>
+             </brush>
+            </colorrole>
+           </inactive>
+           <disabled>
+            <colorrole role="WindowText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="Text">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="ButtonText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="LinkVisited">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>255</red>
+               <green>85</green>
+               <blue>255</blue>
+              </color>
+             </brush>
+            </colorrole>
+           </disabled>
+          </palette>
+         </property>
          <property name="cursor">
           <cursorShape>IBeamCursor</cursorShape>
          </property>
@@ -104,7 +390,7 @@ border-color:white;</string>
           <enum>Qt::ActionsContextMenu</enum>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">.QLabel {color:#b9dbe8;}</string>
          </property>
          <property name="text">
           <string notr="true">0</string>
@@ -139,7 +425,7 @@ border-color:white;</string>
           </font>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">color:#b9dbe8;</string>
          </property>
          <property name="text">
           <string>Amount:</string>
@@ -155,7 +441,7 @@ border-color:white;</string>
           <enum>Qt::ActionsContextMenu</enum>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">color:#b9dbe8;</string>
          </property>
          <property name="text">
           <string notr="true">0.00 TZC</string>
@@ -174,7 +460,7 @@ border-color:white;</string>
           </font>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">color:#b9dbe8;</string>
          </property>
          <property name="text">
           <string>Priority:</string>
@@ -183,6 +469,124 @@ border-color:white;</string>
        </item>
        <item row="1" column="1">
         <widget class="QLabel" name="labelCoinControlPriority">
+         <property name="palette">
+          <palette>
+           <active>
+            <colorrole role="WindowText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="Text">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="ButtonText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="LinkVisited">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>255</red>
+               <green>85</green>
+               <blue>255</blue>
+              </color>
+             </brush>
+            </colorrole>
+           </active>
+           <inactive>
+            <colorrole role="WindowText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="Text">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="ButtonText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="LinkVisited">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>255</red>
+               <green>85</green>
+               <blue>255</blue>
+              </color>
+             </brush>
+            </colorrole>
+           </inactive>
+           <disabled>
+            <colorrole role="WindowText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="Text">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="ButtonText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="LinkVisited">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>255</red>
+               <green>85</green>
+               <blue>255</blue>
+              </color>
+             </brush>
+            </colorrole>
+           </disabled>
+          </palette>
+         </property>
          <property name="cursor">
           <cursorShape>IBeamCursor</cursorShape>
          </property>
@@ -190,7 +594,7 @@ border-color:white;</string>
           <enum>Qt::ActionsContextMenu</enum>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">.QLabel {color:#b9dbe8;}</string>
          </property>
          <property name="text">
           <string notr="true">medium</string>
@@ -225,7 +629,7 @@ border-color:white;</string>
           </font>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">color:#b9dbe8;</string>
          </property>
          <property name="text">
           <string>Fee:</string>
@@ -241,7 +645,7 @@ border-color:white;</string>
           <enum>Qt::ActionsContextMenu</enum>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">color:#b9dbe8;</string>
          </property>
          <property name="text">
           <string notr="true">0.00 TZC</string>
@@ -263,7 +667,7 @@ border-color:white;</string>
           </font>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">color:#b9dbe8;</string>
          </property>
          <property name="text">
           <string>Dust:</string>
@@ -275,6 +679,124 @@ border-color:white;</string>
          <property name="enabled">
           <bool>false</bool>
          </property>
+         <property name="palette">
+          <palette>
+           <active>
+            <colorrole role="WindowText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="Text">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="ButtonText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="LinkVisited">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>255</red>
+               <green>85</green>
+               <blue>255</blue>
+              </color>
+             </brush>
+            </colorrole>
+           </active>
+           <inactive>
+            <colorrole role="WindowText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="Text">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="ButtonText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="LinkVisited">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>255</red>
+               <green>85</green>
+               <blue>255</blue>
+              </color>
+             </brush>
+            </colorrole>
+           </inactive>
+           <disabled>
+            <colorrole role="WindowText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="Text">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="ButtonText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>185</red>
+               <green>219</green>
+               <blue>232</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="LinkVisited">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>255</red>
+               <green>85</green>
+               <blue>255</blue>
+              </color>
+             </brush>
+            </colorrole>
+           </disabled>
+          </palette>
+         </property>
          <property name="cursor">
           <cursorShape>IBeamCursor</cursorShape>
          </property>
@@ -282,7 +804,7 @@ border-color:white;</string>
           <enum>Qt::ActionsContextMenu</enum>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">.QLabel {color:#b9dbe8;}</string>
          </property>
          <property name="text">
           <string notr="true">no</string>
@@ -317,7 +839,7 @@ border-color:white;</string>
           </font>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">color:#b9dbe8;</string>
          </property>
          <property name="text">
           <string>After Fee:</string>
@@ -333,7 +855,7 @@ border-color:white;</string>
           <enum>Qt::ActionsContextMenu</enum>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">color:#b9dbe8;</string>
          </property>
          <property name="text">
           <string notr="true">0.00 TZC</string>
@@ -355,7 +877,7 @@ border-color:white;</string>
           </font>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">color:#b9dbe8;</string>
          </property>
          <property name="text">
           <string>Change:</string>
@@ -374,7 +896,7 @@ border-color:white;</string>
           <enum>Qt::ActionsContextMenu</enum>
          </property>
          <property name="styleSheet">
-          <string notr="true">color:#616b7b;</string>
+          <string notr="true">color:#b9dbe8;</string>
          </property>
          <property name="text">
           <string notr="true">0.00 TZC</string>
@@ -395,6 +917,11 @@ border-color:white;</string>
        <width>0</width>
        <height>40</height>
       </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">.QFrame { background:#1b2234;
+border: 1px solid grey;
+border-radius:5px;}</string>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -417,12 +944,28 @@ border-color:white;</string>
            </sizepolicy>
           </property>
           <property name="styleSheet">
-           <string notr="true">color:#616b7b;</string>
+           <string notr="true">.QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+.QPushButton{
+background:#919191;
+padding:8px;
+border-radius:5px;
+color:#000000;
+margin:5px;
+height: 15px;
+width: 75px;
+}</string>
           </property>
           <property name="text">
            <string>(un)select all</string>
           </property>
           <property name="autoDefault">
+           <bool>false</bool>
+          </property>
+          <property name="default">
            <bool>false</bool>
           </property>
          </widget>
@@ -436,7 +979,7 @@ border-color:white;</string>
            </sizepolicy>
           </property>
           <property name="styleSheet">
-           <string notr="true">color:#616b7b;</string>
+           <string notr="true">color:#b9dbe8;</string>
           </property>
           <property name="text">
            <string>Tree mode</string>
@@ -452,7 +995,7 @@ border-color:white;</string>
            </sizepolicy>
           </property>
           <property name="styleSheet">
-           <string notr="true">color:#616b7b;</string>
+           <string notr="true">color:#b9dbe8;</string>
           </property>
           <property name="text">
            <string>List mode</string>
@@ -465,7 +1008,7 @@ border-color:white;</string>
         <item>
          <widget class="QLabel" name="labelLocked">
           <property name="styleSheet">
-           <string notr="true">color:#616b7b;</string>
+           <string notr="true">color:#b9dbe8;</string>
           </property>
           <property name="text">
            <string notr="true">(1 locked)</string>
@@ -492,14 +1035,24 @@ border-color:white;</string>
    </item>
    <item>
     <widget class="CoinControlTreeWidget" name="treeWidget">
+     <property name="font">
+      <font>
+       <pointsize>8</pointsize>
+      </font>
+     </property>
      <property name="contextMenuPolicy">
       <enum>Qt::CustomContextMenu</enum>
      </property>
      <property name="styleSheet">
-      <string notr="true">background:#242c41;
-padding:2px;
-border-radius:10px;
-color:#616b7b;</string>
+      <string notr="true">.CoinControlTreeWidget {padding:2px;
+font-size:14px;
+background-color: rgb(255, 255, 255);}</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="lineWidth">
+      <number>4</number>
      </property>
      <property name="sortingEnabled">
       <bool>false</bool>
@@ -507,6 +1060,9 @@ color:#616b7b;</string>
      <property name="columnCount">
       <number>13</number>
      </property>
+     <attribute name="headerVisible">
+      <bool>true</bool>
+     </attribute>
      <attribute name="headerShowSortIndicator" stdset="0">
       <bool>true</bool>
      </attribute>
@@ -517,25 +1073,60 @@ color:#616b7b;</string>
       <property name="text">
        <string/>
       </property>
+      <property name="background">
+       <color>
+        <red>234</red>
+        <green>234</green>
+        <blue>234</blue>
+       </color>
+      </property>
      </column>
      <column>
       <property name="text">
        <string>Amount</string>
+      </property>
+      <property name="background">
+       <color>
+        <red>234</red>
+        <green>234</green>
+        <blue>234</blue>
+       </color>
       </property>
      </column>
      <column>
       <property name="text">
        <string>Received with label</string>
       </property>
+      <property name="background">
+       <color>
+        <red>234</red>
+        <green>234</green>
+        <blue>234</blue>
+       </color>
+      </property>
      </column>
      <column>
       <property name="text">
        <string>Received with address</string>
       </property>
+      <property name="background">
+       <color>
+        <red>234</red>
+        <green>234</green>
+        <blue>234</blue>
+       </color>
+      </property>
      </column>
      <column>
       <property name="text">
        <string>Date</string>
+      </property>
+      <property name="background">
+       <color>
+        <red>234</red>
+        <green>234</green>
+        <blue>234</blue>
+       </color>
       </property>
      </column>
      <column>
@@ -545,15 +1136,36 @@ color:#616b7b;</string>
       <property name="toolTip">
        <string>Confirmed</string>
       </property>
+      <property name="background">
+       <color>
+        <red>234</red>
+        <green>234</green>
+        <blue>234</blue>
+       </color>
+      </property>
      </column>
      <column>
       <property name="text">
        <string>Priority</string>
       </property>
+      <property name="background">
+       <color>
+        <red>234</red>
+        <green>234</green>
+        <blue>234</blue>
+       </color>
+      </property>
      </column>
      <column>
       <property name="text">
        <string>Weight</string>
+      </property>
+      <property name="background">
+       <color>
+        <red>234</red>
+        <green>234</green>
+        <blue>234</blue>
+       </color>
       </property>
      </column>
      <column>
@@ -604,17 +1216,19 @@ color:#616b7b;</string>
       </size>
      </property>
      <property name="styleSheet">
-      <string notr="true">QPushButton::pressed{
+      <string notr="true">.QPushButton::pressed{
   background-color: #232c41;
   box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
   0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
 }
-QPushButton{
-background:#2d374f;
+.QPushButton{
+background:#919191;
 padding:8px;
 border-radius:5px;
-color:#fff;
-margin:5px
+color:#000000;
+margin:5px;
+height: 15px;
+width: 75px;
 }</string>
      </property>
      <property name="orientation">
