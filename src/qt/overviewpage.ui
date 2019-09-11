@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1016</width>
+    <width>1022</width>
     <height>493</height>
    </rect>
   </property>
@@ -332,20 +332,6 @@ font-size:26px;</string>
                               </property>
                               <property name="text">
                                <string>221,639.5527</string>
-                              </property>
-                              <property name="alignment">
-                               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                              </property>
-                             </widget>
-                            </item>
-                            <item>
-                             <widget class="QLabel" name="label_9">
-                              <property name="styleSheet">
-                               <string notr="true">font-size:26px;
-color:#39df7b;</string>
-                              </property>
-                              <property name="text">
-                               <string>TZC</string>
                               </property>
                               <property name="alignment">
                                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
