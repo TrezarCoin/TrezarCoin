@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1016</width>
+    <width>1022</width>
     <height>493</height>
    </rect>
   </property>
@@ -339,20 +339,6 @@ font-size:26px;</string>
                              </widget>
                             </item>
                             <item>
-                             <widget class="QLabel" name="label_9">
-                              <property name="styleSheet">
-                               <string notr="true">font-size:26px;
-color:#39df7b;</string>
-                              </property>
-                              <property name="text">
-                               <string>TZC</string>
-                              </property>
-                              <property name="alignment">
-                               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                              </property>
-                             </widget>
-                            </item>
-                            <item>
                              <spacer name="horizontalSpacer_6">
                               <property name="orientation">
                                <enum>Qt::Horizontal</enum>
@@ -477,7 +463,7 @@ font-size:16px;</string>
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>252</width>
+                           <width>257</width>
                            <height>0</height>
                           </size>
                          </property>
@@ -567,14 +553,14 @@ font-size:16px;</string>
                        <item>
                         <widget class="QLabel" name="labelStakingStatus">
                          <property name="sizePolicy">
-                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                            <horstretch>0</horstretch>
                            <verstretch>0</verstretch>
                           </sizepolicy>
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>59</width>
+                           <width>67</width>
                            <height>0</height>
                           </size>
                          </property>
@@ -643,6 +629,12 @@ font-size:24px;</string>
                        </item>
                        <item>
                         <widget class="QPushButton" name="btn_copyClipboard">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
                          <property name="minimumSize">
                           <size>
                            <width>40</width>
@@ -696,6 +688,12 @@ outline: none;
                        </item>
                        <item>
                         <widget class="QPushButton" name="btn_showQR">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
                          <property name="minimumSize">
                           <size>
                            <width>40</width>
@@ -735,7 +733,7 @@ outline: none;
                           <enum>Qt::Horizontal</enum>
                          </property>
                          <property name="sizeType">
-                          <enum>QSizePolicy::Fixed</enum>
+                          <enum>QSizePolicy::Expanding</enum>
                          </property>
                          <property name="sizeHint" stdset="0">
                           <size>
