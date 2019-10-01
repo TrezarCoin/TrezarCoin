@@ -21,22 +21,30 @@ Make sure you install the build requirements mentioned in
 Then, install the toolchains and curl:
 
     sudo apt-get install g++-mingw-w64-i686 mingw-w64-i686-dev g++-mingw-w64-x86-64 mingw-w64-x86-64-dev curl
+    sudo update-alternatives --config x86_64-w64-mingw32-g++    # Set the default mingw32 g++ compiler option to posix.
+
+Clone Trezarcoin from github
+    
+    sudo git clone https://github.com/TrezarCoin/TrezarCoin.git trezarcoin
+    cd trezarcoin
 
 To build executables for Windows 32-bit:
 
     cd depends
-    make HOST=i686-w64-mingw32 -j4
+    sudo make HOST=i686-w64-mingw32 -j4
     cd ..
-    ./configure --prefix=`pwd`/depends/i686-w64-mingw32
-    make
+    sudo ./autogen.sh
+    sudo ./configure --prefix=`pwd`/depends/i686-w64-mingw32 --with-grencode --disable-shared --enable-static
+    sudo make
 
 To build executables for Windows 64-bit:
 
     cd depends
-    make HOST=x86_64-w64-mingw32 -j4
+    sudo make HOST=x86_64-w64-mingw32 -j4
     cd ..
-    ./configure --prefix=`pwd`/depends/x86_64-w64-mingw32
-    make
+    sudo ./autogen.sh
+    sudo ./configure --prefix=`pwd`/depends/x86_64-w64-mingw32 --with-grencode --disable-shared --enable-static
+    sudo make
 
 For further documentation on the depends system see [README.md](../depends/README.md) in the depends directory.
 

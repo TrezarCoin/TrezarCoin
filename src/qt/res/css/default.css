@@ -136,7 +136,10 @@ QMessageBox {
         border-radius: 5px;
         padding: 8px;
     }
-
+QWidget {
+			 
+	color: #6d7886;
+}
 QTreeWidget {
     background-color: #242c41;
     alternate-background-color: #1b2234;

@@ -177,6 +177,9 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *n
     QApplication::setWindowIcon(networkStyle->getTrayAndWindowIcon());
     setWindowIcon(networkStyle->getTrayAndWindowIcon());
 #else
+    /*High DPI Displays can cause some issues fors scaling. AA_DisableHighDpiScaling attribute turns off all scaling. 
+    This attribute should be removed if scaleing is needed. note:ui settings must support scaling correctly*/
+    QApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
     MacDockIconHandler::instance()->setIcon(networkStyle->getAppIcon());
 #endif
     setWindowTitle(windowTitle);
@@ -368,7 +371,7 @@ void BitcoinGUI::createActions()
     receiveCoinsMenuAction->setStatusTip(receiveCoinsAction->statusTip());
     receiveCoinsMenuAction->setToolTip(receiveCoinsMenuAction->statusTip());
 
-    toggleStakingAction = new QAction(platformStyle->SingleColorIcon(":/icons/staking_off_menu"), tr("Toggle &Staking"), this);
+    toggleStakingAction = new QAction(platformStyle->TextColorIcon(":/icons/staking_off_menu"), tr("Toggle &Staking"), this);
     toggleStakingAction->setStatusTip(tr("Toggle Staking"));
 
     historyAction = new QAction(platformStyle->SingleColorIcon(":/icons/history"), tr("&Transactions"), this);
@@ -378,7 +381,7 @@ void BitcoinGUI::createActions()
     historyAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4));
     tabGroup->addAction(historyAction);
 
-    easysplitAction = new QAction(platformStyle->SingleColorIcon(":/icons/send_menu"), tr("&EasySplit"), this);
+    easysplitAction = new QAction(platformStyle->TextColorIcon(":/icons/send_menu"), tr("&EasySplit"), this);
     easysplitAction->setStatusTip(tr("Split your Coins easily"));
     easysplitAction->setToolTip(easysplitAction->statusTip());
     easysplitAction->setCheckable(true);
@@ -396,7 +399,7 @@ void BitcoinGUI::createActions()
     optionPageAction->setCheckable(true);
     tabGroup->addAction(optionPageAction);
 
-    settingsMenuAction = new QAction(platformStyle->SingleColorIcon(":/icons/settings_menu"), optionPageAction->text(), this);
+    settingsMenuAction = new QAction(platformStyle->TextColorIcon(":/icons/settings_menu"), optionPageAction->text(), this);
     settingsMenuAction->setStatusTip(optionPageAction->statusTip());
     settingsMenuAction->setToolTip(settingsMenuAction->statusTip());
 
@@ -434,7 +437,7 @@ void BitcoinGUI::createActions()
     quitAction->setStatusTip(tr("Quit application"));
     quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     quitAction->setMenuRole(QAction::QuitRole);
-    quitMenuAction = new QAction(platformStyle->SingleColorIcon(":/icons/logout_menu"), quitAction->text(), this);
+    quitMenuAction = new QAction(platformStyle->TextColorIcon(":/icons/logout_menu"), quitAction->text(), this);
     quitMenuAction->setStatusTip(quitAction->statusTip());
     quitMenuAction->setToolTip(quitMenuAction->statusTip());
     quitMenuAction->setMenuRole(QAction::QuitRole);
@@ -951,7 +954,7 @@ void BitcoinGUI::setNumConnections(int count)
     case 7: case 8: case 9: icon = ":/icons/connect_3"; break;
     default: icon = ":/icons/connect_4"; break;
     }
-    labelConnectionsIcon->setPixmap(platformStyle->SingleColorIcon(icon).pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
+    labelConnectionsIcon->setPixmap(platformStyle->TextColorIcon(icon).pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
     labelConnectionsIcon->setToolTip(tr("%n active connection(s) to Trezarcoin network", "", count));
 }
 
@@ -1002,7 +1005,7 @@ void BitcoinGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVer
     if(secs < 90*60)
     {
         tooltip = tr("Up to date") + QString(".<br>") + tooltip;
-        labelBlocksIcon->setPixmap(platformStyle->SingleColorIcon(":/icons/synced").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+        labelBlocksIcon->setPixmap(platformStyle->TextColorIcon(":/icons/synced").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
 
         tooltip += QString("<br>") + tr("The current PoW difficulty is %1").arg(GetDifficulty());
         tooltip += QString("<br>") + tr("The current PoS difficulty is %1").arg(GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true)));
@@ -1059,7 +1062,7 @@ void BitcoinGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVer
         tooltip = tr("Catching up...") + QString("<br>") + tooltip;
         if(count != prevBlocks)
         {
-            labelBlocksIcon->setPixmap(platformStyle->SingleColorIcon(QString(
+            labelBlocksIcon->setPixmap(platformStyle->TextColorIcon(QString(
                 ":/movies/spinner-%1").arg(spinnerFrame, 3, 10, QChar('0')))
                 .pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
             spinnerFrame = (spinnerFrame + 1) % SPINNER_FRAMES;
@@ -1257,7 +1260,7 @@ void BitcoinGUI::setEncryptionStatus(int status)
 {
     if(fWalletUnlockStakingOnly)
     {
-        labelEncryptionIcon->setPixmap(QIcon(":/icons/lock_closed").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
+        labelEncryptionIcon->setPixmap(platformStyle->TextColorIcon(":/icons/lock_closed").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
         labelEncryptionIcon->setToolTip(tr("Wallet is <b>encrypted</b> and currently <b>unlocked for staking only</b>"));
         changePassphraseAction->setEnabled(false);
         unlockWalletAction->setVisible(false);
@@ -1280,7 +1283,7 @@ void BitcoinGUI::setEncryptionStatus(int status)
             break;
         case WalletModel::Unlocked:
             labelEncryptionIcon->show();
-            labelEncryptionIcon->setPixmap(platformStyle->SingleColorIcon(":/icons/lock_open").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+            labelEncryptionIcon->setPixmap(platformStyle->TextColorIcon(":/icons/lock_open").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
             labelEncryptionIcon->setToolTip(tr("Wallet is <b>encrypted</b> and currently <b>unlocked</b>"));
             unlockWalletAction->setVisible(false);
             encryptWalletAction->setChecked(true);

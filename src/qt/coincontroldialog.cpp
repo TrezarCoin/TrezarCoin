@@ -49,6 +49,8 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *platformStyle, QWidget
     platformStyle(platformStyle)
 {
     ui->setupUi(this);
+	/* Open CSS when configured */
+    this->setStyleSheet(GUIUtil::loadStyleSheet());									  
 
     // context menu actions
     QAction *copyAddressAction = new QAction(tr("Copy address"), this);
