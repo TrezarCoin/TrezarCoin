@@ -97,7 +97,7 @@ public:
         painter->drawText(middleRectLower, Qt::AlignLeft | Qt::AlignVCenter, address, &boundingRect);
         font.setPixelSize(12);
         painter->setFont(font);
-        painter->drawText(txHashRect, Qt::AlignRight | Qt::AlignVCenter, txHash);
+        //painter->drawText(txHashRect, Qt::AlignRight | Qt::AlignVCenter, txHash);
 
         if (index.data(TransactionTableModel::WatchonlyRole).toBool())
         {
