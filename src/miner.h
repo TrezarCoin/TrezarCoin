@@ -210,6 +210,12 @@ private:
 void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
 int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev);
 
+/** Prepares a block header for transmission using RPC getwork */
+void FormatDataBuffer(CBlock *pblock, uint *pdata);
+
+/** Check mined block */
+bool CheckWork(const CChainParams& chainparams, CBlock* pblock);
+
 /** Sign proof-of-stake block */
 bool SignBlock(CBlock *pblock, CWallet& wallet, CAmount nStakeReward);
  /** Check mined proof-of-stake block */

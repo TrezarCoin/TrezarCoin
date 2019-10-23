@@ -624,6 +624,64 @@ void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
 }
 
+void FormatDataBuffer(CBlock *pblock, unsigned int *pdata) {
+    unsigned int i;
+
+    struct {
+        int nVersion;
+        uint256 hashPrevBlock;
+        uint256 hashMerkleRoot;
+        unsigned int nTime;
+        unsigned int nBits;
+        unsigned int nNonce;
+    } data;
+
+    data.nVersion       = pblock->nVersion;
+    data.hashPrevBlock  = pblock->hashPrevBlock;
+    data.hashMerkleRoot = pblock->hashMerkleRoot;
+    data.nTime          = pblock->nTime;
+    data.nBits          = pblock->nBits;
+    data.nNonce         = pblock->nNonce;
+
+    for(i = 0; i < 20; i++)
+      pdata[i] = ((unsigned int *) &data)[i];
+}
+
+bool CheckWork(const CChainParams& chainparams, CBlock* pblock)
+{
+    arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
+
+    if(!pblock->IsProofOfWork())
+        return(error("%s: %s is not a proof-of-work block", __func__, pblock->GetHash().ToString()));
+
+    uint256 hashProof = pblock->GetPoWHash();
+
+    if (UintToArith256(hashProof) > hashTarget)
+        return(error("%s: block %s proof-of-work not meeting target", __func__, pblock->GetHash().ToString()));
+
+    // Found a solution
+    {
+        LOCK(cs_main);
+        if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash())
+            return error("Generated block is stale!");
+    }
+
+    // Track how many getdata requests this block gets
+    {
+        LOCK(pwalletMain->cs_wallet);
+        pwalletMain->mapRequestCount[pblock->GetHash()] = 0;
+    }
+
+    {
+        LOCK(cs_main);
+        CValidationState state;
+        if (!ProcessNewBlock(state, chainparams, nullptr, pblock, true, nullptr, false))
+            return error("CheckWork: block not accepted");
+    }
+
+    return true;
+}
+
 /**
 * Internal Staker
 */
