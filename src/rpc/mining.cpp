@@ -423,7 +423,7 @@ UniValue getwork(const UniValue& params, bool fHelp)
         // Parse parameters
         std::vector<unsigned char> vchData = ParseHex(params[0].get_str());
 
-        if (vchData.size() != 80)
+        if (vchData.size() < 80)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter");
 
         CBlock* pdata = (CBlock*) &vchData[0];
