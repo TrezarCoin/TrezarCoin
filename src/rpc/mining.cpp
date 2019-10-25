@@ -400,9 +400,8 @@ UniValue getwork(const UniValue& params, bool fHelp)
         IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
         // Save
-        LogPrintf("%s: mapNewBlock save hashMerkleRoot: %s, with extraNonce: %i, total: %i\n", __func__, pblock->hashMerkleRoot.ToString(), nExtraNonce, mapNewBlock.size());
+        LogPrintf("%s: mapNewBlock save hashMerkleRoot: %s\n", __func__, pblock->hashMerkleRoot.ToString());
         mapNewBlock[pblock->hashMerkleRoot] = std::make_pair(pblock, pblock->vtx[0].vin[0].scriptSig);
-        LogPrintf("%s: getwork Block created: %s\n", __func__, pblock->ToString());
 
         // Pre-build hash buffers
         unsigned int pdata[32];
@@ -427,6 +426,8 @@ UniValue getwork(const UniValue& params, bool fHelp)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter");
 
         CBlock* pdata = (CBlock*) &vchData[0];
+
+        LogPrintf("%s: getwork Block created merkle root: %s\n", __func__, pdata->hashMerkleRoot.ToString());
 
         /* Pick up the block contents saved previously */
         if(!mapNewBlock.count(pdata->hashMerkleRoot))
