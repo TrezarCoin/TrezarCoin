@@ -400,6 +400,7 @@ UniValue getwork(const UniValue& params, bool fHelp)
         IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
         // Save
+        pblock->hashMerkleRoot = pblock->BuildMerkleTree();
         LogPrintf("%s: mapNewBlock save hashMerkleRoot: %s\n", __func__, pblock->hashMerkleRoot.ToString());
         mapNewBlock[pblock->hashMerkleRoot] = std::make_pair(pblock, pblock->vtx[0].vin[0].scriptSig);
 
