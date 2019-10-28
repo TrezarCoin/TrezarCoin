@@ -116,9 +116,6 @@ bool fLogIPs = DEFAULT_LOGIPS;
 std::atomic<bool> fReopenDebugLog(false);
 CTranslationInterface translationInterface;
 
-/* NeoScrypt related */
-unsigned int nNeoScryptOptions = 0;
-
 /* Shared between getmininginfo and the Qt client */
 unsigned long long nMinWeightInputs = 0;
 unsigned long long nAvgWeightInputs = 0;

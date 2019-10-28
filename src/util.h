@@ -54,8 +54,6 @@ extern bool fLogIPs;
 extern std::atomic<bool> fReopenDebugLog;
 extern CTranslationInterface translationInterface;
 
-extern unsigned int nNeoScryptOptions;
-
 extern unsigned int nStakeMinTime;
 extern unsigned int nStakeMinDepth;
 extern unsigned long long nMinWeightInputs;

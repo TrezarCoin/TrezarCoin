@@ -42,7 +42,6 @@ uint256 CBlockHeader::GetPoWHash() const
     unsigned int profile = 0x0;
     uint256 hash;
 
-    profile |= nNeoScryptOptions;
     neoscrypt((unsigned char *) &nVersion, (unsigned char *) &hash, profile);
 
     return(hash);

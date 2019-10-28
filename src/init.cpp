@@ -863,10 +863,6 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     // ********************************************************* Step 2: parameter interactions
     const CChainParams& chainparams = Params();
 
-#if defined (ASM)
-    nNeoScryptOptions |= 0x1000;
-#endif
-
     // also see: InitParameterInteraction()
 
     // if using block pruning, then disable txindex
