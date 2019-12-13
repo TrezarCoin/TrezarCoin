@@ -16,7 +16,7 @@
 #include "walletmodel.h"
 #include "base58.h"
 #include "pubkey.h"
-#include "wallet/wallet.h""
+#include "wallet/wallet.h"
 
 #include <QAction>
 #include <QCursor>
