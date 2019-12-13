@@ -1223,7 +1223,6 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                 return false;
         }
 
-        uint32_t nBuckets       = smsgBuckets.size();
         uint32_t nLocked        = 0;    // no. of locked buckets on this node
         uint32_t nInvBuckets;           // no. of bucket headers sent by peer in smsgInv
         memcpy(&nInvBuckets, &vchData[0], 4);
@@ -1816,7 +1815,6 @@ bool SecureMsgScanBlock(CBlock& block)
 bool ScanChainForPublicKeys(CBlockIndex* pindexStart)
 {
     LogPrintf("Scanning block chain for public keys.\n");
-    int64_t nStart = GetTimeMillis();
 
     // -- public keys are in txin.scriptSig
     //    matching addresses are in scriptPubKey of txin's referenced output
@@ -1886,7 +1884,6 @@ bool SecureMsgScanBuckets()
     if (!fSecMsgEnabled || pwalletMain->IsLocked())
         return false;
 
-    int64_t  mStart         = GetTimeMillis();
     int64_t  now            = GetTime();
     uint32_t nFiles         = 0;
     uint32_t nMessages      = 0;
@@ -2805,7 +2802,6 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
 
     SecureMessage* psmsg = (SecureMessage*) pHeader;
 
-    int64_t nStart = GetTimeMillis();
     uint8_t civ[32];
     uint8_t sha256Hash[32];
 

@@ -1066,7 +1066,7 @@ UniValue estimatesmartpriority(const UniValue& params, bool fHelp)
 
 UniValue staking(const UniValue& params, bool fHelp)
 {
-    if (fHelp || !(params.size() >= 0 && params.size() <= 1))
+    if (fHelp || params.size() > 1)
         throw runtime_error(
             "staking bool\n"
             "Turns staking on or off\n"

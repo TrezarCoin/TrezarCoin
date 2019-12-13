@@ -1967,7 +1967,6 @@ bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoins
             return state.Invalid(false, 0, "", "Inputs unavailable");
 
         CAmount nValueIn = 0;
-        CAmount nFees = 0;
         for (unsigned int i = 0; i < tx.vin.size(); i++)
         {
             const COutPoint &prevout = tx.vin[i].prevout;
@@ -2056,8 +2055,6 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                     valid = 0;
 
                 if (valid){ // prev out is already checked in CheckTxInputs
-                    CBlockIndex* pblockindex = mapBlockIndex[hashBlock];
-
                     // Check transaction timestamp
                     if (txPrev.nTime > tx.nTime)
                         return state.DoS(100, false, REJECT_INVALID, "tx-timestamp-earlier-as-output");
@@ -2448,7 +2445,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     LogPrint("bench", "    - Sanity checks: %.2fms [%.2fs]\n", 0.001 * (nTime1 - nTimeStart), nTimeCheck * 0.000001);
 
     /* Work around duplicate transactions (BIP30) */
-    for (int i = 0; i < block.vtx.size(); i++) {
+    for (unsigned int i = 0; i < block.vtx.size(); i++) {
         uint256 hash = block.GetTxHash(i);
         CCoins coins;
         view.GetCoins(hash, coins);

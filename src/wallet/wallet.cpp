@@ -3698,19 +3698,6 @@ std::string static EncodeDumpTime(int64_t nTime) {
     return DateTimeStrFormat("%Y-%m-%dT%H:%M:%SZ", nTime);
 }
 
-std::string static EncodeDumpString(const std::string &str) {
-    std::stringstream ret;
-    BOOST_FOREACH(unsigned char c, str) {
-        if (c <= 32 || c >= 128 || c == '%') {
-            ret << '%' << HexStr(&c, &c + 1);
-        }
-        else {
-            ret << c;
-        }
-    }
-    return ret.str();
-}
-
 std::string DecodeDumpString(const std::string &str) {
     std::stringstream ret;
     for (unsigned int pos = 0; pos < str.length(); pos++) {
@@ -3762,7 +3749,6 @@ bool CWallet::ExportWallet(CWallet *pwallet, const string& strDest) {
         const CKeyID &keyid = it->second;
         std::string strTime = EncodeDumpTime(it->first);
         std::string strAddr = CBitcoinAddress(keyid).ToString();
-        bool IsCompressed;
 
         CKey key;
         if (pwallet->GetKey(keyid, key)) {
@@ -3817,7 +3803,6 @@ bool CWallet::ImportWallet(CWallet *pwallet, const string& strLocation) {
         if (!vchSecret.SetString(vstr[0]))
             continue;
 
-        bool fCompressed;
         CKey key;
         CKey secret = CBitcoinSecret(vchSecret).GetKey();
         CKeyID keyid = secret.GetPubKey().GetID();
@@ -3990,7 +3975,6 @@ void CWallet::GetStakeWeight(uint64_t& nMinWeight, uint64_t& nMaxWeight, uint64_
 
     nMinWeightInputs = 0, nMaxWeightInputs = 0, nAvgWeightInputs = 0;
 
-    int64_t nCurrentTime = GetTime();
     uint64_t nStakeMaxAge = 15 * 24 * 60 * 60;
 
     LOCK2(cs_main, cs_wallet);
