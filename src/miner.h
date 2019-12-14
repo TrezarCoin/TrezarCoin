@@ -210,9 +210,6 @@ private:
 void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
 int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev);
 
-/** Prepares a block header for transmission using RPC getwork */
-void FormatDataBuffer(CBlock *pblock, unsigned int *pdata);
-
 /** Check mined block */
 bool CheckWork(const CChainParams& chainparams, CBlock* pblock);
 

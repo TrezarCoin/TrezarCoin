@@ -343,8 +343,16 @@ UniValue getwork(const UniValue& params, bool fHelp)
     if (IsInitialBlockDownload())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "TrezarCoin is downloading blocks...");
 
-    typedef std::map<uint256, std::pair<CBlock*, CScript> > mapNewBlock_t;
-    static mapNewBlock_t mapNewBlock;
+    struct BlockData {
+        int nVersion;
+        uint256 hashPrevBlock;
+        uint256 hashMerkleRoot;
+        unsigned int nTime;
+        unsigned int nBits;
+        unsigned int nNonce;
+    };
+
+    static std::map<uint256, std::pair<CBlock*, CScript>> mapNewBlock;
     static vector<CBlockTemplate*> vNewBlockTemplate;
     boost::shared_ptr<CReserveScript> coinbaseScript;
 
@@ -401,20 +409,19 @@ UniValue getwork(const UniValue& params, bool fHelp)
 
         // Save
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
-        LogPrintf("%s: mapNewBlock save hashMerkleRoot: %s\n", __func__, pblock->hashMerkleRoot.ToString());
         mapNewBlock[pblock->hashMerkleRoot] = std::make_pair(pblock, pblock->vtx[0].vin[0].scriptSig);
 
         // Pre-build hash buffers
         unsigned int pdata[32];
-        FormatDataBuffer(pblock, pdata);
+        BlockData data = {pblock->nVersion, pblock->hashPrevBlock, pblock->hashMerkleRoot, pblock->nTime, pblock->nBits, pblock->nNonce};
+        for(unsigned int i = 0; i < 20; ++i)
+            pdata[i] = ((unsigned int *) &data)[i];
 
         arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
 
         UniValue result(UniValue::VOBJ);
-        result.push_back(Pair("data",     HexStr(BEGIN(pdata), END(pdata))));
+        result.push_back(Pair("data",     HexStr(BEGIN(pdata), (char *) &pdata[20])));
         result.push_back(Pair("target",   HexStr(BEGIN(hashTarget), END(hashTarget))));
-        /* Optional */
-        result.push_back(Pair("algorithm", "neoscrypt"));
 
         return result;
     }
@@ -426,27 +433,24 @@ UniValue getwork(const UniValue& params, bool fHelp)
         if (vchData.size() < 80)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter");
 
-        CBlock* pdata = (CBlock*) &vchData[0];
+        BlockData block;
 
-        LogPrintf("%s: getwork Block created merkle root: %s\n", __func__, pdata->hashMerkleRoot.ToString());
+        memset(&block, 0, sizeof(block));
+        memcpy(&block, &vchData[0], 80);
 
         /* Pick up the block contents saved previously */
-        if(!mapNewBlock.count(pdata->hashMerkleRoot))
+        if(!mapNewBlock.count(block.hashMerkleRoot))
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't find saved previously block.");
 
-        CBlock* pblock = mapNewBlock[pdata->hashMerkleRoot].first;
+        CBlock* pblock = mapNewBlock[block.hashMerkleRoot].first;
 
         /* Replace with the data received */
-        pblock->nTime = pdata->nTime;
-        pblock->nNonce = pdata->nNonce;
-        pblock->vtx[0].vin[0].scriptSig = mapNewBlock[pdata->hashMerkleRoot].second;
-
-        const CChainParams& chainParams = Params();
-
+        pblock->nTime = block.nTime;
+        pblock->nNonce = block.nNonce;
+        pblock->vtx[0].vin[0].scriptSig = mapNewBlock[block.hashMerkleRoot].second;
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
-        LogPrintf("%s: getwork Block submitted: %s", __func__, pblock->ToString().c_str());
 
-        return CheckWork(chainParams, pblock);
+        return CheckWork(Params(), pblock);
     }
 }
 
