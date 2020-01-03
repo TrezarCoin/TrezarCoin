@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>921</width>
+    <width>882</width>
     <height>536</height>
    </rect>
   </property>
@@ -650,7 +650,7 @@ color:#616b7b;</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>899</width>
+        <width>860</width>
         <height>69</height>
        </rect>
       </property>
@@ -1343,15 +1343,15 @@ margin:5px
  </widget>
  <customwidgets>
   <customwidget>
+   <class>QValidatedLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qvalidatedlineedit.h</header>
+  </customwidget>
+  <customwidget>
    <class>BitcoinAmountField</class>
    <extends>QLineEdit</extends>
    <header>bitcoinamountfield.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QValidatedLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>qvalidatedlineedit.h</header>
   </customwidget>
  </customwidgets>
  <resources>

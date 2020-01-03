@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>957</width>
-    <height>770</height>
+    <width>749</width>
+    <height>666</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -332,7 +332,7 @@ color:#39df7b;</string>
                            <widget class="QPushButton" name="pushButtonCoinControl">
                             <property name="styleSheet">
                              <string notr="true">QPushButton::pressed{
-background:#232c41;
+background:#29334b;
 border: none;
 padding:2px;
 border-radius: 5px;
@@ -350,6 +350,8 @@ border-radius: 5px;
 height:35px;
 padding-left:15px;
 padding-right:15px;
+box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
 }
 
 </string>

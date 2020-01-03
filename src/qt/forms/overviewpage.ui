@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1022</width>
+    <width>830</width>
     <height>493</height>
    </rect>
   </property>
@@ -63,6 +63,9 @@
             <property name="sizeConstraint">
              <enum>QLayout::SetDefaultConstraint</enum>
             </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
             <property name="bottomMargin">
              <number>0</number>
             </property>
@@ -81,7 +84,7 @@
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
-                  <width>30</width>
+                  <width>55</width>
                   <height>20</height>
                  </size>
                 </property>
@@ -115,7 +118,7 @@ font-size: 20px;
 </string>
                 </property>
                 <property name="text">
-                 <string>WALLET OVERVIEW</string>
+                 <string>Wallet Overview</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -154,6 +157,9 @@ font-size: 20px;
             <property name="spacing">
              <number>0</number>
             </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_2">
               <property name="spacing">
@@ -167,6 +173,9 @@ font-size: 20px;
               </property>
               <property name="rightMargin">
                <number>30</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
               </property>
               <item>
                <widget class="QLabel" name="label_2">
@@ -206,8 +215,7 @@ font-size: 20px;
                 <property name="styleSheet">
                  <string notr="true">background:#232c41;
 padding:2px;
-border-radius:10px;
-</string>
+border-radius:10px;</string>
                 </property>
                 <layout class="QGridLayout" name="gridLayout_3">
                  <property name="leftMargin">
@@ -444,7 +452,7 @@ font-size:16px;</string>
                     </layout>
                    </item>
                    <item>
-                    <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0">
+                    <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0">
                      <property name="spacing">
                       <number>6</number>
                      </property>
@@ -478,6 +486,19 @@ font-size:16px;
                         </widget>
                        </item>
                        <item>
+                        <spacer name="horizontalSpacer_15">
+                         <property name="orientation">
+                          <enum>Qt::Horizontal</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>40</width>
+                           <height>20</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                       <item>
                         <widget class="QLabel" name="label_18">
                          <property name="styleSheet">
                           <string notr="true">color:#616b7b;
@@ -489,6 +510,19 @@ font-size:16px;</string>
                         </widget>
                        </item>
                       </layout>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_14">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
                      </item>
                     </layout>
                    </item>
@@ -582,7 +616,7 @@ font-size: 16px;</string>
                           <enum>Qt::Horizontal</enum>
                          </property>
                          <property name="sizeType">
-                          <enum>QSizePolicy::Fixed</enum>
+                          <enum>QSizePolicy::Expanding</enum>
                          </property>
                          <property name="sizeHint" stdset="0">
                           <size>
@@ -601,7 +635,7 @@ font-size: 16px;</string>
                          </property>
                          <property name="styleSheet">
                           <string notr="true">color:#a5b1ba;
-font-size:24px;</string>
+font-size:15px;</string>
                          </property>
                          <property name="text">
                           <string>TgoucTzGcbzPx7y5u9ai56NEs5WnNZmtvg</string>

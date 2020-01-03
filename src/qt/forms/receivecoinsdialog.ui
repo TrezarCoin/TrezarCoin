@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>833</width>
-    <height>690</height>
+    <width>628</width>
+    <height>655</height>
    </rect>
   </property>
   <property name="WindowText" stdset="0">
@@ -87,7 +87,7 @@ border-color:white;</string>
                 <property name="styleSheet">
                  <string notr="true">color:#b9dbe8; 
 background-color:#1b2234;
-padding-top:25px;
+padding-top:22px;
 font-size:20px;
 
 </string>
@@ -115,7 +115,7 @@ font-size:20px;
                 <property name="styleSheet">
                  <string notr="true">color:#566070;
 background-color:#1b2234;
-padding-top:25px;
+padding-top:32px;
 font-size:20px;</string>
                 </property>
                 <property name="text">
@@ -131,7 +131,7 @@ color:#a5c3d1;
 backcolor:black;
 color:#acbecd;
 background-color:#1b2234;
-padding-top:25px;
+padding-top:32px;
 
 </string>
                 </property>
@@ -165,7 +165,7 @@ padding-top:25px;
             <property name="spacing">
              <number>0</number>
             </property>
-            <item row="0" column="0">
+            <item row="1" column="0">
              <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="10,1">
               <property name="spacing">
                <number>10</number>
@@ -224,7 +224,8 @@ border-top: 1px solid #2b3651;</string>
                       <widget class="QLabel" name="label_17">
                        <property name="styleSheet">
                         <string notr="true">color:#566070;
-font-size:16px;</string>
+font-size:16px;
+</string>
                        </property>
                        <property name="text">
                         <string>YOUR WALLET ADDRESS</string>
@@ -365,6 +366,22 @@ title:none;
                </widget>
               </item>
              </layout>
+            </item>
+            <item row="0" column="0">
+             <spacer name="verticalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>10</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
