@@ -490,6 +490,9 @@ font-size:16px;
                          <property name="orientation">
                           <enum>Qt::Horizontal</enum>
                          </property>
+                         <property name="sizeType">
+                          <enum>QSizePolicy::MinimumExpanding</enum>
+                         </property>
                          <property name="sizeHint" stdset="0">
                           <size>
                            <width>40</width>
@@ -516,9 +519,12 @@ font-size:16px;</string>
                        <property name="orientation">
                         <enum>Qt::Horizontal</enum>
                        </property>
+                       <property name="sizeType">
+                        <enum>QSizePolicy::Expanding</enum>
+                       </property>
                        <property name="sizeHint" stdset="0">
                         <size>
-                         <width>40</width>
+                         <width>80</width>
                          <height>20</height>
                         </size>
                        </property>
@@ -628,6 +634,12 @@ font-size: 16px;</string>
                        </item>
                        <item>
                         <widget class="QLabel" name="labelAddressAccount">
+                         <property name="sizePolicy">
+                          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                           <horstretch>0</horstretch>
+                           <verstretch>0</verstretch>
+                          </sizepolicy>
+                         </property>
                          <property name="font">
                           <font>
                            <pointsize>-1</pointsize>
@@ -651,7 +663,7 @@ font-size:15px;</string>
                           <enum>Qt::Horizontal</enum>
                          </property>
                          <property name="sizeType">
-                          <enum>QSizePolicy::Fixed</enum>
+                          <enum>QSizePolicy::Expanding</enum>
                          </property>
                          <property name="sizeHint" stdset="0">
                           <size>
@@ -767,7 +779,7 @@ outline: none;
                           <enum>Qt::Horizontal</enum>
                          </property>
                          <property name="sizeType">
-                          <enum>QSizePolicy::Expanding</enum>
+                          <enum>QSizePolicy::Fixed</enum>
                          </property>
                          <property name="sizeHint" stdset="0">
                           <size>
