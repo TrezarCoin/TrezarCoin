@@ -5,7 +5,7 @@
 
 #include "primitives/transaction.h"
 
-#include "key.h"
+#include "arith_uint256.h"
 #include "coins.h"
 #include "hash.h"
 #include "tinyformat.h"

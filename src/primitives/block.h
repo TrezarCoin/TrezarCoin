@@ -11,8 +11,6 @@
 #include "uint256.h"
 #include "arith_uint256.h"
 
-#include <boost/foreach.hpp>
-
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
  * requirements.  When they solve the proof-of-work, they broadcast the block
@@ -33,7 +31,6 @@ public:
 
     // memory only
     mutable uint256 hashCached;
-    mutable uint64_t idCached;
 
     CBlockHeader()
     {
@@ -60,7 +57,6 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
-        idCached = 0x00000000FFFFFFFF;
     }
 
     bool IsNull() const
@@ -177,7 +173,7 @@ public:
     int64_t GetMaxTransactionTime() const
     {
         int64_t maxTransactionTime = 0;
-        BOOST_FOREACH(const CTransaction& tx, vtx)
+        for (const CTransaction& tx : vtx)
             maxTransactionTime = std::max(maxTransactionTime, (int64_t)tx.nTime);
         return maxTransactionTime;
     }

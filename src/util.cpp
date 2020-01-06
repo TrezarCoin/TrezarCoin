@@ -122,10 +122,6 @@ unsigned long long nAvgWeightInputs = 0;
 unsigned long long nMaxWeightInputs = 0;
 unsigned long long nTotalStakeWeight = 0;
 
-/* Performance counters shown in RPC call getcounters */
-uint64_t nBlockHashCacheHits = 0;
-uint64_t nBlockHashCacheMisses = 0;
-
 /** Init OpenSSL library multithreading support */
 static CCriticalSection** ppmutexOpenSSL;
 void locking_callback(int mode, int i, const char* file, int line) NO_THREAD_SAFETY_ANALYSIS
