@@ -128,6 +128,94 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry)
     }
 }
 
+
+#ifdef ENABLE_BITCORE_RPC
+void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue& entry,
+                      int nHeight = 0, int nConfirmations = 0, int nBlockTime = 0)
+{
+    uint256 txid = tx.GetHash();
+    entry.push_back(Pair("txid", txid.GetHex()));
+    entry.push_back(Pair("size", (int)::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION)));
+    entry.push_back(Pair("vsize", (GetTransactionWeight(tx) + WITNESS_SCALE_FACTOR - 1) / WITNESS_SCALE_FACTOR));
+    entry.push_back(Pair("version", tx.nVersion));
+    entry.push_back(Pair("locktime", (int64_t)tx.nLockTime));
+    entry.push_back(Pair("tx-comment", tx.strTxComment));
+    UniValue vin(UniValue::VARR);
+    for (const CTxIn& txin : tx.vin) {
+        UniValue in(UniValue::VOBJ);
+        if (tx.IsCoinBase())
+            in.push_back(Pair("coinbase", HexStr(txin.scriptSig.begin(), txin.scriptSig.end())));
+        else {
+            in.push_back(Pair("txid", txin.prevout.hash.GetHex()));
+            in.push_back(Pair("vout", (int64_t)txin.prevout.n));
+            UniValue o(UniValue::VOBJ);
+            o.push_back(Pair("asm", ScriptToAsmStr(txin.scriptSig, true)));
+            o.push_back(Pair("hex", HexStr(txin.scriptSig.begin(), txin.scriptSig.end())));
+            in.push_back(Pair("scriptSig", o));
+
+            // Add address and value info if spentindex enabled
+            CSpentIndexValue spentInfo;
+            CSpentIndexKey spentKey(txin.prevout.hash, txin.prevout.n);
+            if (GetSpentIndex(spentKey, spentInfo)) {
+                in.push_back(Pair("value", ValueFromAmount(spentInfo.satoshis)));
+                in.push_back(Pair("valueSat", spentInfo.satoshis));
+                if (spentInfo.addressType == 1) {
+                    std::vector<unsigned char> addressBytes(spentInfo.addressHash.begin(), spentInfo.addressHash.begin() + 20);
+                    in.push_back(Pair("address", CBitcoinAddress(CKeyID(uint160(addressBytes))).ToString()));
+                } else if (spentInfo.addressType == 2)  {
+                    std::vector<unsigned char> addressBytes(spentInfo.addressHash.begin(), spentInfo.addressHash.begin() + 20);
+                    in.push_back(Pair("address", CBitcoinAddress(CScriptID(uint160(addressBytes))).ToString()));
+                } else if (spentInfo.addressType == 3)  {
+                    std::vector<unsigned char> addressBytes(spentInfo.addressHash.begin(), spentInfo.addressHash.begin() + 20);
+                    in.push_back(Pair("address", CBitcoinAddress(CKeyID(uint160(addressBytes))).ToString()));
+                }
+             }
+        }
+        in.push_back(Pair("sequence", (int64_t)txin.nSequence));
+        vin.push_back(in);
+    }
+    entry.push_back(Pair("vin", vin));
+    UniValue vout(UniValue::VARR);
+    for (unsigned int i = 0; i < tx.vout.size(); i++) {
+        const CTxOut& txout = tx.vout[i];
+        UniValue out(UniValue::VOBJ);
+        out.push_back(Pair("value", ValueFromAmount(txout.nValue)));
+        out.push_back(Pair("valueSat", txout.nValue));
+        out.push_back(Pair("n", (int64_t)i));
+        UniValue o(UniValue::VOBJ);
+        ScriptPubKeyToJSON(txout.scriptPubKey, o, true);
+        out.push_back(Pair("scriptPubKey", o));
+
+        // Add spent information if spentindex is enabled
+        CSpentIndexValue spentInfo;
+        CSpentIndexKey spentKey(txid, i);
+        if (GetSpentIndex(spentKey, spentInfo)) {
+            out.push_back(Pair("spentTxId", spentInfo.txid.GetHex()));
+            out.push_back(Pair("spentIndex", (int)spentInfo.inputIndex));
+            out.push_back(Pair("spentHeight", spentInfo.blockHeight));
+        }
+
+        vout.push_back(out);
+    }
+    entry.push_back(Pair("vout", vout));
+
+    if (!hashBlock.IsNull()) {
+        entry.push_back(Pair("blockhash", hashBlock.GetHex()));
+
+        if (nConfirmations > 0) {
+            entry.push_back(Pair("height", nHeight));
+            entry.push_back(Pair("confirmations", nConfirmations));
+            entry.push_back(Pair("time", nBlockTime));
+            entry.push_back(Pair("blocktime", nBlockTime));
+        } else {
+            entry.push_back(Pair("height", -1));
+            entry.push_back(Pair("confirmations", 0));
+        }
+    }
+}
+#endif
+
+
 UniValue getrawtransaction(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
@@ -217,9 +305,36 @@ UniValue getrawtransaction(const UniValue& params, bool fHelp)
     if (!fVerbose)
         return strHex;
 
+#ifdef ENABLE_BITCORE_RPC
+    int nHeight = 0;
+    int nConfirmations = 0;
+    int nBlockTime = 0;
+    {
+        LOCK(cs_main);
+        BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
+        if (mi != mapBlockIndex.end() && (*mi).second) {
+            CBlockIndex* pindex = (*mi).second;
+            if (chainActive.Contains(pindex)) {
+                nHeight = pindex->nHeight;
+                nConfirmations = 1 + chainActive.Height() - pindex->nHeight;
+                nBlockTime = pindex->GetBlockTime();
+            } else {
+                nHeight = -1;
+                nConfirmations = 0;
+                nBlockTime = pindex->GetBlockTime();
+            }
+        }
+    }
+#endif
+
     UniValue result(UniValue::VOBJ);
     result.push_back(Pair("hex", strHex));
+
+#ifdef ENABLE_BITCORE_RPC
+    TxToJSONExpanded(tx, hashBlock, result, nHeight, nConfirmations, nBlockTime);
+#else
     TxToJSON(tx, hashBlock, result);
+#endif
     return result;
 }
 

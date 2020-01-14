@@ -81,4 +81,13 @@ CScript GetScriptForRawPubKey(const CPubKey& pubkey);
 CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey>& keys);
 CScript GetScriptForWitness(const CScript& redeemscript);
 
+#ifdef ENABLE_BITCORE_RPC
+struct DataVisitor : public boost::static_visitor<valtype>
+{
+    valtype operator()(const CNoDestination& noDest) const;
+    valtype operator()(const CKeyID& keyID) const;
+    valtype operator()(const CScriptID& scriptID) const;
+};
+#endif
+
 #endif // BITCOIN_SCRIPT_STANDARD_H

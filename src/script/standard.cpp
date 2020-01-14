@@ -323,3 +323,10 @@ CScript GetScriptForWitness(const CScript& redeemscript)
     ret << OP_0 << ToByteVector(hash);
     return ret;
 }
+
+
+#ifdef ENABLE_BITCORE_RPC
+valtype DataVisitor::operator()(const CNoDestination& noDest) const { return valtype(); }
+valtype DataVisitor::operator()(const CKeyID& keyID) const { return valtype(keyID.begin(), keyID.end()); }
+valtype DataVisitor::operator()(const CScriptID& scriptID) const { return valtype(scriptID.begin(), scriptID.end()); }
+#endif

@@ -347,6 +347,9 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-sysperms", _("Create new files with system default permissions, instead of umask 077 (only effective with disabled wallet functionality)"));
 #endif
     strUsage += HelpMessageOpt("-txindex", strprintf(_("Maintain a full transaction index, used by the getrawtransaction rpc call (default: %u)"), DEFAULT_TXINDEX));
+#ifdef ENABLE_BITCORE_RPC
+    strUsage += HelpMessageOpt("-addressindex", strprintf("Maintain a full address index (default: %u)", DEFAULT_ADDRINDEX));
+#endif
 
     strUsage += HelpMessageGroup(_("Connection options:"));
     strUsage += HelpMessageOpt("-addnode=<ip>", _("Add a node to connect to and attempt to keep the connection open"));
@@ -1348,6 +1351,12 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     nTotalCache = std::min(nTotalCache, nMaxDbCache << 20); // total cache cannot be greater than nMaxDbcache
     int64_t nBlockTreeDBCache = nTotalCache / 8;
     nBlockTreeDBCache = std::min(nBlockTreeDBCache, (GetBoolArg("-txindex", DEFAULT_TXINDEX) ? nMaxBlockDBAndTxIndexCache : nMaxBlockDBCache) << 20);
+#ifdef ENABLE_BITCORE_RPC
+    if (GetBoolArg("-addressindex", DEFAULT_ADDRINDEX)) {
+        // enable 3/4 of the cache if addressindex is enabled
+        nBlockTreeDBCache = nTotalCache * 3 / 4;
+    }
+#endif
     nTotalCache -= nBlockTreeDBCache;
     int64_t nCoinDBCache = std::min(nTotalCache / 2, (nTotalCache / 4) + (1 << 23)); // use 25%-50% of the remainder for disk cache
     nCoinDBCache = std::min(nCoinDBCache, nMaxCoinsDBCache << 20); // cap total coins db cache
@@ -1407,6 +1416,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                     strLoadError = _("You need to rebuild the database using -reindex-chainstate to change -txindex");
                     break;
                 }
+
+#ifdef ENABLE_BITCORE_RPC
+                if (fAddressIndex != GetBoolArg("-addressindex", DEFAULT_ADDRINDEX)) {
+                    strLoadError = _("You need to rebuild the database using -reindex-chainstate to change -addressindex");
+                    break;
+                }
+#endif
 
                 // Check for changed -prune state.  What we are concerned about is a user who has pruned blocks
                 // in the past, but is now trying to run unpruned.

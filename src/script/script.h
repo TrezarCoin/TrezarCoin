@@ -659,6 +659,8 @@ public:
     unsigned int GetSigOpCount(const CScript& scriptSig) const;
 
     bool IsPayToScriptHash() const;
+    bool IsPayToPubkey() const;
+    bool IsPayToPubkeyHash() const;
     bool IsPayToWitnessScriptHash() const;
     bool IsWitnessProgram(int& version, std::vector<unsigned char>& program) const;
 
@@ -681,6 +683,10 @@ public:
         // The default std::vector::clear() does not release memory.
         CScriptBase().swap(*this);
     }
+
+#ifdef ENABLE_BITCORE_RPC
+    bool IsPayToWitnessPubkeyHash() const;
+#endif
 };
 
 struct CScriptWitness

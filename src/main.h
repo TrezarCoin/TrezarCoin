@@ -131,6 +131,9 @@ static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
 static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
 static const bool DEFAULT_TXINDEX = false;
+#ifdef ENABLE_BITCORE_RPC
+static const bool DEFAULT_ADDRINDEX = false;
+#endif
 static const unsigned int DEFAULT_BANSCORE_THRESHOLD = 100;
 
 static const bool DEFAULT_TESTSAFEMODE = false;
@@ -169,6 +172,9 @@ extern bool fImporting;
 extern bool fReindex;
 extern int nScriptCheckThreads;
 extern bool fTxIndex;
+#ifdef ENABLE_BITCORE_RPC
+extern bool fAddressIndex;
+#endif
 extern bool fIsBareMultisigStd;
 extern bool fRequireStandard;
 extern bool fCheckBlockIndex;
@@ -357,6 +363,346 @@ int64_t GetTransactionSigOpCost(const CTransaction& tx, const CCoinsViewCache& i
 bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsViewCache &view, bool fScriptChecks,
                  unsigned int flags, bool cacheStore, PrecomputedTransactionData& txdata, std::vector<CScriptCheck> *pvChecks = NULL);
 
+
+#ifdef ENABLE_BITCORE_RPC
+struct CTimestampIndexIteratorKey {
+    unsigned int timestamp;
+
+    size_t GetSerializeSize(int nType, int nVersion) const {
+        return 4;
+    }
+    template<typename Stream>
+    void Serialize(Stream& s, int nType, int nVersion) const {
+        ser_writedata32be(s, timestamp);
+    }
+    template<typename Stream>
+    void Unserialize(Stream& s, int nType, int nVersion) {
+        timestamp = ser_readdata32be(s);
+    }
+
+    CTimestampIndexIteratorKey(unsigned int time) {
+        timestamp = time;
+    }
+
+    CTimestampIndexIteratorKey() {
+        SetNull();
+    }
+
+    void SetNull() {
+        timestamp = 0;
+    }
+};
+
+
+struct CTimestampIndexKey {
+    unsigned int timestamp;
+    uint256 blockHash;
+
+    size_t GetSerializeSize(int nType, int nVersion) const {
+        return 36;
+    }
+    template<typename Stream>
+    void Serialize(Stream& s, int nType, int nVersion) const {
+        ser_writedata32be(s, timestamp);
+        blockHash.Serialize(s, nType, nVersion);
+    }
+    template<typename Stream>
+    void Unserialize(Stream& s, int nType, int nVersion) {
+        timestamp = ser_readdata32be(s);
+        blockHash.Unserialize(s, nType, nVersion);
+    }
+
+    CTimestampIndexKey(unsigned int time, uint256 hash) {
+        timestamp = time;
+        blockHash = hash;
+    }
+
+    CTimestampIndexKey() {
+        SetNull();
+    }
+
+    void SetNull() {
+        timestamp = 0;
+        blockHash.SetNull();
+    }
+};
+
+struct CTimestampBlockIndexKey {
+    uint256 blockHash;
+
+    size_t GetSerializeSize(int nType, int nVersion) const {
+        return 32;
+    }
+
+    template<typename Stream>
+    void Serialize(Stream& s, int nType, int nVersion) const {
+        blockHash.Serialize(s, nType, nVersion);
+    }
+
+    template<typename Stream>
+    void Unserialize(Stream& s, int nType, int nVersion) {
+        blockHash.Unserialize(s, nType, nVersion);
+    }
+
+    CTimestampBlockIndexKey(uint256 hash) {
+        blockHash = hash;
+    }
+
+    CTimestampBlockIndexKey() {
+        SetNull();
+    }
+
+    void SetNull() {
+        blockHash.SetNull();
+    }
+};
+
+struct CTimestampBlockIndexValue {
+    unsigned int ltimestamp;
+    size_t GetSerializeSize(int nType, int nVersion) const {
+        return 4;
+    }
+
+    template<typename Stream>
+    void Serialize(Stream& s, int nType, int nVersion) const {
+        ser_writedata32be(s, ltimestamp);
+    }
+
+    template<typename Stream>
+    void Unserialize(Stream& s, int nType, int nVersion) {
+        ltimestamp = ser_readdata32be(s);
+    }
+
+    CTimestampBlockIndexValue (unsigned int time) {
+        ltimestamp = time;
+    }
+
+    CTimestampBlockIndexValue() {
+        SetNull();
+    }
+
+    void SetNull() {
+        ltimestamp = 0;
+    }
+};
+
+struct CAddressIndexKey {
+    unsigned int type;
+    uint256 hashBytes;
+    int blockHeight;
+    unsigned int txindex;
+    uint256 txhash;
+    size_t index;
+    bool spending;
+
+    size_t GetSerializeSize(int nType, int nVersion) const {
+        return 66;
+    }
+    template<typename Stream>
+   void Serialize(Stream& s, int nType, int nVersion) const {
+        ser_writedata8(s, type);
+        hashBytes.Serialize(s, nType, nVersion);
+        // Heights are stored big-endian for key sorting in LevelDB
+        ser_writedata32be(s, blockHeight);
+        ser_writedata32be(s, txindex);
+        txhash.Serialize(s, nType, nVersion);
+        ser_writedata32(s, index);
+        char f = spending;
+        ser_writedata8(s, f);
+    }
+    template<typename Stream>
+    void Unserialize(Stream& s, int nType, int nVersion) {
+        type = ser_readdata8(s);
+        hashBytes.Unserialize(s, nType, nVersion);
+        blockHeight = ser_readdata32be(s);
+        txindex = ser_readdata32be(s);
+        txhash.Unserialize(s, nType, nVersion);
+        index = ser_readdata32(s);
+        char f = ser_readdata8(s);
+        spending = f;
+    }
+
+    CAddressIndexKey(unsigned int addressType, uint256 addressHash, int height, int blockindex,
+                     uint256 txid, size_t indexValue, bool isSpending) {
+        type = addressType;
+        hashBytes = addressHash;
+        blockHeight = height;
+        txindex = blockindex;
+        txhash = txid;
+        index = indexValue;
+        spending = isSpending;
+    }
+
+    CAddressIndexKey() {
+        SetNull();
+    }
+
+    void SetNull() {
+        type = 0;
+        hashBytes.SetNull();
+        blockHeight = 0;
+        txindex = 0;
+        txhash.SetNull();
+        index = 0;
+        spending = false;
+    }
+};
+
+struct CAddressUnspentValue {
+    CAmount satoshis;
+    CScript script;
+    int blockHeight;
+    bool coinStake;
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+        READWRITE(satoshis);
+        READWRITE(*(CScriptBase*)(&script));
+        READWRITE(blockHeight);
+        READWRITE(coinStake);
+    }
+
+    CAddressUnspentValue(CAmount sats, CScript scriptPubKey, int height, bool isStake) {
+        satoshis = sats;
+        script = scriptPubKey;
+        blockHeight = height;
+        coinStake = isStake;
+    }
+
+    CAddressUnspentValue() {
+        SetNull();
+    }
+
+    void SetNull() {
+        satoshis = -1;
+        script.clear();
+        blockHeight = 0;
+        coinStake = false;
+    }
+
+    bool IsNull() const {
+        return (satoshis == -1);
+    }
+};
+
+struct CAddressUnspentKey {
+    unsigned int type;
+    uint256 hashBytes;
+    uint256 txhash;
+    size_t index;
+
+    size_t GetSerializeSize(int nType, int nVersion) const {
+        return 57;
+    }
+    template<typename Stream>
+    void Serialize(Stream& s, int nType, int nVersion) const {
+        ser_writedata8(s, type);
+        hashBytes.Serialize(s, nType, nVersion);
+        txhash.Serialize(s, nType, nVersion);
+        ser_writedata32(s, index);
+    }
+    template<typename Stream>
+    void Unserialize(Stream& s, int nType, int nVersion) {
+        type = ser_readdata8(s);
+        hashBytes.Unserialize(s, nType, nVersion);
+        txhash.Unserialize(s, nType, nVersion);
+        index = ser_readdata32(s);
+    }
+
+    CAddressUnspentKey(unsigned int addressType, uint256 addressHash, uint256 txid, size_t indexValue) {
+        type = addressType;
+        hashBytes = addressHash;
+        txhash = txid;
+        index = indexValue;
+    }
+
+    CAddressUnspentKey() {
+        SetNull();
+    }
+
+    void SetNull() {
+        type = 0;
+        hashBytes.SetNull();
+        txhash.SetNull();
+        index = 0;
+    }
+};
+
+
+struct CAddressIndexIteratorHeightKey {
+    unsigned int type;
+    uint256 hashBytes;
+    int blockHeight;
+
+    size_t GetSerializeSize(int nType, int nVersion) const {
+        return 37;
+    }
+    template<typename Stream>
+    void Serialize(Stream& s, int nType, int nVersion) const {
+        ser_writedata8(s, type);
+        hashBytes.Serialize(s, nType, nVersion);
+        ser_writedata32be(s, blockHeight);
+   }
+    template<typename Stream>
+    void Unserialize(Stream& s, int nType, int nVersion) {
+        type = ser_readdata8(s);
+        hashBytes.Unserialize(s, nType, nVersion);
+        blockHeight = ser_readdata32be(s);
+    }
+
+    CAddressIndexIteratorHeightKey(unsigned int addressType, uint256 addressHash, int height) {
+        type = addressType;
+        hashBytes = addressHash;
+        blockHeight = height;
+    }
+
+    CAddressIndexIteratorHeightKey() {
+        SetNull();
+    }
+
+    void SetNull() {
+        type = 0;
+        hashBytes.SetNull();
+        blockHeight = 0;
+    }
+};
+
+struct CAddressIndexIteratorKey {
+    unsigned int type;
+    uint256 hashBytes;
+
+    size_t GetSerializeSize(int nType, int nVersion) const {
+        return 33;
+    }
+    template<typename Stream>
+    void Serialize(Stream& s, int nType, int nVersion) const {
+        ser_writedata8(s, type);
+        hashBytes.Serialize(s, nType, nVersion);
+    }
+    template<typename Stream>
+    void Unserialize(Stream& s, int nType, int nVersion) {
+        type = ser_readdata8(s);
+        hashBytes.Unserialize(s, nType, nVersion);
+    }
+
+    CAddressIndexIteratorKey(unsigned int addressType, uint256 addressHash) {
+        type = addressType;
+        hashBytes = addressHash;
+    }
+
+    CAddressIndexIteratorKey() {
+        SetNull();
+    }
+
+    void SetNull() {
+        type = 0;
+        hashBytes.SetNull();
+    }
+};
+#endif
+
 /** Apply the effects of this transaction on the UTXO set represented by view */
 bool UpdateCoins(const CTransaction& tx, CCoinsViewCache& inputs, int nHeight, unsigned int nTimeStamp);
 
@@ -440,6 +786,15 @@ public:
     ScriptError GetScriptError() const { return error; }
 };
 
+#ifdef ENABLE_BITCORE_RPC
+bool GetAddressIndex(uint256 addressHash, int type,
+                     std::vector<std::pair<CAddressIndexKey, CAmount> > &addressIndex,
+                     int start = 0, int end = 0);
+bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value);
+bool GetAddressUnspent(uint256 addressHash, int type,
+                       std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue> > &unspentOutputs);
+bool GetTimestampIndex(const unsigned int &high, const unsigned int &low, const bool fActiveOnly, std::vector<std::pair<uint256, unsigned int> > &hashes);
+#endif
 
 /** Functions for disk access for blocks */
 bool WriteBlockToDisk(const CBlock& block, CDiskBlockPos& pos, const CMessageHeader::MessageStartChars& messageStart);

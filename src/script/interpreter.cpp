@@ -15,8 +15,6 @@
 
 using namespace std;
 
-typedef vector<unsigned char> valtype;
-
 namespace {
 
 inline bool set_success(ScriptError* ret)
