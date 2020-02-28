@@ -22,6 +22,7 @@ class EasySplitDialog;
 class AddressBookPage;
 class StakingDialog;
 class OptionsDialog;
+class TrezarMessage;
 
 QT_BEGIN_NAMESPACE
 class QModelIndex;
@@ -70,6 +71,7 @@ private:
     EasySplitDialog *easySplitPage;
     StakingDialog   *stakingPage;
     OptionsDialog *settingsPage;
+    TrezarMessage *trezarMessagePage;
 
     TransactionView *transactionView;
 
@@ -89,6 +91,9 @@ public Q_SLOTS:
     void gotoSendCoinsPage(QString addr = "");
     /** Switch to staking page */
     void gotoStakingPage();
+
+    /** Switch to TrezarMessage */
+    void gotoTrezarMessage();
 
     /** Switch to staking page */
     void gotoSettingsPage();

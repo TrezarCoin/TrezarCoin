@@ -20,7 +20,8 @@ FORMS += \
     ../src/qt/forms/sendcoinsentry_kopie.ui \
     ../src/qt/forms/easysplitdialog.ui \
     ../src/qt/forms/easysplitentry.ui \
-    ../src/qt/forms/stakingdialog.ui  
+    ../src/qt/forms/stakingdialog.ui \   
+    ../src/qt/forms/trezarmessage.ui
 
 RESOURCES += \
     ../src/qt/bitcoin.qrc

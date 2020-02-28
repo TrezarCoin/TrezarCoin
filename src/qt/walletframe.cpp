@@ -193,6 +193,13 @@ void WalletFrame::gotoStakingPage()
         i.value()->gotoStakingPage();
 }
 
+void WalletFrame::gotoTrezarMessage()
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->gotoTrezarMessage();
+}
+
 void WalletFrame::gotoSettingsPage()
 {
     QMap<QString, WalletView*>::const_iterator i;

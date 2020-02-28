@@ -135,6 +135,7 @@ private:
     QAction *settingsMenuAction;
     QAction *quitMenuAction;
     QAction *optionPageAction;
+    QAction *trezarMessageAction;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
@@ -216,6 +217,9 @@ private Q_SLOTS:
     void gotoSendCoinsPage(QString addr = "");
     /** Update Staking status **/
     void updateStakingStatus();
+
+    /** Switch to TrezarMessage Page */
+    void gotoTrezarMessage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");

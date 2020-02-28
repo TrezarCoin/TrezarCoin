@@ -21,6 +21,7 @@
 #include "transactiontablemodel.h"
 #include "transactionview.h"
 #include "walletmodel.h"
+#include "trezarmessage.h"
 
 #include "ui_interface.h"
 
@@ -59,6 +60,7 @@ WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent) :
     easySplitPage = new EasySplitDialog(platformStyle);
     stakingPage = new StakingDialog(platformStyle);
     settingsPage = new OptionsDialog(platformStyle);
+    trezarMessagePage = new TrezarMessage(platformStyle);
 
     usedSendingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::SendingTab, this);
     usedReceivingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::ReceivingTab, this);
@@ -70,6 +72,7 @@ WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent) :
     addWidget(easySplitPage);
     addWidget(stakingPage);
     addWidget(settingsPage);
+    addWidget(trezarMessagePage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
@@ -125,6 +128,7 @@ void WalletView::setClientModel(ClientModel *clientModel)
     sendCoinsPage->setClientModel(clientModel);
     easySplitPage->setClientModel(clientModel);
     stakingPage->setClientModel(clientModel);
+    trezarMessagePage->setClientModel(clientModel);
 }
 
 void WalletView::requestAddressHistory()
@@ -143,6 +147,7 @@ void WalletView::setWalletModel(WalletModel *walletModel)
     sendCoinsPage->setModel(walletModel);
     easySplitPage->setModel(walletModel);
     stakingPage->setWalletModel(walletModel);
+    trezarMessagePage->setWalletModel(walletModel);
     settingsPage->setModel(clientModel->getOptionsModel());
     usedReceivingAddressesPage->setModel(walletModel->getAddressTableModel());
     usedSendingAddressesPage->setModel(walletModel->getAddressTableModel());
@@ -197,6 +202,11 @@ void WalletView::gotoOverviewPage()
 void WalletView::gotoHistoryPage()
 {
     setCurrentWidget(transactionsPage);
+}
+
+void WalletView::gotoTrezarMessage()
+{
+    setCurrentWidget(trezarMessagePage);
 }
 
 void WalletView::gotoReceiveCoinsPage()
