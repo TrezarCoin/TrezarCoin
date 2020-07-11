@@ -114,6 +114,7 @@ QT_FORMS_UI = \
   qt/forms/signverifymessagedialog.ui \
   qt/forms/transactiondescdialog.ui \
   qt/forms/stakingdialog.ui \
+  qt/forms/addcontactdialog.ui \
   qt/forms/trezarmessage.ui
 
 QT_MOC_CPP = \
@@ -164,6 +165,7 @@ QT_MOC_CPP = \
   qt/moc_walletmodel.cpp \
   qt/moc_walletview.cpp \
   qt/moc_stakingdialog.cpp \
+  qt/moc_addcontactdialog.cpp \
   qt/moc_trezarmessage.cpp
 
 BITCOIN_MM = \
@@ -244,6 +246,7 @@ BITCOIN_QT_H = \
   qt/walletview.h \
   qt/winshutdownmonitor.h \
   qt/stakingdialog.h \
+  qt/addcontactdialog.h \
   qt/trezarmessage.h
 
 RES_ICONS = \
@@ -390,6 +393,7 @@ BITCOIN_QT_WALLET_CPP = \
   qt/walletmodeltransaction.cpp \
   qt/walletview.cpp \
   qt/stakingdialog.cpp \
+  qt/addcontactdialog.cpp \
   qt/trezarmessage.cpp
 
 BITCOIN_QT_CPP = $(BITCOIN_QT_BASE_CPP)

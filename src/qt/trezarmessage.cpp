@@ -17,6 +17,9 @@
 #include "util.h"
 #include "platformstyle.h"
 
+// Add Contact
+#include "addcontactdialog.h"
+
 //TransactionList
 
 #include "receiverequestdialog.h"
@@ -35,9 +38,11 @@ TrezarMessage::TrezarMessage(const PlatformStyle *platformStyle, QWidget *parent
     ui(new Ui::TrezarMessage),
     clientModel(0),
     walletModel(0),
+    model(0),
     platformStyle(platformStyle)
 {
     ui->setupUi(this);
+    connect(ui->pushButtonAddContact, SIGNAL(clicked()), this, SLOT(addContactButtonClicked()));
 }
 
 void TrezarMessage::setClientModel(ClientModel *model)
@@ -53,6 +58,19 @@ TrezarMessage::~TrezarMessage()
 void TrezarMessage::setWalletModel(WalletModel *model)
 {
     this->walletModel = model;
+}
+
+void TrezarMessage::setModel(WalletModel *model)
+{
+    this->model = model;
+}
+
+// Add Contact: opens Contact Dialog to add Contacts for TrezarMessage
+void TrezarMessage::addContactButtonClicked()
+{
+    AddContactDialog dlg(platformStyle);
+    dlg.setModel(model);
+    dlg.exec();
 }
 
 

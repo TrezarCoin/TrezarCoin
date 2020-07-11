@@ -36,13 +36,17 @@ public:
 
     void setClientModel(ClientModel *clientModel);
     void setWalletModel(WalletModel *walletModel);
-
+    void setModel(WalletModel *model);
 
 private:
     Ui::TrezarMessage *ui;
     ClientModel *clientModel;
     WalletModel *walletModel;
+    WalletModel *model;
     const PlatformStyle *platformStyle;
+
+private Q_SLOTS:
+    void addContactButtonClicked();
 };
 
 #endif // BITCOIN_QT_TrezarMessageG_H
