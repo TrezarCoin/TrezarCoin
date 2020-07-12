@@ -63,7 +63,16 @@ void AddContactDialog::textChanged()
     // Validate input, set Ok button to enabled when acceptable
     bool acceptable = false;
     acceptable = !ui->input_Alias->text().isEmpty() && !ui->input_Address->text().isEmpty() && !ui->input_Pubkey->text().isEmpty();
-    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(acceptable);
+    if (acceptable) {
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(acceptable);
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet("background:#2d374f;"); 
+    }
+    else
+    {
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet("background:#808080;");
+    }
+    
 }
 
 
