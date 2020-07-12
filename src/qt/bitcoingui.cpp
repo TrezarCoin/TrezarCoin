@@ -350,7 +350,7 @@ void BitcoinGUI::createActions()
     overviewAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_1));
     tabGroup->addAction(overviewAction);
 
-    trezarMessageAction = new QAction(platformStyle->SingleColorIcon(":/icons/send_menu"), tr("&Message"), this);
+    trezarMessageAction = new QAction(platformStyle->SingleColorIcon(":/icons/send"), tr("&Message"), this);
     trezarMessageAction->setStatusTip(tr("Send Messages"));
     trezarMessageAction->setToolTip(trezarMessageAction->statusTip());
     trezarMessageAction->setCheckable(true);
