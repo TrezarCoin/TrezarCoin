@@ -176,6 +176,7 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
     CPubKey pubKey;
     pwalletMain->GetAccountPubkey(pubKey,"",false);
     ui->labelAddressAccount->setText(QString::fromStdString(CBitcoinAddress(pubKey.GetID()).ToString()));
+    ui->labelAddressAccount->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     connect(ui->listTransactions, SIGNAL(clicked(QModelIndex)), this, SLOT(handleTransactionClicked(QModelIndex)));
     connect(ui->show_tx, SIGNAL(clicked()), this, SLOT(show_txButtonClicked()));
