@@ -89,10 +89,6 @@ WalletView::WalletView(const PlatformStyle *platformStyle, QWidget *parent) :
     connect(transactionView, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
     //Pass through messages from easySplitPage
     connect(easySplitPage, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
-    // Pass through messages from staking page
-    connect(stakingPage, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
-    // Pass through messages from staking page
-    connect(settingsPage, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
 }
 
 WalletView::~WalletView()

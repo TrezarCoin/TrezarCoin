@@ -53,9 +53,6 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *platformStyle, QWidget *pa
 {
     ui->setupUi(this);
 
-    // Connect signals
-    connect(ui->payAmount, SIGNAL(valueChanged()), this, SIGNAL(payAmountChanged()));
-
     GUIUtil::setupAddressWidget(ui->lineEditCoinControlChange, this);
     //addEntry();
 
@@ -149,7 +146,6 @@ void SendCoinsDialog::setModel(WalletModel *model)
 
         // Coin Control
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(coinControlUpdateLabels()));
-        connect(model->getOptionsModel(), SIGNAL(coinControlFeaturesChanged(bool)), this, SLOT(coinControlFeatureChanged(bool)));
         coinControlUpdateLabels();
 
     }
