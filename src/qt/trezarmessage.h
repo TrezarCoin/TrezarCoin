@@ -1,30 +1,20 @@
 #ifndef BITCOIN_QT_TREZARMESSAGE_H
 #define BITCOIN_QT_TREZARMESSAGE_H
 
-#include "amount.h"
-#include "walletmodel.h"
+#include <set>
 
 #include <QWidget>
-#include <QPushButton>
-#include <QListView>
-#include <QPainter>
-#include <memory>
-#include <QScrollBar>
 
 class ClientModel;
-class OptionsModel;
+struct Message;
+struct MessageCmp;
 class WalletModel;
 class PlatformStyle;
-class TransactionFilterProxy;
+class QVBoxLayout;
 
 namespace Ui {
     class TrezarMessage;
 }
-
-QT_BEGIN_NAMESPACE
-class QModelIndex;
-QT_END_NAMESPACE
-
 
 class TrezarMessage : public QWidget
 {
@@ -34,19 +24,31 @@ public:
     explicit TrezarMessage(const PlatformStyle *platformStyle, QWidget *parent = 0);
     ~TrezarMessage();
 
-    void setClientModel(ClientModel *clientModel);
     void setWalletModel(WalletModel *walletModel);
     void setModel(WalletModel *model);
+    void addEntry(QString address, QString alias);
 
 private:
+    std::string sendingAddress;
+    std::string sendingPubKey;
     Ui::TrezarMessage *ui;
     ClientModel *clientModel;
     WalletModel *walletModel;
-    WalletModel *model;
     const PlatformStyle *platformStyle;
+
+    void populateUserList();
+    void getMessages(std::set<Message, MessageCmp>& messages, bool unread = false);
+    void addMessagesToConversation(std::set<Message, MessageCmp>& messages);
+
+protected :
+    void showEvent(QShowEvent* event);
 
 private Q_SLOTS:
     void addContactButtonClicked();
+    void addSendButtonClicked();
+    void checkForNewMessages();
+    void populateConversation();
+    void showLocalAddress();
 };
 
 #endif // BITCOIN_QT_TrezarMessageG_H

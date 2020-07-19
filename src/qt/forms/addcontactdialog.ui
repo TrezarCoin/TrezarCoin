@@ -102,7 +102,7 @@ border-radius:10px;</string>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="input_Address">
+      <widget class="QValidatedLineEdit" name="input_Address">
        <property name="styleSheet">
         <string notr="true">background:#242c41;
 padding:2px;
@@ -163,6 +163,13 @@ margin:5px
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QValidatedLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qvalidatedlineedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

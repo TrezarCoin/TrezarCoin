@@ -178,6 +178,10 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
     ui->labelAddressAccount->setText(QString::fromStdString(CBitcoinAddress(pubKey.GetID()).ToString()));
     ui->labelAddressAccount->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
+#ifdef ENABLE_SMESSAGE
+    SecureMsgAddWalletAddresses();
+#endif
+
     connect(ui->listTransactions, SIGNAL(clicked(QModelIndex)), this, SLOT(handleTransactionClicked(QModelIndex)));
     connect(ui->show_tx, SIGNAL(clicked()), this, SLOT(show_txButtonClicked()));
     //connect(ui->unlockStakingButton, SIGNAL(clicked()), this, SLOT(unlockWalletStaking()));

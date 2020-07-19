@@ -27,13 +27,19 @@
     <number>0</number>
    </property>
    <property name="topMargin">
-    <number>9</number>
+    <number>0</number>
    </property>
    <property name="rightMargin">
-    <number>6</number>
+    <number>0</number>
    </property>
    <property name="bottomMargin">
-    <number>6</number>
+    <number>0</number>
+   </property>
+   <property name="horizontalSpacing">
+    <number>0</number>
+   </property>
+   <property name="verticalSpacing">
+    <number>3</number>
    </property>
    <item row="0" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0">
@@ -128,6 +134,27 @@ font-size: 20px;
                </spacer>
               </item>
               <item>
+               <widget class="QPushButton" name="pushButtonGetAddress">
+                <property name="styleSheet">
+                 <string notr="true">QPushButton::pressed{
+  background-color: #232c41;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+  0px 1px 4px 0px rgba(0, 0, 0, 0.1) inset !important;
+}
+QPushButton{
+background:#2d374f;
+padding:12px;
+border-radius:6px;
+color:#fff;
+margin:8px
+}</string>
+                </property>
+                <property name="text">
+                 <string>Address</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QPushButton" name="pushButtonAddContact">
                 <property name="styleSheet">
                  <string notr="true">QPushButton::pressed{
@@ -178,8 +205,14 @@ margin:8px
             </property>
             <item row="0" column="0">
              <layout class="QVBoxLayout" name="verticalLayout">
+              <property name="spacing">
+               <number>0</number>
+              </property>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0,2">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
                 <item>
                  <spacer name="horizontalSpacer_5">
                   <property name="orientation">
@@ -198,12 +231,21 @@ margin:8px
                 </item>
                 <item>
                  <layout class="QVBoxLayout" name="verticalLayout_4">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
                   <item>
-                   <widget class="QListView" name="listView">
+                   <widget class="QListWidget" name="user_list">
                     <property name="styleSheet">
                      <string notr="true">background:#232c41;
 padding:2px;
 border-radius:10px;</string>
+                    </property>
+                    <property name="editTriggers">
+                     <set>QAbstractItemView::NoEditTriggers</set>
+                    </property>
+                    <property name="sortingEnabled">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -243,28 +285,9 @@ border-radius:10px;</string>
                 </item>
                 <item>
                  <layout class="QVBoxLayout" name="verticalLayout_3">
-                  <item>
-                   <widget class="QScrollArea" name="scrollArea">
-                    <property name="styleSheet">
-                     <string notr="true">background:#232c41;
-padding:2px;
-border-radius:10px;</string>
-                    </property>
-                    <property name="widgetResizable">
-                     <bool>true</bool>
-                    </property>
-                    <widget class="QWidget" name="scrollAreaWidgetContents">
-                     <property name="geometry">
-                      <rect>
-                       <x>0</x>
-                       <y>0</y>
-                       <width>501</width>
-                       <height>260</height>
-                      </rect>
-                     </property>
-                    </widget>
-                   </widget>
-                  </item>
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
                   <item>
                    <spacer name="verticalSpacer_3">
                     <property name="orientation">
@@ -282,7 +305,38 @@ border-radius:10px;</string>
                    </spacer>
                   </item>
                   <item>
+                   <widget class="QListWidget" name="message_widget">
+                    <property name="frameShape">
+                     <enum>QFrame::NoFrame</enum>
+                    </property>
+                    <property name="lineWidth">
+                     <number>0</number>
+                    </property>
+                    <property name="verticalScrollBarPolicy">
+                     <enum>Qt::ScrollBarAlwaysOn</enum>
+                    </property>
+                    <property name="horizontalScrollBarPolicy">
+                     <enum>Qt::ScrollBarAlwaysOff</enum>
+                    </property>
+                    <property name="editTriggers">
+                     <set>QAbstractItemView::NoEditTriggers</set>
+                    </property>
+                    <property name="dragEnabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="selectionMode">
+                     <enum>QAbstractItemView::NoSelection</enum>
+                    </property>
+                    <property name="verticalScrollMode">
+                     <enum>QAbstractItemView::ScrollPerPixel</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_3">
+                    <property name="spacing">
+                     <number>0</number>
+                    </property>
                     <property name="topMargin">
                      <number>0</number>
                     </property>
@@ -304,32 +358,16 @@ margin:5px</string>
                      </widget>
                     </item>
                     <item>
-                     <spacer name="horizontalSpacer_6">
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                      <property name="sizeType">
-                       <enum>QSizePolicy::Fixed</enum>
-                      </property>
-                      <property name="sizeHint" stdset="0">
-                       <size>
-                        <width>40</width>
-                        <height>20</height>
-                       </size>
-                      </property>
-                     </spacer>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="sendButton">
+                     <widget class="QPushButton" name="send_button">
                       <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                         <horstretch>0</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
                       </property>
                       <property name="minimumSize">
                        <size>
-                        <width>120</width>
+                        <width>0</width>
                         <height>0</height>
                        </size>
                       </property>
@@ -355,6 +393,12 @@ margin:5px
                       </property>
                       <property name="text">
                        <string>Send</string>
+                      </property>
+                      <property name="autoDefault">
+                       <bool>true</bool>
+                      </property>
+                      <property name="default">
+                       <bool>true</bool>
                       </property>
                      </widget>
                     </item>

@@ -7,12 +7,9 @@
 #define BITCOIN_QT_ADDCONTACTDIALOG_H
 
 #include <QDialog>
-#include <QAbstractButton>
-#include <QAction>
-#include <QMenu>
-#include <QString>
 
 class PlatformStyle;
+class TrezarMessage;
 class WalletModel;
 
 namespace Ui {
@@ -26,7 +23,7 @@ class AddContactDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit AddContactDialog(const PlatformStyle *platformStyle, QWidget *parent = 0);
+    explicit AddContactDialog(const PlatformStyle *platformStyle, TrezarMessage *trezarMessage, QWidget *parent = 0);
     ~AddContactDialog();
 
     void setModel(WalletModel *model);
@@ -36,6 +33,7 @@ public:
 private:
     Ui::AddContactDialog *ui;
     WalletModel *model;
+    TrezarMessage *trezarMessage;
     const PlatformStyle *platformStyle;
 
 private Q_SLOTS:
