@@ -1619,9 +1619,8 @@ UniValue smsginbox(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() > 1) // defaults to read
         throw runtime_error(
-            "smsginbox [all|unread|clear]\n"
-            "Decrypt and display all received messages.\n"
-            "Warning: clear will delete all messages.");
+            "smsginbox [all|unread]\n"
+            "Decrypt and display all received messages.");
 
     if (!fSecMsgEnabled)
         throw runtime_error("Secure messaging is disabled.");
@@ -1653,21 +1652,7 @@ UniValue smsginbox(const UniValue& params, bool fHelp)
         std::string sPrefix("im");
         unsigned char chKey[18];
 
-        if (mode == "clear") {
-            dbInbox.TxnBegin();
-
-            leveldb::Iterator* it = dbInbox.pdb->NewIterator(leveldb::ReadOptions());
-            while (dbInbox.NextSmesgKey(it, sPrefix, chKey))
-            {
-                dbInbox.EraseSmesg(chKey);
-                nMessages++;
-            };
-            delete it;
-            dbInbox.TxnCommit();
-
-            snprintf(cbuf, sizeof(cbuf), "Deleted %u messages.", nMessages);
-            result.push_back(Pair("result", std::string(cbuf)));
-        } else  if (mode == "all" || mode == "unread") {
+        if (mode == "all" || mode == "unread") {
             int fCheckReadStatus = mode == "unread" ? 1 : 0;
 
             SecMsgStored smsgStored;
@@ -1724,9 +1709,8 @@ UniValue smsgoutbox(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() > 1) // defaults to read
         throw runtime_error(
-            "smsgoutbox [all|clear]\n"
-            "Decrypt and display all sent messages.\n"
-            "Warning: clear will delete all sent messages.");
+            "smsgoutbox [all]\n"
+            "Decrypt and display all sent messages.");
 
     if (!fSecMsgEnabled)
         throw runtime_error("Secure messaging is disabled.");
@@ -1755,22 +1739,7 @@ UniValue smsgoutbox(const UniValue& params, bool fHelp)
         uint32_t nMessages = 0;
         char cbuf[256];
 
-        if (mode == "clear") {
-            dbOutbox.TxnBegin();
-
-            leveldb::Iterator* it = dbOutbox.pdb->NewIterator(leveldb::ReadOptions());
-            while (dbOutbox.NextSmesgKey(it, sPrefix, chKey))
-            {
-                dbOutbox.EraseSmesg(chKey);
-                nMessages++;
-            };
-            delete it;
-            dbOutbox.TxnCommit();
-
-
-            snprintf(cbuf, sizeof(cbuf), "Deleted %u messages.", nMessages);
-            result.push_back(Pair("result", std::string(cbuf)));
-        } else if (mode == "all") {
+        if (mode == "all") {
             SecMsgStored smsgStored;
             MessageData msg;
             leveldb::Iterator* it = dbOutbox.pdb->NewIterator(leveldb::ReadOptions());
