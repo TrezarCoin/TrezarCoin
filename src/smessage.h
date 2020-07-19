@@ -294,9 +294,13 @@ public:
     bool TxnBegin();
     bool TxnCommit();
     bool TxnAbort();
+    bool ReadAlias(CKeyID& addr, std::string& alias);
+    bool WriteAlias(CKeyID& addr, std::string& alias);
+    bool ExistsAlias(CKeyID& addr);
     bool ReadPK(CKeyID& addr, CPubKey& pubkey);
     bool WritePK(CKeyID& addr, CPubKey& pubkey);
     bool ExistsPK(CKeyID& addr);
+    bool NextAlias(leveldb::Iterator* it, std::string& prefix, std::string& aliasKey, std::string& alias);
     bool NextSmesg(leveldb::Iterator* it, std::string& prefix, uint8_t* vchKey, SecMsgStored& smsgStored);
     bool NextSmesgKey(leveldb::Iterator* it, std::string& prefix, uint8_t* vchKey);
     bool ReadSmesg(uint8_t* chKey, SecMsgStored& smsgStored);
@@ -340,5 +344,7 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload);
 int SecureMsgEncrypt(SecureMessage& smsg, std::string& addressFrom, std::string& addressTo, std::string& message);
 int SecureMsgDecrypt(bool fTestOnly, std::string& address, uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, MessageData& msg);
 int SecureMsgDecrypt(bool fTestOnly, std::string& address, SecureMessage& smsg, MessageData& msg);
+bool SecureMsgGetAllAliases(std::map<std::string, std::string> &aliases);
+bool SecureMsgInsertAlias(CKeyID& hashKey, std::string& alias);
 
 #endif // SEC_MESSAGE_H
