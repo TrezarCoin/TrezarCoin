@@ -137,10 +137,14 @@ void TrezarMessage::addSendButtonClicked()
 void TrezarMessage::showEvent(QShowEvent* event)
 {
     // Need to unlock to read and encrypt messages
-    WalletModel::UnlockContext ctx(walletModel->requestUnlock());
-    if (!ctx.isValid())
-    {
-        return;
+    if (!fWalletUnlockStakingOnly) {
+        fWalletUnlockStakingOnly = true;
+        WalletModel::UnlockContext ctx(walletModel->requestUnlock());
+        if (!ctx.isValid())
+        {
+            this->close();
+            return;
+        }
     }
 
     // Scan buckets for messages
