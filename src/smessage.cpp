@@ -1047,6 +1047,30 @@ int SecureMsgAddWalletAddresses()
     return 0;
 }
 
+bool SecureMsgAddWalletAddress(std::string address)
+{
+    CBitcoinAddress coinAddress(address);
+    if (!coinAddress.IsValid()) {
+        return false;
+    }
+
+    CTxDestination dest = coinAddress.Get();
+    if (!IsMine(*pwalletMain, dest)) {
+        return false;
+    }
+
+    for (std::vector<SecMsgAddress>::iterator it = smsgAddresses.begin(); it != smsgAddresses.end(); ++it) {
+        if (address != it->sAddress) {
+            continue;
+        }
+        return true; // Already in wallet, mark as success
+    }
+
+    smsgAddresses.push_back(SecMsgAddress(address, 1 /* recvEnabled */, 1 /* recvAnon */));
+
+    return true;
+}
+
 int SecureMsgReadIni()
 {
     if (!fSecMsgEnabled)

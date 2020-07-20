@@ -315,6 +315,7 @@ std::string getTimeString(int64_t timestamp, char *buffer, size_t nBuffer);
 std::string fsReadable(uint64_t nBytes);
 int SecureMsgBuildBucketSet();
 int SecureMsgAddWalletAddresses();
+bool SecureMsgAddWalletAddress(std::string address);
 int SecureMsgReadIni();
 int SecureMsgWriteIni();
 bool SecureMsgStart(bool fDontStart, bool fScanChain);

@@ -32,6 +32,8 @@ struct MessageCmp {
     }
 };
 
+static bool firstRun = true;
+
 TrezarMessage::TrezarMessage(const PlatformStyle *platformStyle, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::TrezarMessage),
@@ -40,14 +42,6 @@ TrezarMessage::TrezarMessage(const PlatformStyle *platformStyle, QWidget *parent
     platformStyle(platformStyle)
 {
     ui->setupUi(this);
-
-    // Get the same address shown on the front page
-    CPubKey pubKey;
-    pwalletMain->GetAccountPubkey(pubKey, "", false);
-    sendingAddress = CBitcoinAddress(pubKey.GetID()).ToString();
-
-    // Get matching pubkey
-    SecureMsgGetLocalPublicKey(sendingAddress, sendingPubKey);
 
     populateUserList();
 
@@ -145,6 +139,21 @@ void TrezarMessage::showEvent(QShowEvent* event)
             this->close();
             return;
         }
+    }
+
+    if (firstRun) {
+        firstRun = false;
+
+        // Get the same address shown on the front page
+        CPubKey pubKey;
+        pwalletMain->GetAccountPubkey(pubKey, "", false);
+        sendingAddress = CBitcoinAddress(pubKey.GetID()).ToString();
+
+        // Add wallet addresses to secure messaging
+        SecureMsgAddWalletAddress(sendingAddress);
+
+        // Get matching pubkey
+        SecureMsgGetLocalPublicKey(sendingAddress, sendingPubKey);
     }
 
     // Scan buckets for messages
