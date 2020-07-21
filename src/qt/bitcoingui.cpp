@@ -1595,9 +1595,7 @@ void BitcoinGUI::updateStakingStatus()
     if (!lockWallet)
         return;
 
-    uint64_t nWeight = 0, nMinWeight = 0, nMaxWeight = 0;
-    if (pwalletMain)
-        pwalletMain->GetStakeWeight(nMinWeight, nMaxWeight, nWeight);
+    uint64_t nWeight = pwalletMain->GetStakeWeight();
 
     bool staking = nLastCoinStakeSearchInterval && nWeight;
     double nNetworkWeight = GetPoSKernelPS();

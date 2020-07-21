@@ -15,6 +15,7 @@
 #include "consensus/consensus.h"
 #include "consensus/merkle.h"
 #include "consensus/validation.h"
+#include "core_io.h"
 #include "hash.h"
 #include "init.h"
 #include "key.h"
@@ -93,9 +94,6 @@ int64_t nCombineThreshold = MIN_STAKE_AMOUNT;
 int64_t nSplitThreshold = 2 * MIN_STAKE_AMOUNT;
 
 int64_t nStakeMinValue = 1 * COIN;
-
-/* Cache of stake modifiers */
-static std::map<unsigned int, uint64_t> mapModifiers;
 
 CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
 CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
@@ -1081,6 +1079,8 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state)
         nValueOut += txout.nValue;
         if (!MoneyRange(nValueOut))
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-txouttotal-toolarge");
+        if(txout.scriptPubKey.IsColdStaking() && !IsColdStakingEnabled(pindexBestHeader, Params().GetConsensus()))
+             return state.DoS(100, false, REJECT_INVALID, "cold-staking-not-enabled");
     }
 
     // Check for duplicate inputs
@@ -2439,6 +2439,9 @@ int32_t ComputeBlockVersion(const CBlockIndex* pindexPrev, const Consensus::Para
         }
     }
 
+    if (IsColdStakingEnabled(pindexPrev, Params().GetConsensus()))
+        nVersion |= nColdStakingVersionMask;
+
     return nVersion;
 }
 
@@ -2523,7 +2526,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     {
         arith_uint256 hashProof, targetProofOfStake;
         // Signature will be checked in CheckInputs(), we can avoid it here (fCHeckSignature = false)
-        if (!CheckProofOfStake(block.vtx[1], block.nBits, hashProof, targetProofOfStake, NULL, false))
+        if (!CheckProofOfStake(pindex->pprev, block.vtx[1], block.nBits, hashProof, targetProofOfStake, NULL, false))
         {
               LogPrintf("ConnectBlock() : check proof-of-stake failed for block %s\n", block.GetHash().GetHex());
               return false; // Do not error here as we expect this during initial block download
@@ -3668,10 +3671,10 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
 bool CheckBlockSignature(const CBlock& block)
 {
     if (block.IsProofOfWork())
-        return block.vchBlockSig.empty();
+        return block.vchBlockSig.empty() ? true : error("CheckBlockSignature: Bad Block - can't check signature of a proof of work block\n");
 
     if (block.vchBlockSig.empty())
-        return false;
+        return error("CheckBlockSignature: Bad Block - vchBlockSig empty\n");
 
     vector<std::vector<unsigned char>> vSolutions;
     txnouttype whichType;
@@ -3688,6 +3691,15 @@ bool CheckBlockSignature(const CBlock& block)
     {
         std::vector<unsigned char>& vchPubKey = vSolutions[0];
         return CPubKey(vchPubKey).Verify(block.GetHash(), block.vchBlockSig);
+    }
+
+    if(whichType == TX_COLDSTAKING) // We need to get the public key from the input's scriptSig
+    {
+        if(block.vtx[1].vin[0].scriptSig.size() <= 0x21)
+            return false;
+
+        vector<unsigned char> signerPubKey(block.vtx[1].vin[0].scriptSig.end()-0x21,block.vtx[1].vin[0].scriptSig.end());
+        return CPubKey(signerPubKey).Verify(block.GetHash(), block.vchBlockSig);
     }
 
     LogPrintf("%s: Unknown type\n", __func__);
@@ -3812,6 +3824,15 @@ bool IsWitnessEnabled(const CBlockIndex* pindexPrev, const Consensus::Params& pa
     return (VersionBitsState(pindexPrev, params, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) == THRESHOLD_ACTIVE);
 }
 
+bool IsColdStakingEnabled(const CBlockIndex* pindexPrev, const Consensus::Params& params)
+{
+    int nHeight = 0;
+    if (pindexPrev) {
+        nHeight = pindexPrev->nHeight + 1;
+    }
+    return nHeight >= params.coldStakingFork;
+}
+
 // Compute at which vout of the block's coinbase transaction the witness
 // commitment occurs, or -1 if not found.
 static int GetWitnessCommitmentIndex(const CBlock& block)
@@ -3902,7 +3923,7 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     if (block.GetBlockTime() > FutureDrift((int64_t)GetAdjustedTime()))
         return error("block has a time stamp too far in the future");
 
-    if (!(Params().NetworkIDString() == CBaseChainParams::REGTEST) && !IsInitialBlockDownload()) {
+    if (!IsInitialBlockDownload() && nHeight < consensusParams.coldStakingFork) {
         /* Block limiter */
         if (block.GetBlockTime() <= ((unsigned int)pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME)) {
             return(state.DoS(5, false, REJECT_INVALID, "blocklimiter-time", false,
@@ -3922,6 +3943,10 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
             return state.Invalid(false, REJECT_OBSOLETE, strprintf("bad-version(0x%08x)", version - 1),
                                  strprintf("rejected nVersion=0x%08x block", version - 1));
 
+    if((block.nVersion & nColdStakingVersionMask) != nColdStakingVersionMask && IsColdStakingEnabled(pindexPrev,Params().GetConsensus()))
+        return state.Invalid(false, REJECT_OBSOLETE, strprintf("bad-version(0x%08x)", block.nVersion),
+                           "rejected no cold-staking block");
+
     return true;
 }
 
@@ -3935,6 +3960,10 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIn
     if (VersionBitsState(pindexPrev, consensusParams, Consensus::DEPLOYMENT_CSV, versionbitscache) == THRESHOLD_ACTIVE) {
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
     }
+
+    // Check CheckCoinStakeTimestamp
+    if (block.IsProofOfStake() && IsColdStakingEnabled(pindexPrev, Params().GetConsensus()) && !CheckCoinStakeTimestamp(block.GetBlockTime(), (int64_t)block.vtx[1].nTime))
+        return state.Invalid(false, REJECT_INVALID, "check-coinstake-timestamp", "coinstake timestamp violation");
 
     int64_t nLockTimeCutoff = (nLockTimeFlags & LOCKTIME_MEDIAN_TIME_PAST)
                               ? pindexPrev->GetMedianTimePast()
@@ -7526,7 +7555,7 @@ static bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifi
     return true;
 }
 
-bool CheckStakeKernelHash(unsigned int nBits, CBlock& blockFrom, unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, arith_uint256& hashProofOfStake, arith_uint256& targetProofOfStake)
+static bool CheckStakeKernelHashV1(unsigned int nBits, CBlock& blockFrom, unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, arith_uint256& hashProofOfStake, arith_uint256& targetProofOfStake)
 {
     if (nTimeTx < txPrev.nTime)  // Transaction timestamp violation
         return error("%s: nTime violation", __func__);
@@ -7552,20 +7581,9 @@ bool CheckStakeKernelHash(unsigned int nBits, CBlock& blockFrom, unsigned int nT
     int64_t nStakeModifierTime = 0;
     int nStakeModifierHeight = 0;
     uint256 hashBlock = blockFrom.GetHash();
-    unsigned int nSize = (unsigned int)mapModifiers.size();
 
-    if (nSize >= MODIFIER_CACHE_LIMIT)
-        mapModifiers.clear();
-
-    /* Stake modifiers for PoS mining are calculated repeatedly
-     * and can be cached to speed up the whole process */
-    if (mapModifiers.count(nTimeBlockFrom)) {
-        nStakeModifier = mapModifiers[nTimeBlockFrom];
-    } else {
-        if (!GetKernelStakeModifier(hashBlock, nStakeModifier, nStakeModifierTime, nStakeModifierHeight))
-            return error("%s: Returned false at height %d", __func__, mapBlockIndex[hashBlock]->nHeight);
-        mapModifiers.insert(make_pair(nTimeBlockFrom, nStakeModifier));
-    }
+    if (!GetKernelStakeModifier(hashBlock, nStakeModifier, nStakeModifierTime, nStakeModifierHeight))
+        return error("%s: Returned false at height %d", __func__, mapBlockIndex[hashBlock]->nHeight);
 
     ss << nStakeModifier << nTimeBlockFrom << nTxPrevOffset << txPrev.nTime << prevout.n << nTimeTx;
     hashProofOfStake = UintToArith256(Hash(ss.begin(), ss.end()));
@@ -7590,8 +7608,69 @@ bool CheckStakeKernelHash(unsigned int nBits, CBlock& blockFrom, unsigned int nT
     return true;
 }
 
+static bool CheckStakeKernelHashV2(CBlockIndex* pindexPrev, unsigned int nBits, unsigned int nTimeBlockFrom, const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, arith_uint256& hashProofOfStake, arith_uint256& targetProofOfStake, bool fPrintProofOfStake)
+{
+
+    if (nTimeTx < txPrev.nTime)  // Transaction timestamp violation
+        return error("CheckStakeKernelHash() : nTime violation");
+
+
+    if (nTimeBlockFrom + Params().GetConsensus().nStakeMinAge > nTimeTx) // Min age requirement
+        return error("CheckStakeKernelHash() : min age violation");
+
+    // Base target
+    targetProofOfStake.SetCompact(nBits);
+
+    // Weighted target
+    int64_t nValueIn = txPrev.vout[prevout.n].nValue;
+    arith_uint512 bnWeight = arith_uint512(nValueIn);
+
+    // We need to convert to uint512 to prevent overflow when multiplying by 1st block coins
+    base_uint<512> targetProofOfStake512(targetProofOfStake.GetHex());
+    targetProofOfStake512 *= bnWeight;
+
+    uint64_t nStakeModifier = pindexPrev->nStakeModifier;
+    int nStakeModifierHeight = pindexPrev->nHeight;
+    int64_t nStakeModifierTime = pindexPrev->nTime;
+
+    // Calculate hash
+    CDataStream ss(SER_GETHASH, 0);
+    ss << nStakeModifier << nTimeBlockFrom << txPrev.nTime << prevout.hash << prevout.n << nTimeTx;
+    hashProofOfStake = UintToArith256(Hash(ss.begin(), ss.end()));
+
+    if (fPrintProofOfStake)
+    {
+        LogPrint("stakemodifier","CheckStakeKernelHash() : using modifier 0x%016x at height=%d timestamp=%s for block from timestamp=%s\n",
+            nStakeModifier, nStakeModifierHeight,
+            DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nStakeModifierTime),
+            DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nTimeBlockFrom));
+        LogPrint("stakemodifier","CheckStakeKernelHash() : check modifier=0x%016x nTimeBlockFrom=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProof=%s bnTarget=%s nBits=%08x nValueIn=%d bnWeight=%s\n",
+            nStakeModifier,
+            nTimeBlockFrom, txPrev.nTime, prevout.n, nTimeTx,
+            hashProofOfStake.ToString(), targetProofOfStake512.ToString(), nBits, nValueIn,bnWeight.ToString());
+    }
+
+    // We need to convert type so it can be compared to target
+    base_uint<512> hashProofOfStake512(hashProofOfStake.GetHex());
+
+    // Now check if proof-of-stake hash meets target protocol
+    if (hashProofOfStake512 > targetProofOfStake512)
+      return false;
+
+    return true;
+}
+
+bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, CBlock& blockFrom, unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, arith_uint256& hashProofOfStake, arith_uint256& targetProofOfStake)
+{
+    if (!IsColdStakingEnabled(pindexPrev, Params().GetConsensus())) {
+        return CheckStakeKernelHashV1(nBits, blockFrom, nTxPrevOffset, txPrev, prevout, nTimeTx, hashProofOfStake, targetProofOfStake);
+    } else {
+        return CheckStakeKernelHashV2(pindexPrev, nBits, blockFrom.GetBlockTime(), txPrev, prevout, nTimeTx, hashProofOfStake, targetProofOfStake, true);
+    }
+}
+
 //Check kernel hash target and coinstake signature
-bool CheckProofOfStake(const CTransaction& tx, unsigned int nBits, arith_uint256& hashProofOfStake, arith_uint256& targetProofOfStake, std::vector<CScriptCheck> *pvChecks, bool fCHeckSignature)
+bool CheckProofOfStake(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned int nBits, arith_uint256& hashProofOfStake, arith_uint256& targetProofOfStake, std::vector<CScriptCheck> *pvChecks, bool fCHeckSignature)
 {
     if (!tx.IsCoinStake())
         return error("%s: called on non-coinstake %s", tx.GetHash().ToString());
@@ -7605,6 +7684,12 @@ bool CheckProofOfStake(const CTransaction& tx, unsigned int nBits, arith_uint256
 
     if (!GetTransaction(prevout.hash, txPrev, Params().GetConsensus(), hashBlock, true))
         return error("%s: Read txPrev failed %s", __func__, prevout.hash.GetHex());  // previous transaction not in main chain, may occur during initial download
+
+    if (txPrev.vout[txin.prevout.n].scriptPubKey.IsColdStaking())
+        for(unsigned int i = 1; i < tx.vout.size() - 1; i++)
+            if(tx.vout[i].scriptPubKey != txPrev.vout[txin.prevout.n].scriptPubKey)
+                return error("%s: Coinstake output %d tried to move cold staking coins to a non authorised script. (%s vs. %s)",
+                             __func__, i, ScriptToAsmStr(txPrev.vout[txin.prevout.n].scriptPubKey), ScriptToAsmStr(tx.vout[i].scriptPubKey));
 
     if (pvChecks)
         pvChecks->reserve(tx.vin.size());
@@ -7654,7 +7739,7 @@ bool CheckProofOfStake(const CTransaction& tx, unsigned int nBits, arith_uint256
     if (txin.prevout.n >= txPrev.vout.size())
         return(error("%s: coin stake %s with an invalid input", __func__, tx.GetHash().ToString()));
 
-    if (!CheckStakeKernelHash(nBits, block, nTxPos, txPrev, txin.prevout, tx.nTime, hashProofOfStake, targetProofOfStake))
+    if (!CheckStakeKernelHash(pindexPrev, nBits, block, nTxPos, txPrev, txin.prevout, tx.nTime, hashProofOfStake, targetProofOfStake))
         return error("%s: failed on coinstake %s, hashProof=%s", __func__, tx.GetHash().ToString(), hashProofOfStake.ToString()); // may occur during initial download or if behind on block chain sync
 
     return true;
@@ -7666,4 +7751,14 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
     while (pindex && pindex->pprev && (pindex->IsProofOfStake() != fProofOfStake))
         pindex = pindex->pprev;
     return pindex;
+}
+
+// Check whether the coinstake timestamp meets protocol
+bool CheckCoinStakeTimestamp(int64_t nTimeBlock, int64_t nTimeTx)
+{
+    LOCK(cs_main);
+    if (IsColdStakingEnabled(chainActive.Tip(), Params().GetConsensus()))
+        return (nTimeBlock == nTimeTx) && ((nTimeTx & STAKE_TIMESTAMP_MASK) == 0);
+    else
+        return (nTimeBlock == nTimeTx);
 }

@@ -4,9 +4,11 @@
 #include "bitcoinunits.h"
 #include "miner.h"
 #include "bitcoingui.h"
+#include "coldstakingwizard.h"
 #include "clientmodel.h"
 #include "guiconstants.h"
 #include "guiutil.h"
+#include "main.h"
 #include "optionsmodel.h"
 #include "platformstyle.h"
 #include "transactionfilterproxy.h"
@@ -89,6 +91,7 @@ StakingDialog::StakingDialog(const PlatformStyle *platformStyle, QWidget *parent
     connect(ui->btn_Stake_On, SIGNAL(clicked()), this, SLOT(btn_Stake_OnClicked()));
     connect(ui->btn_Stake_Off, SIGNAL(clicked()), this, SLOT(btn_Stake_OffClicked()));
 
+    connect(ui->pushButtonColdStaking, &QPushButton::clicked, this, &StakingDialog::getColdStakingAddress);
 }
 
 void StakingDialog::setClientModel(ClientModel *model)
@@ -99,6 +102,21 @@ void StakingDialog::setClientModel(ClientModel *model)
 StakingDialog::~StakingDialog()
 {
     delete ui;
+}
+
+void StakingDialog::getColdStakingAddress()
+{
+    {
+        LOCK(cs_main);
+        if (!IsColdStakingEnabled(chainActive.Tip(), Params().GetConsensus())) {
+            QMessageBox::warning(this, tr("Action not available"),
+                                 "<qt>Cold Staking is not active yet.</qt>");
+            return;
+        }
+    }
+
+    ColdStakingWizard wizard;
+    wizard.exec();
 }
 
 void StakingDialog::setStakingStatus(QString text, bool fStake)
@@ -211,6 +229,7 @@ void StakingDialog::updateStakeReport(bool fImmediate = false)
     int unit = walletModel->getOptionsModel()->getDisplayUnit();
     ui->listStakes->update();
 
+    ui->labelColdStaking->setText(BitcoinUnits::formatWithUnit(unit, walletModel->getColdStakingBalance(), false, BitcoinUnits::separatorAlways));
     ui->label24hStakingStats->setText(BitcoinUnits::formatWithUnit(unit, aRange[i++].Total, false, BitcoinUnits::separatorAlways));
     ui->label7dStakingStats->setText(BitcoinUnits::formatWithUnit(unit, aRange[i++].Total, false, BitcoinUnits::separatorAlways));
     ui->label30dStakingStats->setText(BitcoinUnits::formatWithUnit(unit, aRange[i++].Total, false, BitcoinUnits::separatorAlways));
@@ -218,7 +237,7 @@ void StakingDialog::updateStakeReport(bool fImmediate = false)
 
 }
 
-void StakingDialog::updateStakeReportbalanceChanged(qint64, qint64, qint64, qint64, qint64, qint64, qint64)
+void StakingDialog::updateStakeReportbalanceChanged(qint64, qint64, qint64, qint64, qint64, qint64, qint64, qint64)
 {
     StakingDialog::updateStakeReportNow();
 }

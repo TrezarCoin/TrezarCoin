@@ -51,7 +51,7 @@ public Q_SLOTS:
     void accept();
     void on_receiveQR_clicked();
     void setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& stakingBalance, const CAmount& immatureBalance,
-        const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
+        const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance, const CAmount &coldStakingBalance);
 
 protected:
     virtual void keyPressEvent(QKeyEvent *event);

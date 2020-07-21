@@ -160,7 +160,7 @@ margin-top:30px;
 </string>
                 </property>
                 <property name="text">
-                 <string>ColdStaking</string>
+                 <string>Cold Staking</string>
                 </property>
                </widget>
               </item>
@@ -607,7 +607,7 @@ border:none;</string>
                  <property name="geometry">
                   <rect>
                    <x>40</x>
-                   <y>70</y>
+                   <y>100</y>
                    <width>81</width>
                    <height>21</height>
                   </rect>
@@ -625,7 +625,7 @@ border:none;</string>
                  <property name="geometry">
                   <rect>
                    <x>40</x>
-                   <y>120</y>
+                   <y>140</y>
                    <width>91</width>
                    <height>21</height>
                   </rect>
@@ -643,7 +643,7 @@ border:none;</string>
                  <property name="geometry">
                   <rect>
                    <x>40</x>
-                   <y>170</y>
+                   <y>180</y>
                    <width>91</width>
                    <height>21</height>
                   </rect>
@@ -679,7 +679,7 @@ border:none;</string>
                  <property name="geometry">
                   <rect>
                    <x>170</x>
-                   <y>70</y>
+                   <y>100</y>
                    <width>201</width>
                    <height>21</height>
                   </rect>
@@ -702,7 +702,7 @@ border:none;</string>
                  <property name="geometry">
                   <rect>
                    <x>170</x>
-                   <y>120</y>
+                   <y>140</y>
                    <width>221</width>
                    <height>21</height>
                   </rect>
@@ -725,7 +725,7 @@ border:none;</string>
                  <property name="geometry">
                   <rect>
                    <x>170</x>
-                   <y>170</y>
+                   <y>180</y>
                    <width>231</width>
                    <height>21</height>
                   </rect>
@@ -757,6 +757,42 @@ border:none;</string>
                   <font>
                    <pointsize>-1</pointsize>
                   </font>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">color:#a5b1ba;
+font-size:16px;
+border:none;</string>
+                 </property>
+                 <property name="text">
+                  <string>0 TZC</string>
+                 </property>
+                </widget>
+                <widget class="QLabel" name="labelColdStakingText">
+                 <property name="geometry">
+                  <rect>
+                   <x>40</x>
+                   <y>60</y>
+                   <width>101</width>
+                   <height>17</height>
+                  </rect>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">color:#566070;
+font-size:14px;
+border:none;</string>
+                 </property>
+                 <property name="text">
+                  <string>Cold Staking</string>
+                 </property>
+                </widget>
+                <widget class="QLabel" name="labelColdStaking">
+                 <property name="geometry">
+                  <rect>
+                   <x>170</x>
+                   <y>60</y>
+                   <width>141</width>
+                   <height>17</height>
+                  </rect>
                  </property>
                  <property name="styleSheet">
                   <string notr="true">color:#a5b1ba;

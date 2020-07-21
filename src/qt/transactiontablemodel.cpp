@@ -386,7 +386,7 @@ QString TransactionTableModel::formatTxType(const TransactionRecord *wtx) const
     case TransactionRecord::Generated:
         return tr("Staking Reward");
     default:
-        return QString();
+        return QString("Other");
     }
 }
 

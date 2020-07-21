@@ -883,8 +883,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     nMinerSleep = GetArg("-minersleep", 500);
 
     /* Minimal input time or depth in block chain for stake mining, in hours or confirmations */
-    nStakeMinTime = (unsigned int)GetArg("-stakemintime", 48);
-    nStakeMinDepth = (unsigned int)GetArg("-stakemindepth", 0);
+    nStakeMinTime = (unsigned int)GetArg("-stakemintime", 24);
+    nStakeMinDepth = (unsigned int)GetArg("-stakemindepth", 1);
 
     /* Reset time if depth is specified */
     if (nStakeMinDepth)

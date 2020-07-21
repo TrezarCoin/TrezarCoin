@@ -595,7 +595,19 @@ double GetPoSKernelPS()
         pindex = pindex->pprev;
     }
 
-    return nStakesTime ? dStakeKernelsTriedAvg / nStakesTime : 0;
+    double result = 0;
+
+    if (nStakesTime)
+        result = dStakeKernelsTriedAvg / nStakesTime;
+
+    {
+        LOCK(cs_main);
+        if (IsColdStakingEnabled(chainActive.Tip(), Params().GetConsensus())) {
+            result *= STAKE_TIMESTAMP_MASK + 1;
+        }
+    }
+
+    return result;
 }
 
 UniValue getstakinginfo(const UniValue& params, bool fHelp)
@@ -605,8 +617,7 @@ UniValue getstakinginfo(const UniValue& params, bool fHelp)
             "getstakinginfo\n"
             "Returns an object containing staking-related information.");
 
-    uint64_t nMinWeight = 0, nMaxWeight = 0, nWeight = 0;
-    pwalletMain->GetStakeWeight(nMinWeight, nMaxWeight, nWeight);
+    uint64_t nWeight = pwalletMain->GetStakeWeight();
 
     uint64_t nNetworkWeight = GetPoSKernelPS();
     bool staking = nLastCoinStakeSearchInterval && nWeight;

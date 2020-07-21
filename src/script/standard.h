@@ -53,6 +53,7 @@ enum txnouttype
     TX_NULL_DATA,
     TX_WITNESS_V0_SCRIPTHASH,
     TX_WITNESS_V0_KEYHASH,
+    TX_COLDSTAKING
 };
 
 class CNoDestination {
@@ -68,7 +69,7 @@ public:
  *  * CScriptID: TX_SCRIPTHASH destination
  *  A CTxDestination is the internal data type encoded in a CBitcoinAddress
  */
-typedef boost::variant<CNoDestination, CKeyID, CScriptID> CTxDestination;
+typedef boost::variant<CNoDestination, CKeyID, CScriptID, std::pair<CKeyID, CKeyID>> CTxDestination;
 
 const char* GetTxnOutputType(txnouttype t);
 

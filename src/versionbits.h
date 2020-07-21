@@ -17,6 +17,9 @@ static const int32_t VERSIONBITS_TOP_MASK = 0xE0000000UL;
 /** Total bits available for versionbits */
 static const int32_t VERSIONBITS_NUM_BITS = 29;
 
+// Activated
+static const int32_t nColdStakingVersionMask = 0x00002000;
+
 enum ThresholdState {
     THRESHOLD_DEFINED,
     THRESHOLD_STARTED,

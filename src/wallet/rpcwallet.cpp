@@ -158,6 +158,47 @@ CBitcoinAddress GetAccountAddress(string strAccount, bool bForceNew=false)
     return CBitcoinAddress(pubKey.GetID());
 }
 
+UniValue getcoldstakingaddress(const UniValue& params, bool fHelp)
+{
+
+    if (fHelp || params.size() != 2)
+        throw runtime_error(
+            "getcoldstakingaddress \"stakingaddress\" \"spendingaddress\"\n"
+            "Returns a coldstaking address based on two address inputs\n"
+            "Arguments:\n"
+            "1. \"stakingaddress\"  (string, required) The staking address.\n"
+            "2. \"spendingaddress\" (string, required) The spending address.\n\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getcoldstakingaddress", "\"mqyGZvLYfEH27Zk3z6JkwJgB1zpjaEHfiW\" \"mrfjgazyerYxDQHJAPDdUcC3jpmi8WZ2uv\"") +
+            "\nAs a json rpc call\n"
+            + HelpExampleRpc("getcoldstakingaddress", "\"mqyGZvLYfEH27Zk3z6JkwJgB1zpjaEHfiW\", \"mrfjgazyerYxDQHJAPDdUcC3jpmi8WZ2uv\"")
+        );
+
+    if (!IsColdStakingEnabled(pindexBestHeader, Params().GetConsensus()))
+        throw runtime_error(
+            "Cold Staking is not active yet.");
+
+    if (params[0].get_str() == params[1].get_str())
+        throw runtime_error(
+            "The staking address should be different to the spending address"
+        );
+
+
+    CBitcoinAddress stakingAddress(params[0].get_str());
+    CKeyID stakingKeyID;
+    if (!stakingAddress.IsValid() || !stakingAddress.GetKeyID(stakingKeyID))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Staking address is not a valid address");
+
+    CBitcoinAddress spendingAddress(params[1].get_str());
+    CKeyID spendingKeyID;
+    if (!spendingAddress.IsValid() || !spendingAddress.GetKeyID(spendingKeyID))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Spending address is not a valid address");
+
+    spendingAddress.GetKeyID(spendingKeyID);
+
+    return CBitcoinAddress(stakingKeyID, spendingKeyID).ToString();
+}
+
 UniValue getaccountaddress(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
@@ -1043,6 +1084,8 @@ public:
 
     bool operator()(const CNoDestination &dest) const { return false; }
 
+    bool operator()(const pair<CKeyID, CKeyID> &dest) const { return false; }
+
     bool operator()(const CKeyID &keyID) {
         CPubKey pubkey;
         if (pwalletMain) {
@@ -1412,6 +1455,10 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
                     entry.push_back(Pair("amount", ValueFromAmount(-nFee)));
                     stop = true; // only one coinstake output
                 }
+                entry.push_back(Pair("canStake", (::IsMine(*pwalletMain, r.destination) & ISMINE_STAKABLE ||
+                                                  (::IsMine(*pwalletMain, r.destination) & ISMINE_SPENDABLE &&
+                                                   !CBitcoinAddress(r.destination).IsColdStakingAddress(Params()))) ? true : false));
+                entry.push_back(Pair("canSpend", (::IsMine(*pwalletMain, r.destination) & ISMINE_SPENDABLE) ? true : false));
                 if (pwalletMain->mapAddressBook.count(r.destination))
                     entry.push_back(Pair("label", account));
                 entry.push_back(Pair("vout", r.vout));
@@ -1456,6 +1503,7 @@ UniValue listtransactions(const UniValue& params, bool fHelp)
             "2. count          (numeric, optional, default=10) The number of transactions to return\n"
             "3. from           (numeric, optional, default=0) The number of transactions to skip\n"
             "4. includeWatchonly (bool, optional, default=false) Include transactions to watchonly addresses (see 'importaddress')\n"
+            "5. includeColdStaking (bool, optional, default=true) Include transactions to cold staking addresses\n"
             "\nResult:\n"
             "[\n"
             "  {\n"
@@ -1517,10 +1565,13 @@ UniValue listtransactions(const UniValue& params, bool fHelp)
     int nFrom = 0;
     if (params.size() > 2)
         nFrom = params[2].get_int();
-    isminefilter filter = ISMINE_SPENDABLE;
+    isminefilter filter = ISMINE_SPENDABLE | ISMINE_STAKABLE;
     if(params.size() > 3)
         if(params[3].get_bool())
             filter = filter | ISMINE_WATCH_ONLY;
+    if(params.size() > 4)
+        if(!params[4].get_bool())
+            filter &= ~ISMINE_WATCH_ONLY;
 
     if (nCount < 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Negative count");
@@ -2331,6 +2382,7 @@ UniValue getwalletinfo(const UniValue& params, bool fHelp)
     UniValue obj(UniValue::VOBJ);
     obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
     obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
+    obj.push_back(Pair("coldstaking_balance",       ValueFromAmount(pwalletMain->GetColdStakingBalance())));
     obj.push_back(Pair("unconfirmed_balance", ValueFromAmount(pwalletMain->GetUnconfirmedBalance())));
     obj.push_back(Pair("immature_balance",    ValueFromAmount(pwalletMain->GetImmatureBalance())));
     obj.push_back(Pair("txcount",       (int)pwalletMain->mapWallet.size()));
@@ -2655,10 +2707,10 @@ int GetsStakeSubTotal(vStakePeriodRange_T& aRange)
         nElement++;
 
         // use the cached amount if available
-        if (pcoin->fCreditCached && pcoin->fDebitCached)
-            nAmount = pcoin->nCreditCached - pcoin->nDebitCached;
+        if ((pcoin->fCreditCached || pcoin->fColdStakingCreditCached) && (pcoin->fDebitCached || pcoin->fColdStakingDebitCached))
+            nAmount = pcoin->nCreditCached  + pcoin->nColdStakingCreditCached - pcoin->nDebitCached - pcoin->nColdStakingDebitCached;
         else
-            nAmount = pcoin->GetCredit(ISMINE_SPENDABLE) - pcoin->GetDebit(ISMINE_SPENDABLE);
+            nAmount = pcoin->GetCredit(ISMINE_SPENDABLE) + pcoin->GetCredit(ISMINE_STAKABLE) - pcoin->GetDebit(ISMINE_SPENDABLE) - pcoin->GetDebit(ISMINE_STAKABLE);
 
 
         // scan the range
@@ -2828,6 +2880,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "getaddressesbyaccount",    &getaddressesbyaccount,    true  },
     { "wallet",             "getbalance",               &getbalance,               false },
     { "wallet",             "getnewaddress",            &getnewaddress,            true  },
+    { "wallet",             "getcoldstakingaddress",    &getcoldstakingaddress,    true  },
     { "wallet",             "getrawchangeaddress",      &getrawchangeaddress,      true  },
     { "wallet",             "getreceivedbyaccount",     &getreceivedbyaccount,     false },
     { "wallet",             "getreceivedbyaddress",     &getreceivedbyaddress,     false },

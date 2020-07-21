@@ -15,7 +15,7 @@
 #include <boost/assign/list_of.hpp>
 
 #include <iostream>
-using namespace std;
+#include <limits>
 
 #include "chainparamsseeds.h"
 
@@ -98,6 +98,9 @@ public:
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000000001");
 
+        // Fork to enable cold staking and remove the block limiter.
+        consensus.coldStakingFork = std::numeric_limits<int>::max();
+
         /**
          * The message start string is designed to be unlikely to occur in normal data.
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
@@ -120,6 +123,7 @@ public:
         vSeeds.push_back(CDNSSeedData("trezarcoin.com", "seed1.trezarcoin.com"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,66);
+        base58Prefixes[COLDSTAKING_ADDRESS] = std::vector<unsigned char>(1,21); // cold staking addresses start with 'X'
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,8);
         base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,194);
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();
@@ -185,6 +189,9 @@ public:
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000000001");
 
+        // Fork to enable cold staking and remove the block limiter.
+        consensus.coldStakingFork = 0;
+
         pchMessageStart[0] = 0xfd;
         pchMessageStart[1] = 0xf2;
         pchMessageStart[2] = 0xf0;
@@ -203,6 +210,7 @@ public:
         vSeeds.push_back(CDNSSeedData("trezarcoin.com", "testnet-seed0.trezarcoin.com"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
+        base58Prefixes[COLDSTAKING_ADDRESS] = std::vector<unsigned char>(1,8); // cold staking addresses start with 'C/D'
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
         base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,239);
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x35)(0x87)(0xCF).convert_to_container<std::vector<unsigned char> >();
@@ -265,6 +273,9 @@ public:
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");
 
+        // Fork to enable cold staking and remove the block limiter.
+        consensus.coldStakingFork = 0;
+
         pchMessageStart[0] = 0xfa;
         pchMessageStart[1] = 0xbf;
         pchMessageStart[2] = 0xb5;
@@ -294,6 +305,7 @@ public:
             0
         };
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
+        base58Prefixes[COLDSTAKING_ADDRESS] = std::vector<unsigned char>(1,63); // cold staking addresses start with 'S'
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
         base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,239);
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x35)(0x87)(0xCF).convert_to_container<std::vector<unsigned char> >();

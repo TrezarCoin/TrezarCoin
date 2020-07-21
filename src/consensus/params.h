@@ -64,6 +64,7 @@ struct Params {
     unsigned int nStakeMaxAge;
     unsigned int nBaseTargetSpacing;
     unsigned int nModifierInterval;
+    int coldStakingFork;
 };
 } // namespace Consensus
 

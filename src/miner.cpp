@@ -66,7 +66,13 @@ public:
 int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev)
 {
     int64_t nOldTime = pblock->nTime;
-    int64_t nNewTime = std::max(pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1, GetAdjustedTime());
+    int64_t nNewTime;
+
+    if (pindexPrev->nHeight + 1 < consensusParams.coldStakingFork) {
+        nNewTime = std::max(pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1, GetAdjustedTime());
+    } else {
+        nNewTime = std::max(pindexPrev->GetMedianTimePast() + 1, GetAdjustedTime());
+    }
 
     if (nOldTime < nNewTime)
         pblock->nTime = nNewTime;
@@ -198,8 +204,12 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn, bo
     // Fill in header
     pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
     if (fProofOfStake) {
-        pblock->nTime          = max((pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1), pblock->GetMaxTransactionTime());
-        pblock->nTime          = max(pblock->GetBlockTime(), PastDrift(pindexPrev->GetBlockTime()));
+        if (!IsColdStakingEnabled(pindexPrev, chainparams.GetConsensus())) {
+            pblock->nTime          = max((pindexPrev->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1), pblock->GetMaxTransactionTime());
+            pblock->nTime          = max(pblock->GetBlockTime(), PastDrift(pindexPrev->GetBlockTime()));
+        } else {
+            pblock->vtx[0].nTime   = pblock->nTime;
+        }
     } else {
         UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
     }
@@ -766,19 +776,40 @@ bool SignBlock(CBlock *pblock, CWallet& wallet, CAmount nStakeReward)
     CTransaction txNew;
     txCoinStake.nTime = GetAdjustedTime();
 
+    bool coldStaking = false;
+    {
+        LOCK(cs_main);
+
+        coldStaking = IsColdStakingEnabled(chainActive.Tip(), Params().GetConsensus());
+        if (coldStaking) {
+            txCoinStake.nTime &= ~STAKE_TIMESTAMP_MASK;
+        }
+    }
+
     int64_t nSearchTime = txCoinStake.nTime; // search to current time
 
     if (nSearchTime > nLastCoinStakeSearchTime)
     {
-        if (wallet.CreateCoinStake(wallet, pblock->nBits, nSearchTime-nLastCoinStakeSearchTime, txCoinStake, key, nStakeReward))
+        int64_t nSearchInterval = coldStaking ? 1 : nSearchTime - nLastCoinStakeSearchTime;
+        if (wallet.CreateCoinStake(wallet, pblock->nBits, nSearchInterval, txCoinStake, key, nStakeReward))
         {
-            if (txCoinStake.nTime >= max(pindexBestHeader->GetMedianTimePast()+ BLOCK_LIMITER_TIME + 1, PastDrift(pindexBestHeader->GetBlockTime())))
+            bool proceed = false;
+            if (!coldStaking) {
+                unsigned int maxTime = std::max(pindexBestHeader->GetMedianTimePast()+ BLOCK_LIMITER_TIME + 1, PastDrift(pindexBestHeader->GetBlockTime()));
+                proceed = txCoinStake.nTime >= maxTime;
+            } else {
+                proceed = txCoinStake.nTime >= chainActive.Tip()->GetBlockTime() + 1;
+            }
+
+            if (proceed)
             {
                 // make sure coinstake would meet timestamp protocol
                 //    as it would be the same as the block timestamp
                 pblock->vtx[0].nTime = pblock->nTime = txCoinStake.nTime;
-                pblock->nTime = max(pindexBestHeader->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1, pblock->GetMaxTransactionTime());
-                pblock->nTime = max(pblock->GetBlockTime(), PastDrift(pindexBestHeader->GetBlockTime()));
+                if (!coldStaking) {
+                    pblock->nTime = max(pindexBestHeader->GetMedianTimePast() + BLOCK_LIMITER_TIME + 1, pblock->GetMaxTransactionTime());
+                    pblock->nTime = max(pblock->GetBlockTime(), PastDrift(pindexBestHeader->GetBlockTime()));
+                }
 
                 // we have to make sure that we have no future timestamps in
                 //    our transactions set
@@ -811,7 +842,7 @@ bool CheckStake(CBlock* pblock, CWallet& wallet, const CChainParams& chainparams
         return error("%s: Not a proof-of-stake block", __func__, hashBlock.GetHex());
 
     // verify hash target and signature of coinstake tx
-    if (!CheckProofOfStake(pblock->vtx[1], pblock->nBits, proofHash, hashTarget, NULL))
+    if (!CheckProofOfStake(mapBlockIndex[pblock->hashPrevBlock], pblock->vtx[1], pblock->nBits, proofHash, hashTarget, NULL))
         return error("%s: proof-of-stake checking failed", __func__);
 
     //// debug print

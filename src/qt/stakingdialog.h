@@ -47,9 +47,10 @@ public Q_SLOTS:
     void setStakingStatus(QString text, bool fStake);
     void setNetworkStats(QString blockheight, QString diffPoW, QString diffPoS);
     void updateStakeReportNow();
-    void updateStakeReportbalanceChanged(qint64, qint64, qint64, qint64, qint64, qint64, qint64);
+    void updateStakeReportbalanceChanged(qint64, qint64, qint64, qint64, qint64, qint64, qint64, qint64);
     void btn_Stake_OnClicked();
     void btn_Stake_OffClicked();
+    void getColdStakingAddress();
 
 private:
     Ui::StakingDialog *ui;

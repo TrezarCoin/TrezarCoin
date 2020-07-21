@@ -37,6 +37,8 @@ public:
 
     void reassignAmounts(int nChangePosRet); // needed for the subtract-fee-from-amount feature
 
+    bool fSpendsColdStaking;
+
 private:
     QList<SendCoinsRecipient> recipients;
     CWalletTx *walletTransaction;
