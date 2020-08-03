@@ -4332,10 +4332,12 @@ bool CWallet::SelectCoinsForStaking(int64_t nTargetValue, set<pair<const CWallet
             /* May be negative (failed transactions) */
             nDepth = pcoin->GetDepthInMainChain();
 
-            /* Discard if the time (depth) requirement is unmet */
+            /* Only use mature coins */
+            if (nDepth < COINBASE_MATURITY)
+                continue;
+
+            /* Discard if the time requirement is unmet */
             if (nStakeMinTime) {
-                if (nDepth < COINBASE_MATURITY)
-                    continue;
                 if (nCurrentTime < (pcoin->nTime + nStakeMinTime * 60 * 60))
                     continue;
             } else {
