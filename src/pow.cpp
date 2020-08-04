@@ -40,10 +40,6 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, bool fProofOfSta
     arith_uint256 bnNew, bnTargetLimit;
     bnTargetLimit.SetCompact(UintToArith256(params.powLimit).GetCompact());
 
-    if (pindexLast->nHeight + 1 >= params.coldStakingFork) {
-        return bnTargetLimit.GetCompact();
-    }
-
     /* The genesis block */
     if (pindexLast == NULL)
         return bnTargetLimit.GetCompact();
