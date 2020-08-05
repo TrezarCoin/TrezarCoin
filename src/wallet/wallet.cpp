@@ -4268,7 +4268,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
     /* Fail if the minimal stake amount not reached */
     if (nCredit < MIN_STAKE_AMOUNT)
-        return error("%s: stake amount below the minimum", __func__);
+        return false;
 
     nCredit += nStakeReward;
 
