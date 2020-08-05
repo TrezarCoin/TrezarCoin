@@ -1612,11 +1612,16 @@ void BitcoinGUI::updateStakingStatus()
     if (fStakeIcon)
     {
         stakeText += QString("<br>");
-        stakeText += tr("Staking enabled for %1 inputs weighing %2 coin days") \
-            .arg(nMinWeightInputs + nAvgWeightInputs + nMaxWeightInputs).arg(nWeight);
-        stakeText += QString("<br>");
-        stakeText += tr("Inputs: %1 min. age, %2 avg. age, %3 max. age") \
-            .arg(nMinWeightInputs).arg(nAvgWeightInputs).arg(nMaxWeightInputs);
+        if (!IsColdStakingEnabled(chainActive.Tip(), Params().GetConsensus())) {
+            stakeText += tr("Staking enabled for %1 inputs with weight %2 coin days") \
+                .arg(nMinWeightInputs + nAvgWeightInputs + nMaxWeightInputs).arg(nWeight);
+            stakeText += QString("<br>");
+            stakeText += tr("Inputs: %1 min. age, %2 avg. age, %3 max. age") \
+                .arg(nMinWeightInputs).arg(nAvgWeightInputs).arg(nMaxWeightInputs);
+        } else {
+            stakeText += tr("Staking enabled with weight %1") \
+                .arg(nWeight);
+        }
     }
 
     stakeText = QString("<nobr>") + stakeText + QString("</nobr>");
