@@ -56,7 +56,7 @@ TrezarMessage::TrezarMessage(const PlatformStyle *platformStyle, QWidget *parent
     connect(timer, &QTimer::timeout, this, &TrezarMessage::checkForNewMessages);
     timer->start(1000);
 
-    ui->user_list->setStyleSheet("QListWidget { background: #fff; color: #000; font-size: 20px; padding: 0px; }"
+    ui->user_list->setStyleSheet("QListWidget { background: #232c41; color: #000; font-size: 20px; padding: 2px; border-radius:10px; }"
                                  "QListWidget::item { border-bottom: 1px solid #999; } "
                                  "QListWidget::item:selected { background: #95bcf2; color: #000; } "
                                  "QToolTip { background: #fff; color: #000; }");
