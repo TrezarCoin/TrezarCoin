@@ -14,9 +14,6 @@
 
 #include <boost/assign/list_of.hpp>
 
-#include <iostream>
-#include <limits>
-
 #include "chainparamsseeds.h"
 
 static CBlock CreateGenesisBlock(const char* pszTimestamp, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward, const std::string strTxComment)
@@ -99,7 +96,7 @@ public:
         consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000000001");
 
         // Fork to enable cold staking and remove the block limiter.
-        consensus.coldStakingFork = std::numeric_limits<int>::max();
+        consensus.coldStakingFork = 1528000;
 
         /**
          * The message start string is designed to be unlikely to occur in normal data.
