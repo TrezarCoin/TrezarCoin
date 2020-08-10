@@ -6654,12 +6654,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
     else {
-        // Ignore unknown commands for extensibility
-        LogPrint("net", "Unknown command \"%s\" from peer=%d\n", SanitizeString(strCommand), pfrom->id);
+        bool found = false;
 #ifdef ENABLE_SMESSAGE
         if (fSecMsgEnabled)
-            SecureMsgReceiveData(pfrom, strCommand, vRecv);
+            SecureMsgReceiveData(pfrom, strCommand, vRecv, found);
 #endif
+        // Ignore unknown commands for extensibility
+        if (!found)
+            LogPrint("net", "Unknown command \"%s\" from peer=%d\n", SanitizeString(strCommand), pfrom->id);
     }
 
 

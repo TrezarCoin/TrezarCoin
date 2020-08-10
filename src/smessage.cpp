@@ -1357,7 +1357,7 @@ bool SecureMsgDisable()
     return true;
 }
 
-bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRecv)
+bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRecv, bool& found)
 {
     /*
         Called from ProcessMessage
@@ -1366,6 +1366,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
 
     if (strCommand == "smsgInv")
     {
+        found = true;
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
 
@@ -1468,6 +1469,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         }
 
     } else if (strCommand == "smsgShow") {
+        found = true;
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
 
@@ -1517,6 +1519,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         }
 
     } else if (strCommand == "smsgHave") {
+        found = true;
         // -- peer has these messages in bucket
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
@@ -1587,6 +1590,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         }
 
     } else if (strCommand == "smsgWant") {
+        found = true;
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
 
@@ -1649,12 +1653,14 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         }
 
     } else if (strCommand == "smsgMsg") {
+        found = true;
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
 
         SecureMsgReceive(pfrom, vchData);
 
     } else if (strCommand == "smsgMatch") {
+        found = true;
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
 
@@ -1678,16 +1684,19 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         }
 
     } else if (strCommand == "smsgPing") {
+        found = true;
         // -- smsgPing is the initial message, send reply
         pfrom->PushMessage("smsgPong");
 
     } else if (strCommand == "smsgPong") {
+        found = true;
         {
             LOCK(pfrom->smsgData.cs_smsg_net);
             pfrom->smsgData.fEnabled = true;
         }
 
     } else if (strCommand == "smsgDisabled") {
+        found = true;
         // -- peer has disabled secure messaging.
         {
             LOCK(pfrom->smsgData.cs_smsg_net);
@@ -1695,6 +1704,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         }
 
     } else if (strCommand == "smsgIgnore") {
+        found = true;
         // -- peer is reporting that it will ignore this node until time.
         //    Ignore peer too
         std::vector<uint8_t> vchData;
@@ -1714,8 +1724,6 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
             pfrom->smsgData.ignoreUntil = time;
         }
 
-    } else {
-        // Unknown message
     }
 
     return true;

@@ -322,7 +322,7 @@ bool SecureMsgStart(bool fDontStart, bool fScanChain);
 bool SecureMsgShutdown();
 bool SecureMsgEnable();
 bool SecureMsgDisable();
-bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRecv);
+bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRecv, bool& found);
 bool SecureMsgSendData(CNode* pto, bool fSendTrickle);
 bool SecureMsgScanBlock(CBlock& block);
 bool ScanChainForPublicKeys(CBlockIndex* pindexStart);
