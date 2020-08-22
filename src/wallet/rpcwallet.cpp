@@ -2682,55 +2682,58 @@ int GetsStakeSubTotal(vStakePeriodRange_T& aRange)
 
     vStakePeriodRange_T::iterator vIt;
 
-    // scan the entire wallet transactions
-    for (map<uint256, CWalletTx>::const_iterator it = pwalletMain->mapWallet.begin();
-         it != pwalletMain->mapWallet.end();
-         ++it)
     {
-        pcoin = &(*it).second;
-
-        // skip orphan block or immature
-        if  ((!pcoin->GetDepthInMainChain()) || (pcoin->GetBlocksToMaturity()>0))
-            continue;
-
-        // skip abandoned transactions
-        if(pcoin->isAbandoned())
-            continue;
-
-        // skip transaction other than POS block
-        if (!(pcoin->IsCoinStake()))
-            continue;
-
-        if(pcoin->isAbandoned())
-            continue;
-
-        nElement++;
-
-        // use the cached amount if available
-        if ((pcoin->fCreditCached || pcoin->fColdStakingCreditCached) && (pcoin->fDebitCached || pcoin->fColdStakingDebitCached))
-            nAmount = pcoin->nCreditCached  + pcoin->nColdStakingCreditCached - pcoin->nDebitCached - pcoin->nColdStakingDebitCached;
-        else
-            nAmount = pcoin->GetCredit(ISMINE_SPENDABLE) + pcoin->GetCredit(ISMINE_STAKABLE) - pcoin->GetDebit(ISMINE_SPENDABLE) - pcoin->GetDebit(ISMINE_STAKABLE);
-
-
-        // scan the range
-        for(vIt=aRange.begin(); vIt != aRange.end(); vIt++)
+        LOCK2(cs_main, pwalletMain->cs_wallet);
+        // scan the entire wallet transactions
+        for (map<uint256, CWalletTx>::const_iterator it = pwalletMain->mapWallet.begin();
+             it != pwalletMain->mapWallet.end();
+             ++it)
         {
-            if (pcoin->nTime >= vIt->Start)
+            pcoin = &(*it).second;
+
+            // skip orphan block or immature
+            if  ((!pcoin->GetDepthInMainChain()) || (pcoin->GetBlocksToMaturity()>0))
+                continue;
+
+            // skip abandoned transactions
+            if(pcoin->isAbandoned())
+                continue;
+
+            // skip transaction other than POS block
+            if (!(pcoin->IsCoinStake()))
+                continue;
+
+            if(pcoin->isAbandoned())
+                continue;
+
+            nElement++;
+
+            // use the cached amount if available
+            if ((pcoin->fCreditCached || pcoin->fColdStakingCreditCached) && (pcoin->fDebitCached || pcoin->fColdStakingDebitCached))
+                nAmount = pcoin->nCreditCached  + pcoin->nColdStakingCreditCached - pcoin->nDebitCached - pcoin->nColdStakingDebitCached;
+            else
+                nAmount = pcoin->GetCredit(ISMINE_SPENDABLE) + pcoin->GetCredit(ISMINE_STAKABLE) - pcoin->GetDebit(ISMINE_SPENDABLE) - pcoin->GetDebit(ISMINE_STAKABLE);
+
+
+            // scan the range
+            for(vIt=aRange.begin(); vIt != aRange.end(); vIt++)
             {
-                if (! vIt->End)
-                {   // Manage Special case
-                    vIt->Start = pcoin->nTime;
-                    vIt->Total = nAmount;
-                }
-                else if (pcoin->nTime <= vIt->End)
+                if (pcoin->nTime >= vIt->Start)
                 {
-                    vIt->Count++;
-                    vIt->Total += nAmount;
+                    if (! vIt->End)
+                    {   // Manage Special case
+                        vIt->Start = pcoin->nTime;
+                        vIt->Total = nAmount;
+                    }
+                    else if (pcoin->nTime <= vIt->End)
+                    {
+                        vIt->Count++;
+                        vIt->Total += nAmount;
+                    }
                 }
             }
-        }
 
+        }
     }
 
     return nElement;
