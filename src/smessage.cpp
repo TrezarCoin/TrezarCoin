@@ -714,7 +714,7 @@ void ThreadSecureMsg()
         {
             LOCK(cs_smsg);
 
-            for (std::map<int64_t, SecMsgBucket>::iterator it(smsgBuckets.begin()); it != smsgBuckets.end(); it++)
+            for (std::map<int64_t, SecMsgBucket>::iterator it(smsgBuckets.begin()); it != smsgBuckets.end();)
             {
                 if (it->first < cutoffTime)
                 {
@@ -743,7 +743,8 @@ void ThreadSecureMsg()
                         }
                     }
 
-                    smsgBuckets.erase(it);
+                    smsgBuckets.erase(it++);
+                    continue;
                 } else if (it->second.nLockCount > 0) {
                     it->second.nLockCount--;
 
@@ -754,6 +755,7 @@ void ThreadSecureMsg()
                         it->second.nLockPeerId = 0;
                     }
                 }
+                ++it;
             }
         }
 
