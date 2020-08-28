@@ -798,6 +798,7 @@ bool SignBlock(CBlock *pblock, CWallet& wallet, CAmount nStakeReward)
                 unsigned int maxTime = std::max(pindexBestHeader->GetMedianTimePast()+ BLOCK_LIMITER_TIME + 1, PastDrift(pindexBestHeader->GetBlockTime()));
                 proceed = txCoinStake.nTime >= maxTime;
             } else {
+                LOCK(cs_main);
                 proceed = txCoinStake.nTime >= chainActive.Tip()->GetBlockTime() + 1;
             }
 
