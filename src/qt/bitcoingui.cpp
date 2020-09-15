@@ -892,11 +892,9 @@ void BitcoinGUI::gotoOverviewPage()
     historyAction->setIcon(QIcon(":/icons/history"));
     optionPageAction->setIcon(QIcon(":/icons/settings"));
 
-#ifdef ENABLE_WALLET
 #ifdef ENABLE_SMESSAGE
     trezarMessageAction->setIcon(QIcon(":/icons/send"));
 #endif // ENABLE_SMESSAGE
-#endif // ENABLE_WALLET
 
     if (walletFrame) walletFrame->gotoOverviewPage();
 }
@@ -911,11 +909,9 @@ void BitcoinGUI::gotoHistoryPage()
     stakingAction->setIcon(QIcon(":/icons/staking_off"));
     optionPageAction->setIcon(QIcon(":/icons/settings"));
 
-#ifdef ENABLE_WALLET
 #ifdef ENABLE_SMESSAGE
     trezarMessageAction->setIcon(QIcon(":/icons/send"));
 #endif // ENABLE_SMESSAGE
-#endif // ENABLE_WALLET
 
     if (walletFrame) walletFrame->gotoHistoryPage();
 }
@@ -935,11 +931,9 @@ void BitcoinGUI::gotoReceiveCoinsPage()
     historyAction->setIcon(QIcon(":/icons/history"));
     optionPageAction->setIcon(QIcon(":/icons/settings"));
 
-#ifdef ENABLE_WALLET
 #ifdef ENABLE_SMESSAGE
     trezarMessageAction->setIcon(QIcon(":/icons/send"));
 #endif // ENABLE_SMESSAGE
-#endif // ENABLE_WALLET
 
     if (walletFrame) walletFrame->gotoReceiveCoinsPage();
 }
@@ -954,11 +948,9 @@ void BitcoinGUI::gotoSendCoinsPage(QString addr)
     historyAction->setIcon(QIcon(":/icons/history"));
     optionPageAction->setIcon(QIcon(":/icons/settings"));
 
-#ifdef ENABLE_WALLET
 #ifdef ENABLE_SMESSAGE
     trezarMessageAction->setIcon(QIcon(":/icons/send"));
 #endif // ENABLE_SMESSAGE
-#endif // ENABLE_WALLET
 
     if (walletFrame) walletFrame->gotoSendCoinsPage(addr);
 }
@@ -983,11 +975,9 @@ void BitcoinGUI::gotoStakingPage()
     historyAction->setIcon(QIcon(":/icons/history"));
     optionPageAction->setIcon(QIcon(":/icons/settings"));
 
-#ifdef ENABLE_WALLET
 #ifdef ENABLE_SMESSAGE
     trezarMessageAction->setIcon(QIcon(":/icons/send"));
 #endif // ENABLE_SMESSAGE
-#endif // ENABLE_WALLET
 
     if (walletFrame) walletFrame->gotoStakingPage();
 }
@@ -1002,11 +992,9 @@ void BitcoinGUI::gotoTrezarMessage()
     historyAction->setIcon(QIcon(":/icons/history"));
     optionPageAction->setIcon(QIcon(":/icons/settings"));
 
-#ifdef ENABLE_WALLET
 #ifdef ENABLE_SMESSAGE
     trezarMessageAction->setIcon(QIcon(":/icons/send"));
 #endif // ENABLE_SMESSAGE
-#endif // ENABLE_WALLET
 
     if (walletFrame) walletFrame->gotoTrezarMessage();
 }
@@ -1021,11 +1009,9 @@ void BitcoinGUI::gotoSettingsPage()
     stakingAction->setIcon(QIcon(":/icons/staking_off"));
     historyAction->setIcon(QIcon(":/icons/history"));
 
-#ifdef ENABLE_WALLET
 #ifdef ENABLE_SMESSAGE
     trezarMessageAction->setIcon(QIcon(":/icons/send"));
 #endif // ENABLE_SMESSAGE
-#endif // ENABLE_WALLET
 
     if (walletFrame) walletFrame->gotoSettingsPage();
 }
