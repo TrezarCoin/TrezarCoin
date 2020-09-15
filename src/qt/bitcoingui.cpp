@@ -388,7 +388,7 @@ void BitcoinGUI::createActions()
     trezarMessageAction->setStatusTip(tr("Send Messages"));
     trezarMessageAction->setToolTip(trezarMessageAction->statusTip());
     trezarMessageAction->setCheckable(true);
-    historyAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
+    trezarMessageAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(trezarMessageAction);
 #endif // ENABLE_SMESSAGE
 #endif // ENABLE_WALLET
