@@ -93,7 +93,7 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1569888000; // 1 October 2019
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000000001");
+        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000017eac237034dfba7");
 
         // Fork to enable cold staking and remove the block limiter.
         consensus.coldStakingFork = 1528000;
@@ -136,11 +136,11 @@ public:
 
         checkpointData = (CCheckpointData) {
             boost::assign::map_list_of
-            ( 10, uint256S("0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d")),
-            1504462041, // * UNIX timestamp of last checkpoint block
-            11,   // * total number of transactions between genesis and last checkpoint
+            ( 1533621, uint256S("0x836537a43fb2045952e42641e78cb1c4f6495a33102d32b15384ab0c7e09adff")),
+            1600268609, // * UNIX timestamp of last checkpoint block
+            2806692,   // * total number of transactions between genesis and last checkpoint
                         //   (the tx=... number in the SetBestChain debug.log lines)
-            0.001     // * estimated number of transactions per day after checkpoint
+            2525.985725897     // * estimated number of transactions per day after checkpoint
         };
     }
 };
