@@ -204,6 +204,11 @@ bool CheckSyncCheckpoint(const uint256 hashBlock, const int nHeight, const CBloc
     const CBlockIndex* pindexSync;
     {
         LOCK2(cs_main, cs_hashSyncCheckpoint);
+        // Should never happen, log info before crash!
+        if (!mapBlockIndex.count(hashSyncCheckpoint)) {
+            LogPrintf("%s: hashSyncCheckpoint %s hashBlock %s nHeight %d pindexPrev %s\n", __func__,
+                      hashSyncCheckpoint.ToString(), hashBlock.ToString(), nHeight, pindexPrev ? pindexPrev->ToString() : "null");
+        }
         // sync-checkpoint should always be accepted block
         assert(mapBlockIndex.count(hashSyncCheckpoint));
         pindexSync = mapBlockIndex[hashSyncCheckpoint];
