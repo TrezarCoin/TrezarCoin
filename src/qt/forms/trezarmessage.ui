@@ -134,7 +134,7 @@ font-size: 20px;
                </spacer>
               </item>
               <item>
-               <widget class="QPushButton" name="pushButtonGetAddress">
+               <widget class="QPushButton" name="choose_address">
                 <property name="styleSheet">
                  <string notr="true">QPushButton::pressed{
   background-color: #232c41;
@@ -150,12 +150,12 @@ margin:8px
 }</string>
                 </property>
                 <property name="text">
-                 <string>Address</string>
+                 <string>Sending Address</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="pushButtonAddContact">
+               <widget class="QPushButton" name="get_address">
                 <property name="styleSheet">
                  <string notr="true">QPushButton::pressed{
   background-color: #232c41;
@@ -171,7 +171,7 @@ margin:8px
 }</string>
                 </property>
                 <property name="text">
-                 <string>Add Contact</string>
+                 <string>Share Address</string>
                 </property>
                </widget>
               </item>
@@ -236,15 +236,43 @@ margin:8px
                   </property>
                   <item>
                    <widget class="QListWidget" name="user_list">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>300</width>
+                      <height>0</height>
+                     </size>
+                    </property>
                     <property name="styleSheet">
                      <string notr="true">background:#232c41;
 padding:2px;
 border-radius:10px;</string>
                     </property>
-                    <property name="editTriggers">
-                     <set>QAbstractItemView::NoEditTriggers</set>
+                    <property name="contextMenuPolicy">
+                     <enum>Qt::CustomContextMenu</enum>
+                    </property>
+                    <property name="dragEnabled">
+                     <bool>true</bool>
                     </property>
                     <property name="sortingEnabled">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="add_contact">
+                    <property name="styleSheet">
+                     <string notr="true">QPushButton{background: #2d374f;padding: 6px;border-radius:0px;border: 1px solid gray;}QPushButton:pressed{background-color:#232c41;}</string>
+                    </property>
+                    <property name="text">
+                     <string>Add New Contact</string>
+                    </property>
+                    <property name="flat">
                      <bool>true</bool>
                     </property>
                    </widget>
@@ -289,20 +317,54 @@ border-radius:10px;</string>
                    <number>0</number>
                   </property>
                   <item>
-                   <spacer name="verticalSpacer_3">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
+                   <widget class="QWidget" name="conversation_controls_widget" native="true">
+                    <property name="styleSheet">
+                     <string notr="true">QPushButton{background: lightgray;padding: 9px;border-radius:0px;border: 1px solid gray;}QPushButton:pressed{background-color:#b0b0b0;}</string>
                     </property>
-                    <property name="sizeType">
-                     <enum>QSizePolicy::Fixed</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>5</height>
-                     </size>
-                    </property>
-                   </spacer>
+                    <layout class="QHBoxLayout" name="conversation_controls">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QPushButton" name="clear_conversation">
+                       <property name="styleSheet">
+                        <string notr="true"/>
+                       </property>
+                       <property name="text">
+                        <string>Clear Conversation</string>
+                       </property>
+                       <property name="flat">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="remove_contact">
+                       <property name="styleSheet">
+                        <string notr="true">color: red;</string>
+                       </property>
+                       <property name="text">
+                        <string>Remove Contact</string>
+                       </property>
+                       <property name="flat">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
                   </item>
                   <item>
                    <widget class="QListWidget" name="message_widget">
