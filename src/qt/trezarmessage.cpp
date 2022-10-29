@@ -18,6 +18,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QPainter>
+#include <QPainterPath>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSettings>
